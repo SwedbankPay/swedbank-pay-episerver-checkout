@@ -85,8 +85,8 @@
     <Reference Include="EPiServer.Web.WebControls, Version=11.10.6.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
       <HintPath>..\..\demo\packages\EPiServer.CMS.AspNet.11.10.6\lib\net461\EPiServer.Web.WebControls.dll</HintPath>
     </Reference>
-    <Reference Include="ISO3166">
-      <HintPath>..\..\demo\Sources\EPiServer.Reference.Commerce.Site\Bin\ISO3166.dll</HintPath>
+    <Reference Include="ISO3166, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\ISO3166.1.0.1\lib\net20\ISO3166.dll</HintPath>
     </Reference>
     <Reference Include="Mediachase.BusinessFoundation, Version=12.14.0.0, Culture=neutral, PublicKeyToken=41d2e7a615ba286c, processorArchitecture=MSIL">
       <HintPath>..\..\demo\packages\EPiServer.Commerce.Core.12.14.0\lib\net461\Mediachase.BusinessFoundation.dll</HintPath>
