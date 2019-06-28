@@ -1,0 +1,154 @@
+﻿@model EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods.PayExCheckoutPaymentMethod
+@{
+	var containerId = Guid.NewGuid();
+}
+@Html.HiddenFor(x => x.SystemKeyword)
+
+<h3>Payex</h3>
+
+<div id="payex-checkout">
+	@if (Model.CheckoutConfiguration.UseAnonymousCheckout || Model.UseCheckoutSource)
+	{
+		<div id="paymentMenuFrame">
+			<div id="payex-paymentmenu-@containerId">
+
+			</div>
+		</div>
+	}
+	else
+	{
+		<div>
+			<div id="payex-consumer-@containerId">
+
+			</div>
+		</div>
+
+		<div id="paymentMenuFrame" hidden>
+			<div id="payex-paymentmenu-@containerId">
+
+			</div>
+		</div>
+	}
+</div>
+
+<script src="@(Model.JavascriptSource)"></script>
+
+<script type="text/javascript">
+	var style = {
+		body: {
+			backgroundColor: "#555",
+			color: "#bbb"
+		},
+		button: {
+			backgroundColor: "#36ac4c",
+			color: "#fff"
+		},
+		secondaryButton: {
+			backgroundColor: "#555",
+			border: "solid 1px #bbb"
+		},
+		formGroup: {
+			color: "#bbb",
+			backgroundColor: "#555"
+		},
+		label: {
+			color: "#bbb"
+		}
+	};
+
+	var config1 = {
+		container: 'payex-paymentmenu-@containerId',
+		culture: '@Culture',
+		style: style,
+		onPaymentCreated: onCreatedPaymentHandler
+	};
+
+	function onCreatedPaymentHandler(paymentCreatedEvent) {
+		console.log(paymentCreatedEvent);
+		var form = $('.jsCheckoutForm');
+		var data = form.serializeArray();
+		data.push({ name: "instrument", value: paymentCreatedEvent.instrument });
+		$.ajax({
+			async: false,
+			type: "POST",
+			cache: false,
+			url: $(form).data('addpaymentinfourl'),
+			data: data,
+			success: function(result) {
+				console.log('payment created');
+			}
+		});
+		console.log('address saved');
+	}
+</script>
+
+
+@if (Model.CheckoutConfiguration.UseAnonymousCheckout || Model.UseCheckoutSource)
+{
+	<script type="text/javascript">
+		payex.hostedView.paymentMenu(config1).open()
+	</script>
+}
+else
+{
+	<script type="text/javascript">
+		var paymentMenuConfig = {
+			container: "payex-consumer-@containerId",
+			culture: '@Culture',
+			style: style,
+			onConsumerIdentified: onIdentifiedConsumerHandler,
+			onShippingDetailsAvailable: onShippingDetailsAvailableHandler
+		};
+
+		function onShippingDetailsAvailableHandler(data) {
+			console.log(data);
+			var request = new XMLHttpRequest();
+
+			request.addEventListener('load', function() {
+				var response = JSON.parse(this.responseText);
+				console.log(response);
+				var shippingAddress = response.ShippingAddress;
+				$('#BillingAddress_Email').val(response.Email);
+				$('#BillingAddress_FirstName').val(shippingAddress.Addressee);
+				$('#BillingAddress_LastName').val(shippingAddress.Addressee);
+				$('#BillingAddress_Line1').val(shippingAddress.StreetAddress);
+				$('#BillingAddress_PostalCode').val(shippingAddress.ZipCode);
+				$('#BillingAddress_City').val(shippingAddress.City);
+				$('#BillingAddress_CountryCode').val(shippingAddress.CountryCode);
+
+			});
+			request.open('POST', '@Url.Action("GetPayExShippingDetails", "PayExCheckout", null)', true);
+			request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+			request.send(JSON.stringify(data));
+		}
+
+		function onIdentifiedConsumerHandler(data) {
+			var paymentMenuFrame = document.getElementById("paymentMenuFrame");
+			paymentMenuFrame.removeAttribute("hidden");
+
+			var request = new XMLHttpRequest();
+			request.addEventListener('load', function () {
+
+				var response = JSON.parse(this.responseText);
+
+				var script = document.createElement('script');
+				// This assumses the operations from the response of the POST of the
+				// payment order is returned verbatim from the server to the Ajax:
+				var operation = response.Operations.find(o => o.Rel === 'view-paymentorder');
+				script.setAttribute('src', operation.Href);
+				script.onload = function() {
+					// When the 'view-paymentorder' script is loaded, we can initialize the payment
+					// menu inside our 'checkin' container.
+					payex.hostedView.paymentMenu(config1).open();
+				};
+				var head = document.getElementsByTagName('head')[0];
+				head.appendChild(script);
+			});
+			request.open('POST', '@Url.Action("CreatePayExPurchase", "Checkout", null)', true);
+			request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+			request.send(JSON.stringify(data));
+		}
+
+		payex.hostedView.consumer(paymentMenuConfig).open();
+	</script>
+}

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>PayEx.Net.Api</id>
+    <version>$version$</version>
+    <title>PayEx Net Api</title>
+    <authors>Authority AB</authors>
+    <owners />
+    <iconUrl>http://nuget.episerver.com/Framework/Styles/images/icons/default_package_icon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Api wrapper for PayEx Checkout integration</description>
+    <tags>PaymentProvider</tags>
+    <dependencies>
+      <dependency id="RestSharp" version="[106.6.6,)" />
+      <dependency id="Newtonsoft.Json" version="[9.0.1, 12.0.0)" />
+    </dependencies>
+  </metadata>
+</package>

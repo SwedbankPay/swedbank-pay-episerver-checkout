@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8E3481E0-8017-4202-9AEB-EE413C049655}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>PayEx.Checkout.Episerver.OrderManagement</RootNamespace>
+    <AssemblyName>PayEx.Checkout.Episerver.OrderManagement</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AjaxControlToolkit, Version=3.0.30930.28736, Culture=neutral, PublicKeyToken=28f01b0e84b6d53e, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Commerce.Core.12.0.0\lib\net461\AjaxControlToolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <HintPath>..\packages\Castle.Core.4.2.1\lib\net45\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Windsor, Version=4.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <HintPath>..\packages\Castle.Windsor.4.1.0\lib\net45\Castle.Windsor.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.CMS.Core.11.4.0\lib\net461\EPiServer.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.ApplicationModules, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Framework.11.4.0\lib\net461\EPiServer.ApplicationModules.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.Business.Commerce, Version=12.0.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Commerce.Core.12.0.0\lib\net461\EPiServer.Business.Commerce.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.Cms.AspNet, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.CMS.AspNet.11.4.0\lib\net461\EPiServer.Cms.AspNet.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.Configuration, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.CMS.AspNet.11.4.0\lib\net461\EPiServer.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.Data, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Framework.11.4.0\lib\net461\EPiServer.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.Data.Cache, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Framework.11.4.0\lib\net461\EPiServer.Data.Cache.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.Enterprise, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.CMS.Core.11.4.0\lib\net461\EPiServer.Enterprise.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.Events, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Framework.11.4.0\lib\net461\EPiServer.Events.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.Framework, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Framework.11.4.0\lib\net461\EPiServer.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.Framework.AspNet, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Framework.AspNet.11.4.0\lib\net461\EPiServer.Framework.AspNet.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.ImageLibrary, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.CMS.AspNet.11.4.0\lib\net461\EPiServer.ImageLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.Licensing, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Framework.11.4.0\lib\net461\EPiServer.Licensing.dll</HintPath>
+    </Reference>
+    <Reference Include="EPiServer.LinkAnalyzer, Version=11.4.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.CMS.Core.11.4.0\lib\net461\EPiServer.LinkAnalyzer.dll</HintPath>
+    </Reference>
+    <Reference Include="Mediachase.BusinessFoundation, Version=12.0.0.0, Culture=neutral, PublicKeyToken=41d2e7a615ba286c, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Commerce.Core.12.0.0\lib\net461\Mediachase.BusinessFoundation.dll</HintPath>
+    </Reference>
+    <Reference Include="Mediachase.BusinessFoundation.Data, Version=12.0.0.0, Culture=neutral, PublicKeyToken=41d2e7a615ba286c, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Commerce.Core.12.0.0\lib\net461\Mediachase.BusinessFoundation.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Mediachase.Commerce, Version=12.0.0.0, Culture=neutral, PublicKeyToken=6e58b501b34abce3, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Commerce.Core.12.0.0\lib\net461\Mediachase.Commerce.dll</HintPath>
+    </Reference>
+    <Reference Include="Mediachase.Commerce.Website, Version=12.0.0.0, Culture=neutral, PublicKeyToken=6e58b501b34abce3, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Commerce.Core.12.0.0\lib\net461\Mediachase.Commerce.Website.dll</HintPath>
+    </Reference>
+    <Reference Include="Mediachase.DataProvider, Version=12.0.0.0, Culture=neutral, PublicKeyToken=41d2e7a615ba286c, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Commerce.Core.12.0.0\lib\net461\Mediachase.DataProvider.dll</HintPath>
+    </Reference>
+    <Reference Include="Mediachase.MetaDataPlus, Version=12.0.0.0, Culture=neutral, PublicKeyToken=41d2e7a615ba286c, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Commerce.Core.12.0.0\lib\net461\Mediachase.MetaDataPlus.dll</HintPath>
+    </Reference>
+    <Reference Include="Mediachase.Search, Version=12.0.0.0, Culture=neutral, PublicKeyToken=6e58b501b34abce3, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Commerce.Core.12.0.0\lib\net461\Mediachase.Search.dll</HintPath>
+    </Reference>
+    <Reference Include="Mediachase.Search.Extensions, Version=12.0.0.0, Culture=neutral, PublicKeyToken=6e58b501b34abce3, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPiServer.Commerce.Core.12.0.0\lib\net461\Mediachase.Search.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.OracleClient" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Threading.Tasks.Dataflow, Version=4.5.24.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Tpl.Dataflow.4.5.24\lib\portable-net45+win8+wpa81\System.Threading.Tasks.Dataflow.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Mvc, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.5.2.3\lib\net45\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Razor.3.2.3\lib\net45\System.Web.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Events\OrderCancelledEvent.cs" />
+    <Compile Include="Extensions\PaymentExtensions.cs" />
+    <Compile Include="Initalization\OrderInitalization.cs" />
+    <Compile Include="IPayExOrderService.cs" />
+    <Compile Include="OrderOperations.cs" />
+    <Compile Include="PayExOrderService.cs" />
+    <Compile Include="PayExOrderServiceFactory.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Steps\AuthorizePaymentStep.cs" />
+    <Compile Include="Steps\AuthorizePaymentStepBase.cs" />
+    <Compile Include="Steps\CancelPaymentStep.cs" />
+    <Compile Include="Steps\CapturePaymentStep.cs" />
+    <Compile Include="Steps\CreditPaymentStep.cs" />
+    <Compile Include="Steps\PaymentStep.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="PayEx.Checkout.Episerver.OrderManagement.nuspec" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PayEx.Checkout.Episerver.Common\PayEx.Checkout.Episerver.Common.csproj">
+      <Project>{D773B6A3-EE81-40AA-B585-4F0D164ADE97}</Project>
+      <Name>PayEx.Checkout.Episerver.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PayEx.Net.Api\PayEx.Net.Api.csproj">
+      <Project>{36CB67B9-904D-490B-9BC8-986F308AB2A1}</Project>
+      <Name>PayEx.Net.Api</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
