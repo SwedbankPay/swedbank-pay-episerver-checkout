@@ -152,7 +152,6 @@
 							</td>
 							<td class="FormFieldCell">
 								<asp:TextBox runat="server" ID="txtCallbackUrl" CssClass="payexpayment-parameters-url" />
-								<asp:RequiredFieldValidator ID="requiredCallbackUrl" runat="server" ControlToValidate="txtCallbackUrl" ErrorMessage="Callback URL is required." />
 							</td>
 						</tr>
 						<tr>
