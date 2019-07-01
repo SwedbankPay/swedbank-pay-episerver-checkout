@@ -41,6 +41,8 @@ namespace EPiServer.Reference.Commerce.Site.Tests.TestSupport.Fakes
 
         public Hashtable Properties { get; private set; }
 
+        public IOrderGroup ParentOrderGroup { get; set; }
+
         public static FakeShipment CreatShipment(int id, IOrderAddress orderAddress, decimal discount, IList<ILineItem> items, string shippingMethodIdString = null, Hashtable properties = null)
         {
             return new FakeShipment

@@ -42,6 +42,8 @@ namespace EPiServer.Reference.Commerce.Site.Tests.TestSupport.Fakes
 
         public Hashtable Properties { get; private set; }
 
+        public IOrderGroup ParentOrderGroup { get; set; }
+
         decimal ILineItemDiscountAmount.EntryAmount
         {
             get
