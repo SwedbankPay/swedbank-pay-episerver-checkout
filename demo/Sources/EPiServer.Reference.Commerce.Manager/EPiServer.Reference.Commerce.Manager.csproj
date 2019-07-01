@@ -417,6 +417,7 @@
     <Content Include="EPiServerFramework.config" />
     <Content Include="EPiServerLog.config" />
     <Content Include="EPiServerFramework.Dev.config" />
+    <Content Include="EPiServerFramework.Uat.config" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
