@@ -418,6 +418,8 @@
     <Content Include="EPiServerLog.config" />
     <Content Include="EPiServerFramework.Dev.config" />
     <Content Include="EPiServerFramework.Uat.config" />
+    <Content Include="EPiServerFramework.Tst.config" />
+    <Content Include="EPiServerFramework.Pro.config" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
