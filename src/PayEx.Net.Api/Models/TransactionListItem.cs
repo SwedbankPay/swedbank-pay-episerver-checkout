@@ -15,7 +15,13 @@ namespace PayEx.Net.Api.Models
 		public int VatAmount { get; set; }
 		public string Description { get; set; }
 		public string PayeeReference { get; set; }
-		public bool IsOperational { get; set; }
+        public string FailedReason { get; set; }
+        public string FailedActivityName { get; set; }
+        public string FailedErrorCode { get; set; }
+        public string FailedErrorDescription { get; set; }
+        public bool IsOperational { get; set; }
+
+        public IEnumerable<Error> Problem { get; set; }
 		public IEnumerable<Operation> Operations { get; set; }
 	}
 }
