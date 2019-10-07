@@ -5,7 +5,6 @@
     using Mediachase.Commerce.Orders.Dto;
     using Mediachase.Commerce.Orders.Managers;
     using PayEx.Checkout.Episerver.Common.Extensions;
-    using PayEx.Net.Api.Exceptions;
     using System;
     using System.Linq;
     using System.Net;
@@ -14,17 +13,17 @@
     {
         protected PaymentStep Successor;
         protected PaymentMethodDto PaymentMethod { get; set; }
-        public IPayExOrderService PayExOrderService { get; }
+        public ISwedbankPayOrderService SwedbankPayOrderService { get; }
         public MarketId MarketId { get; }
 
-        public PaymentStep(IPayment payment, MarketId marketId, PayExOrderServiceFactory payExOrderServiceFactory)
+        public PaymentStep(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory)
         {
             MarketId = marketId;
             PaymentMethod = PaymentManager.GetPaymentMethod(payment.PaymentMethodId);
             
             if(PaymentMethod != null)
             {
-                PayExOrderService = payExOrderServiceFactory.Create(PaymentMethod.GetConnectionConfiguration(marketId));
+                SwedbankPayOrderService = swedbankPayOrderServiceFactory.Create(PaymentMethod.GetConnectionConfiguration(marketId));
             }
         }
 
@@ -45,21 +44,22 @@
 
         protected string GetExceptionMessage(Exception ex)
         {
-            var exceptionMessage = string.Empty;
-            switch (ex)
-            {
-                case PayExException apiException:
-                
-                    exceptionMessage =
-                        $"{apiException.Error.Instance}" +
-                        $"{apiException.ErrorCode} " +
-                        $"{string.Join(", ", apiException.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}";
-                    break;
-                case WebException webException:
-                    exceptionMessage = webException.Message;
-                    break;
-            }
-            return exceptionMessage;
+            return string.Empty; //TODO swed
+            //var exceptionMessage = string.Empty;
+            //switch (ex)
+            //{
+            //    case PayExException apiException:
+
+            //        exceptionMessage =
+            //            $"{apiException.Error.Instance}" +
+            //            $"{apiException.ErrorCode} " +
+            //            $"{string.Join(", ", apiException.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}";
+            //        break;
+            //    case WebException webException:
+            //        exceptionMessage = webException.Message;
+            //        break;
+            //}
+            //return exceptionMessage;
         }
     }
 }

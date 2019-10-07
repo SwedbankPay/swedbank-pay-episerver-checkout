@@ -1,6 +1,8 @@
 ﻿namespace PayEx.Checkout.Episerver.Controllers
 {
     using PayEx.Checkout.Episerver.Helpers;
+
+    using System.Threading.Tasks;
     using System.Web.Mvc;
 
     public class PayExCheckoutController : Controller

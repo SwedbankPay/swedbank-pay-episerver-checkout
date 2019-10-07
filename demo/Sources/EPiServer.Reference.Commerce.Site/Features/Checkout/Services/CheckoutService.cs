@@ -1,29 +1,32 @@
-﻿using EPiServer.Commerce.Order;
-using EPiServer.Core;
-using EPiServer.Framework.Localization;
-using EPiServer.Logging;
-using EPiServer.Reference.Commerce.Shared.Services;
-using EPiServer.Reference.Commerce.Site.Features.AddressBook.Services;
-using EPiServer.Reference.Commerce.Site.Features.Cart.Services;
-using EPiServer.Reference.Commerce.Site.Features.Cart.ViewModels;
-using EPiServer.Reference.Commerce.Site.Features.Checkout.Pages;
-using EPiServer.Reference.Commerce.Site.Features.Checkout.ViewModels;
-using EPiServer.Reference.Commerce.Site.Features.Start.Pages;
-using EPiServer.Reference.Commerce.Site.Infrastructure.Facades;
-using Mediachase.Commerce.Orders;
-using Mediachase.Commerce.Orders.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Globalization;
-using System.Linq;
-using System.Web.Mvc;
-
-namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
+﻿namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
 {
+    using EPiServer.Commerce.Order;
+    using EPiServer.Core;
+    using EPiServer.Framework.Localization;
+    using EPiServer.Logging;
+    using EPiServer.Reference.Commerce.Shared.Services;
+    using EPiServer.Reference.Commerce.Site.Features.AddressBook.Services;
+    using EPiServer.Reference.Commerce.Site.Features.Cart.Services;
+    using EPiServer.Reference.Commerce.Site.Features.Cart.ViewModels;
+    using EPiServer.Reference.Commerce.Site.Features.Checkout.Pages;
+    using EPiServer.Reference.Commerce.Site.Features.Checkout.ViewModels;
+    using EPiServer.Reference.Commerce.Site.Features.Start.Pages;
+    using EPiServer.Reference.Commerce.Site.Infrastructure.Facades;
+
+    using Mediachase.Commerce.Orders;
+    using Mediachase.Commerce.Orders.Exceptions;
+
     using PayEx.Checkout.Episerver;
     using PayEx.Checkout.Episerver.Common;
-    using PayEx.Net.Api.Models;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.Specialized;
+    using System.Globalization;
+    using System.Linq;
+    using System.Web.Mvc;
+    using SwedbankPay.Client.Models.Response;
+
 
     public class CheckoutService
     {
@@ -239,7 +242,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
             }
         }
 
-        public IPurchaseOrder CreatePurchaseOrderForPayEx(string orderRef, PaymentOrderResponseObject order, ICart cart)
+        public IPurchaseOrder CreatePurchaseOrderForPayEx(string orderRef, PaymentOrderResponseContainer order, ICart cart)
         {
             cart.ProcessPayments(_paymentProcessor, _orderGroupCalculator);
             

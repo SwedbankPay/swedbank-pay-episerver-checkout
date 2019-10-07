@@ -449,10 +449,6 @@
       <Project>{9588675b-3d10-4f5c-a0d3-5260734e821b}</Project>
       <Name>PayEx.Checkout.Episerver</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\src\PayEx.Net.Api\PayEx.Net.Api.csproj">
-      <Project>{197338c7-445b-45a3-bedc-441967f69230}</Project>
-      <Name>PayEx.Net.Api</Name>
-    </ProjectReference>
     <ProjectReference Include="..\EPiServer.Reference.Commerce.Shared\EPiServer.Reference.Commerce.Shared.csproj">
       <Project>{341c8e14-4eae-4946-9841-45f9818265a8}</Project>
       <Name>EPiServer.Reference.Commerce.Shared</Name>

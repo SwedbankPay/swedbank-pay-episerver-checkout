@@ -2,13 +2,17 @@
 {
     using EPiServer.Commerce.Order;
     using EPiServer.Logging;
+
     using Mediachase.Commerce;
     using Mediachase.Commerce.Markets;
     using Mediachase.Commerce.Orders;
+
     using PayEx.Checkout.Episerver.Common;
     using PayEx.Checkout.Episerver.Common.Helpers;
-    using PayEx.Net.Api.Exceptions;
-    using PayEx.Net.Api.Models;
+
+    using SwedbankPay.Client.Models.Common;
+    using SwedbankPay.Client.Models.Request.Transaction;
+
     using System;
     using System.Linq;
     using System.Net;
@@ -18,7 +22,7 @@
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(CapturePaymentStep));
         private IMarket _market;
 
-        public CapturePaymentStep(IPayment payment, MarketId marketId, PayExOrderServiceFactory payExOrderServiceFactory, IMarketService marketService) : base(payment, marketId, payExOrderServiceFactory)
+        public CapturePaymentStep(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory, IMarketService marketService) : base(payment, marketId, swedbankPayOrderServiceFactory)
         {
             _market = marketService.GetMarket(marketId);
         }
@@ -38,36 +42,28 @@
                             throw new InvalidOperationException("Can't find correct shipment");
                         }
 
-                        var itemDescriptions = Enumerable.ToList<ItemDescription>(shipment.LineItems.Select(l => FromLineItem(l, orderGroup.Currency)));
-                        itemDescriptions.Add(new ItemDescription
+                        var orderItems = Enumerable.ToList<OrderItem>(shipment.LineItems.Select(l => FromLineItem(l, orderGroup.Currency)));
+                        orderItems.Add(new OrderItem
                         {
                             Amount = AmountHelper.GetAmount(shipment.GetShippingCost(_market, orderGroup.Currency)),
                             Description = "Shipping cost"
                         });
 
-                        var vatSummaries = shipment.LineItems.Select(l => TaxFromLineItem(l, orderGroup.Currency, shipment)).ToList();
-                        vatSummaries.Add(new VatSummary
+                        var transaction = new TransactionRequest
                         {
-                            Amount = AmountHelper.GetAmount(orderGroup.GetShippingTotal()),
-                            VatAmount =AmountHelper.GetAmount(orderGroup.GetShippingTotal() - orderGroup.GetShippingSubTotal()),
-                            VatPercent = 0,  //TODO: PayEx Get correct tax value
-                        });
-
-                        var transaction = new Transaction
-                        {
-                            Amount = amount,
-                            ItemDescriptions = itemDescriptions,
                             Description = "Capturing the authorized payment",
-                            VatSummary = vatSummaries,
+                            Amount = amount,
+                            VatAmount = 0,
+                            PayeeReference = "",
+                            OrderItems = orderItems
                         };
 
-                        var checkoutConfiguration = PayExOrderService.Capture(new PaymentOrderTransactionObject { Transaction = transaction }, orderId);
-                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType,
-                            checkoutConfiguration == null
+                        var transactionResponse = SwedbankPayOrderService.Capture(new TransactionRequestContainer(transaction), orderId).Result;
+                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, transactionResponse == null
                                 ? $"Capture is not possible on this order {orderId}"
-                                : $"Captured {payment.Amount}, id {checkoutConfiguration.Capture.Id}");
+                                : $"Captured {payment.Amount}, id {transactionResponse.Id}");
                     }
-                    catch (Exception ex) when (ex is PayExException || ex is WebException)
+                    catch (Exception ex)
                     {
                         var exceptionMessage = GetExceptionMessage(ex);
 
@@ -88,24 +84,24 @@
             return false;
         }
 
-        private VatSummary TaxFromLineItem(ILineItem item, Currency currency, IShipment shipment)
+        private OrderItem FromLineItem(ILineItem item, Currency currency)
         {
-            var vatSummary = new VatSummary
+            var itemDescription = new OrderItem
             {
-                Amount = AmountHelper.GetAmount(item.GetExtendedPrice(currency).Amount),
-                VatAmount = AmountHelper.GetAmount(item.GetSalesTax(_market, currency, shipment.ShippingAddress).Amount),
-                VatPercent = AmountHelper.GetAmount(0) //TODO: PayEx Get correct tax value
-            };
-
-            return vatSummary;
-        }
-
-        private ItemDescription FromLineItem(ILineItem item, Currency currency)
-        {
-            var itemDescription = new ItemDescription
-            {
-                Description = item.DisplayName,
-                Amount = AmountHelper.GetAmount(item.GetExtendedPrice(currency).Amount)
+                Name = item.DisplayName,
+                Type = "",
+                Class = "",
+                ItemUrl = "",
+                ImageUrl = "",
+                Description = "",
+                DiscountDescription = "",
+                Quantity = (int)item.Quantity,
+                QuantityUnit = "",
+                UnitPrice = AmountHelper.GetAmount(item.PlacedPrice),
+                DiscountPrice = AmountHelper.GetAmount(item.GetDiscountedPrice(currency)),
+                VatPercent = 0,
+                Amount = AmountHelper.GetAmount(item.GetExtendedPrice(currency)),
+                VatAmount = 0
             };
 
             return itemDescription;

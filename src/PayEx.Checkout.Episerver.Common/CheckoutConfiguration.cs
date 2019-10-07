@@ -9,6 +9,7 @@
         public string CancelUrl { get; set; }
         public string CallbackUrl { get; set; }
         public string TermsOfServiceUrl { get; set; }
+        public string PaymentUrl { get; set; }
         public string LogoUrl { get; set; }
         public bool UseAnonymousCheckout { get; set; }
     }

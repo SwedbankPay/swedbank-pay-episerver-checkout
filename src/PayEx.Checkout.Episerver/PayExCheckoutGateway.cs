@@ -19,8 +19,8 @@
         public IOrderGroup OrderGroup { get; set; }
 
 
-        internal Injected<PayExOrderServiceFactory> InjectedPayExOrderServiceFactory { get; set; }
-        private PayExOrderServiceFactory PayExOrderServiceFactory => InjectedPayExOrderServiceFactory.Service;
+        internal Injected<SwedbankPayOrderServiceFactory> InjectedPayExOrderServiceFactory { get; set; }
+        private SwedbankPayOrderServiceFactory SwedbankPayOrderServiceFactory => InjectedPayExOrderServiceFactory.Service;
 
         internal Injected<IMarketService> InjectedMarketService { get; set; }
         private IMarketService MarketService => InjectedMarketService.Service;
@@ -55,10 +55,10 @@
                     _orderForm = OrderGroup.Forms.FirstOrDefault(form => form.Payments.Contains(payment));
                 }
 
-                var authorizePaymentStep = new AuthorizePaymentStep(payment, OrderGroup.MarketId, PayExOrderServiceFactory);
-                var capturePaymentStep = new CapturePaymentStep(payment, OrderGroup.MarketId, PayExOrderServiceFactory, MarketService);
-                var creditPaymentStep = new CreditPaymentStep(payment, OrderGroup.MarketId, PayExOrderServiceFactory);
-                var cancelPaymentStep = new CancelPaymentStep(payment, OrderGroup.MarketId, PayExOrderServiceFactory);
+                var authorizePaymentStep = new AuthorizePaymentStep(payment, OrderGroup.MarketId, SwedbankPayOrderServiceFactory);
+                var capturePaymentStep = new CapturePaymentStep(payment, OrderGroup.MarketId, SwedbankPayOrderServiceFactory, MarketService);
+                var creditPaymentStep = new CreditPaymentStep(payment, OrderGroup.MarketId, SwedbankPayOrderServiceFactory);
+                var cancelPaymentStep = new CancelPaymentStep(payment, OrderGroup.MarketId, SwedbankPayOrderServiceFactory);
 
                 authorizePaymentStep.SetSuccessor(capturePaymentStep);
                 capturePaymentStep.SetSuccessor(creditPaymentStep); 

@@ -15,6 +15,8 @@
 
     using System.ComponentModel;
     using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using System.Web;
 
     [ServiceConfiguration(typeof(IPaymentMethod))]
@@ -68,7 +70,7 @@
 
             var cart = _cartService.LoadCart(_cartService.DefaultCartName);
             var market = _marketService.GetMarket(cart.MarketId);
-            CheckoutConfiguration = _payExCheckoutService.GetConfiguration(market);
+            CheckoutConfiguration = _payExCheckoutService.LoadCheckoutConfiguration(market);
             Culture = market.DefaultLanguage.TextInfo.CultureName;
 
             var orderId = cart.Properties[Constants.PayExCheckoutOrderIdCartField]?.ToString();

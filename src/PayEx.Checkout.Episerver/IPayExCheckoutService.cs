@@ -1,27 +1,35 @@
 ﻿namespace PayEx.Checkout.Episerver
 {
     using EPiServer.Commerce.Order;
+
     using Mediachase.Commerce;
+
     using PayEx.Checkout.Episerver.Common;
-    using PayEx.Net.Api.Models;
+
+    using SwedbankPay.Client;
+    using SwedbankPay.Client.Models;
+    using SwedbankPay.Client.Models.Response;
+
+    using System.Threading.Tasks;
 
     public interface IPayExCheckoutService
     {
-        InitiateConsumerSessionResponseObject InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null);
+        ConsumerResourceResponse InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null);
         ShippingDetails GetShippingDetails(string uri);
 
-        PaymentOrderResponseObject CreateOrUpdateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null);
+        PaymentOrderResponseContainer CreateOrUpdateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null);
 
 
-        PaymentOrderResponseObject CreateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null);
-        PaymentOrderResponseObject UpdateOrder(string orderId, IOrderGroup orderGroup, string userAgent);
+        PaymentOrderResponseContainer CreateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null);
+        PaymentOrderResponseContainer UpdateOrder(string orderId, IOrderGroup orderGroup, string userAgent);
 
+        CheckoutConfiguration LoadCheckoutConfiguration(IMarket market);
 
-        CheckoutConfiguration GetConfiguration(IMarket market);
+        SwedbankPayOptions GetConfiguration(IMarket market);
 
-        PaymentOrderResponseObject GetOrder(string id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None);
+        PaymentOrderResponseContainer GetOrder(string id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None);
 
-        PaymentResponse GetPayment(string id, IOrderGroup orderGroup, PaymentExpand paymentExpand = PaymentExpand.None);
+        //Task<PaymentResponse> GetPayment(string id, IOrderGroup orderGroup, PaymentExpand paymentExpand = PaymentExpand.None);
 
 
 		void CancelOrder(IOrderGroup orderGroup);

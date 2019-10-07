@@ -133,6 +133,12 @@
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="RestSharp, Version=106.6.6.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
+      <HintPath>..\..\demo\packages\RestSharp.106.6.6\lib\net452\RestSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="SwedbankPay.Client, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\demo\packages\SwedbankPay.Net.Client.0.0.5-alpha\lib\netstandard2.0\SwedbankPay.Client.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
@@ -164,10 +170,10 @@
     <Compile Include="Events\OrderCancelledEvent.cs" />
     <Compile Include="Extensions\PaymentExtensions.cs" />
     <Compile Include="Initalization\OrderInitalization.cs" />
-    <Compile Include="IPayExOrderService.cs" />
+    <Compile Include="ISwedbankPayOrderService.cs" />
     <Compile Include="OrderOperations.cs" />
-    <Compile Include="PayExOrderService.cs" />
-    <Compile Include="PayExOrderServiceFactory.cs" />
+    <Compile Include="SwedbankPayOrderService.cs" />
+    <Compile Include="SwedbankPayOrderServiceFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Steps\AuthorizePaymentStep.cs" />
     <Compile Include="Steps\AuthorizePaymentStepBase.cs" />
@@ -185,10 +191,6 @@
     <ProjectReference Include="..\PayEx.Checkout.Episerver.Common\PayEx.Checkout.Episerver.Common.csproj">
       <Project>{D773B6A3-EE81-40AA-B585-4F0D164ADE97}</Project>
       <Name>PayEx.Checkout.Episerver.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PayEx.Net.Api\PayEx.Net.Api.csproj">
-      <Project>{36CB67B9-904D-490B-9BC8-986F308AB2A1}</Project>
-      <Name>PayEx.Net.Api</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

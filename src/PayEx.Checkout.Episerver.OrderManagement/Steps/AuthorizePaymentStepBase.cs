@@ -1,12 +1,13 @@
 ﻿namespace PayEx.Checkout.Episerver.OrderManagement.Steps
 {
     using EPiServer.Commerce.Order;
+
     using Mediachase.Commerce;
     using Mediachase.Commerce.Orders;
 
     public abstract class AuthorizePaymentStepBase : PaymentStep
     {
-        public AuthorizePaymentStepBase(IPayment payment, MarketId marketId, PayExOrderServiceFactory payExOrderServiceFactory) : base(payment, marketId, payExOrderServiceFactory)
+        public AuthorizePaymentStepBase(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, marketId, swedbankPayOrderServiceFactory)
         {
         }
 

@@ -1,28 +1,35 @@
 namespace PayEx.Checkout.Episerver
 {
-	using EPiServer.Business.Commerce.Exception;
-	using EPiServer.Commerce.Order;
-	using EPiServer.Globalization;
-	using EPiServer.Logging;
-	using EPiServer.ServiceLocation;
-	using EPiServer.Web;
-	using Mediachase.Commerce;
-	using Mediachase.Commerce.Markets;
-	using Mediachase.Commerce.Orders.Dto;
-	using Mediachase.Commerce.Orders.Managers;
-	using PayEx.Checkout.Episerver.Common;
-	using PayEx.Checkout.Episerver.Common.Helpers;
-	using PayEx.Checkout.Episerver.Helpers;
-	using PayEx.Checkout.Episerver.OrderManagement;
-	using PayEx.Net.Api;
-	using PayEx.Net.Api.Exceptions;
-	using PayEx.Net.Api.Models;
-	using System;
-	using System.Globalization;
-	using System.Linq;
-	using System.Web;
+    using EPiServer.Business.Commerce.Exception;
+    using EPiServer.Commerce.Order;
+    using EPiServer.Globalization;
+    using EPiServer.Logging;
+    using EPiServer.ServiceLocation;
+    using EPiServer.Web;
 
-	[ServiceConfiguration(typeof(IPayExCheckoutService))]
+    using Mediachase.Commerce;
+    using Mediachase.Commerce.Markets;
+    using Mediachase.Commerce.Orders.Dto;
+    using Mediachase.Commerce.Orders.Managers;
+
+    using PayEx.Checkout.Episerver.Common;
+    using PayEx.Checkout.Episerver.Common.Helpers;
+    using PayEx.Checkout.Episerver.Helpers;
+    using PayEx.Checkout.Episerver.OrderManagement;
+
+    using SwedbankPay.Client;
+    using SwedbankPay.Client.Models;
+    using SwedbankPay.Client.Models.Common;
+    using SwedbankPay.Client.Models.Request;
+    using SwedbankPay.Client.Models.Response;
+
+    using System;
+    using System.Globalization;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Web;
+
+    [ServiceConfiguration(typeof(IPayExCheckoutService))]
 	public class PayExCheckoutService : IPayExCheckoutService
 	{
 		private readonly ICurrentMarket _currentMarket;
@@ -30,10 +37,10 @@ namespace PayEx.Checkout.Episerver
 		private readonly IMarketService _marketService;
 		private readonly IOrderGroupCalculator _orderGroupCalculator;
 		private readonly IOrderRepository _orderRepository;
-		private readonly PayExOrderServiceFactory _payExOrderServiceFactory;
+		private readonly SwedbankPayOrderServiceFactory _swedbankPayOrderServiceFactory;
 		private readonly ILogger _logger = LogManager.GetLogger(typeof(PayExCheckoutService));
 		private PaymentMethodDto _paymentMethodDto;
-		private CheckoutConfiguration _checkoutConfiguration;
+		private SwedbankPayOptions _checkoutConfiguration;
 
 		public PaymentMethodDto PaymentMethodDto => _paymentMethodDto ?? (_paymentMethodDto = PaymentManager.GetPaymentMethodBySystemName(Constants.PayExCheckoutSystemKeyword, ContentLanguage.PreferredCulture.Name, returnInactive: true));
 
@@ -43,36 +50,37 @@ namespace PayEx.Checkout.Episerver
 			IMarketService marketService,
 			IOrderGroupCalculator orderGroupCalculator,
 			IOrderRepository orderRepository,
-			PayExOrderServiceFactory payExOrderServiceFactory)
+			SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory)
 		{
 			_currentMarket = currentMarket;
 			_checkoutConfigurationLoader = checkoutConfigurationLoader;
 			_marketService = marketService;
 			_orderGroupCalculator = orderGroupCalculator;
 			_orderRepository = orderRepository;
-			_payExOrderServiceFactory = payExOrderServiceFactory;
+			_swedbankPayOrderServiceFactory = swedbankPayOrderServiceFactory;
 		}
 
-		public CheckoutConfiguration GetCheckoutConfiguration(IMarket market)
+		public SwedbankPayOptions GetCheckoutConfiguration(IMarket market)
 		{
 			return _checkoutConfiguration ?? (_checkoutConfiguration = GetConfiguration(market));
-		}
+        }
 
-		public PaymentOrderResponseObject CreateOrUpdateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null)
+		public virtual PaymentOrderResponseContainer CreateOrUpdateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null)
 		{
 			var orderId = orderGroup.Properties[Constants.PayExCheckoutOrderIdCartField]?.ToString();
-			return string.IsNullOrWhiteSpace(orderId) ? CreateOrder(orderGroup, userAgent, consumerProfileRef) : UpdateOrder(orderId, orderGroup, userAgent);
+            return string.IsNullOrWhiteSpace(orderId) ? CreateOrder(orderGroup, userAgent, consumerProfileRef) :  UpdateOrder(orderId, orderGroup, userAgent);
 		}
 
-		public virtual InitiateConsumerSessionResponseObject InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null)
+		public virtual ConsumerResourceResponse InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null)
 		{
-			var payExApi = GetPayExApi();
+          
+			var swedbankPayClient = GetSwedbankPayClient();
 			var market = _marketService.GetMarket(_currentMarket.GetCurrentMarket().MarketId);
 
 			var twoLetterIsoRegionName = new RegionInfo(market.DefaultLanguage.TextInfo.CultureName).TwoLetterISORegionName;
 
-			var initiateConsumerSessionRequestObject = new InitiateConsumerSessionRequestObject
-			{
+			var initiateConsumerSessionRequestObject = new ConsumerResourceRequest
+            {
 				Email = email,
 				Msisdn = mobilePhone,
 				ConsumerCountryCode = twoLetterIsoRegionName
@@ -89,14 +97,15 @@ namespace PayEx.Checkout.Episerver
 
 			try
 			{
-				var initiateConsumerSessionResponseObject = payExApi.Consumers.InitiateConsumerSession(initiateConsumerSessionRequestObject);
+				var initiateConsumerSessionResponseObject = AsyncHelper.RunSync(() => swedbankPayClient.Consumer.InitiateSession(initiateConsumerSessionRequestObject));
 				return initiateConsumerSessionResponseObject;
 			}
-			catch (PayExException ex)
-			{
-				_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
-				throw;
-			}
+            //TODO swed
+			//catch (PayExException ex)
+			//{
+			//	_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
+			//	throw;
+			//}
 			catch (Exception ex)
 			{
 				_logger.Error(ex.Message, ex);
@@ -107,31 +116,32 @@ namespace PayEx.Checkout.Episerver
 
 		public virtual ShippingDetails GetShippingDetails(string uri)
 		{
-			var payExApi = GetPayExApi();
-			return payExApi.Consumers.GetShippingDetails(uri);
+			var swedbankPayClient = GetSwedbankPayClient();
+			return AsyncHelper.RunSync(() => swedbankPayClient.Consumer.GetShippingDetails(uri));
 		}
 
-		public virtual PaymentOrderResponseObject CreateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null)
+		public virtual PaymentOrderResponseContainer CreateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null)
 		{
-			var payExApi = GetPayExApi(orderGroup);
+			var swedbankPayClient = GetSwedbankPayClient(orderGroup);
 			var market = _marketService.GetMarket(orderGroup.MarketId);
 
 			try
 			{
-				var paymentOrderRequestObject = GetCheckoutOrderData(orderGroup, market, PaymentMethodDto, consumerProfileRef);
-				var paymentOrderResponseObject = payExApi.PaymentOrders.CreatePaymentOrder(paymentOrderRequestObject);
+				var paymentOrderRequestContainer = GetCheckoutOrderData(orderGroup, market, PaymentMethodDto, consumerProfileRef);
+                var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.CreatePaymentOrder(paymentOrderRequestContainer));
 
-                orderGroup.Properties[Constants.PayExCheckoutOrderIdCartField] = paymentOrderResponseObject.PaymentOrder.Id;
+                orderGroup.Properties[Constants.PayExCheckoutOrderIdCartField] = paymentOrder.PaymentOrder.Id;
 
 				_orderRepository.Save(orderGroup);
-				return paymentOrderResponseObject;
+				return paymentOrder;
 			}
-			catch (PayExException ex)
-			{
-				_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
-				throw;
-			}
-			catch (Exception ex)
+            //TODO swed
+            //catch (PayExException ex)
+            //{
+            //	_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
+            //	throw;
+            //}
+            catch (Exception ex)
 			{
 				_logger.Error(ex.Message, ex);
 				throw;
@@ -140,13 +150,13 @@ namespace PayEx.Checkout.Episerver
 
 
 
-		public virtual PaymentOrderResponseObject UpdateOrder(string orderId, IOrderGroup orderGroup, string userAgent)
+		public virtual PaymentOrderResponseContainer UpdateOrder(string orderId, IOrderGroup orderGroup, string userAgent)
 		{
 			var market = _marketService.GetMarket(orderGroup.MarketId);
-			var payExApi = GetPayExApi(orderGroup);
+			var swedbankPayClient = GetSwedbankPayClient(orderGroup);
 
-            var paymentOrderRequestObject = GetCheckoutOrderData(orderGroup, market, PaymentMethodDto);
-			var paymentOrderResponseObject = payExApi.PaymentOrders.UpdatePaymentOrder(paymentOrderRequestObject, orderId);
+            var paymentOrderRequestContainer = GetCheckoutOrderData(orderGroup, market, PaymentMethodDto);
+			var paymentOrderResponseObject = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.UpdatePaymentOrder(orderId, paymentOrderRequestContainer));
 
             orderGroup.Properties[Constants.PayExCheckoutOrderIdCartField] = paymentOrderResponseObject.PaymentOrder.Id;
 			_orderRepository.Save(orderGroup);
@@ -154,22 +164,23 @@ namespace PayEx.Checkout.Episerver
 			return paymentOrderResponseObject;
 		}
 
-		public virtual PaymentOrderResponseObject GetOrder(string id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
+		public virtual PaymentOrderResponseContainer GetOrder(string id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
 		{
-			var checkoutConfiguration = GetCheckoutConfiguration(market);
-			var payExApi = new PayExApi(checkoutConfiguration.ApiUrl, checkoutConfiguration.Token);
+			var swedbankPayOptions = GetConfiguration(market);
+			var swedbankPayClient = new SwedbankPayClient(swedbankPayOptions);
 
 			try
 			{
-				var paymentOrderResponseObject = payExApi.PaymentOrders.GetPaymentOrder(id, paymentOrderExpand);
-				return paymentOrderResponseObject;
+				var paymentOrderResponseContainer = AsyncHelper.RunSync(() =>  swedbankPayClient.PaymentOrders.GetPaymentOrder(id, paymentOrderExpand));
+				return paymentOrderResponseContainer;
 			}
-			catch (PayExException ex)
-			{
-				_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
-				throw;
-			}
-			catch (Exception ex)
+            //TODO swed
+            //catch (PayExException ex)
+            //{
+            //	_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
+            //	throw;
+            //}
+            catch (Exception ex)
 			{
 				_logger.Error(ex.Message, ex);
 				throw;
@@ -178,15 +189,16 @@ namespace PayEx.Checkout.Episerver
 
 
 		public void CancelOrder(IOrderGroup orderGroup)
-		{
-			var payExOrderService = _payExOrderServiceFactory.Create(GetConfiguration(orderGroup.MarketId));
+        {
+            var market = _marketService.GetMarket(orderGroup.MarketId);
+            var swedbankPayOrderService = _swedbankPayOrderServiceFactory.Create(market);
 
 			var orderId = orderGroup.Properties[Constants.PayExCheckoutOrderIdCartField]?.ToString();
 			if (!string.IsNullOrWhiteSpace(orderId))
 			{
 				try
 				{
-					var cancelResponseObject = payExOrderService.CancelOrder(orderId);
+					var cancelResponseObject = AsyncHelper.RunSync(() => swedbankPayOrderService.CancelOrder(orderId));
 					if (cancelResponseObject != null)
 					{
                         orderGroup.Properties[Constants.PayExCheckoutOrderIdCartField] = null;
@@ -194,11 +206,11 @@ namespace PayEx.Checkout.Episerver
 					}
 
 				}
-				catch (PayExException ex)
-				{
-					_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
-					throw;
-				}
+				//catch (PayExException ex)
+				//{
+				//	_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
+				//	throw;
+				//}
 				catch (Exception ex)
 				{
 					_logger.Error(ex.Message, ex);
@@ -221,29 +233,29 @@ namespace PayEx.Checkout.Episerver
 			}
 		}
 
-		public PaymentResponse GetPayment(string id, IOrderGroup cart, PaymentExpand paymentExpand = PaymentExpand.None)
-		{
-			var payExApi = GetPayExApi(cart);
-			try
-			{
-				var paymentResponseObject = payExApi.PaymentOrders.GetPayment(id, paymentExpand);
-				return paymentResponseObject;
-			}
-			catch (PayExException ex)
-			{
-				_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
-				throw;
-			}
-			catch (Exception ex)
-			{
-				_logger.Error(ex.Message, ex);
-				throw;
-			}
-		}
+		//public async Task<PaymentOrderResponseContainer> GetPayment(string id, IOrderGroup cart, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
+		//{
+		//	var swedbankPayClient = GetSwedbankPayClient(cart);
+		//	try
+		//	{
+		//		var paymentResponseContainer = await swedbankPayClient.PaymentOrders.GetPaymentOrder(id, paymentOrderExpand);
+		//		return paymentResponseContainer;
+		//	}
+		//	//catch (PayExException ex)
+		//	//{
+		//	//	_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
+		//	//	throw;
+		//	//}
+		//	catch (Exception ex)
+		//	{
+		//		_logger.Error(ex.Message, ex);
+		//		throw;
+		//	}
+		//}
 
 
 
-		protected virtual PaymentOrderRequestObject GetCheckoutOrderData(
+		protected virtual PaymentOrderRequestContainer GetCheckoutOrderData(
 		  IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null)
 		{
 			var totals = _orderGroupCalculator.GetOrderGroupTotals(orderGroup);
@@ -252,14 +264,14 @@ namespace PayEx.Checkout.Episerver
 			{
 				throw new ConfigurationException($"Please select a country in Commerce Manager for market {orderGroup.MarketId}");
 			}
-			var checkoutConfiguration = GetCheckoutConfiguration(market);
+			var configuration = GetConfiguration(market);
 
 
-			var paymentOrderRequestObject = new PaymentOrderRequestObject
-			{
+			var paymentOrderRequestObject = new PaymentOrderRequestContainer
+            {
 				Paymentorder = new PaymentOrderRequest
 				{
-					Amount = AmountHelper.GetAmount(totals.Total),
+                    Amount = AmountHelper.GetAmount(totals.Total),
 					VatAmount = AmountHelper.GetAmount(totals.TaxTotal),
 					Currency = market.DefaultCurrency.CurrencyCode,
 					Description = "Description",
@@ -268,7 +280,7 @@ namespace PayEx.Checkout.Episerver
 					Urls = GetMerchantUrls(orderGroup),
 					PayeeInfo = new PayeeInfo
 					{
-						PayeeId = checkoutConfiguration.MerchantId,
+						PayeeId = configuration.MerchantId,
 						PayeeReference = DateTime.Now.Ticks.ToString(),
 					},
 				}
@@ -288,12 +300,17 @@ namespace PayEx.Checkout.Episerver
 		protected virtual Urls GetMerchantUrls(IOrderGroup orderGroup)
 		{
 			if (PaymentMethodDto == null) return null;
-
-			var configuration = GetConfiguration(orderGroup.MarketId);
-
+            var market = _marketService.GetMarket(orderGroup.MarketId);
+            CheckoutConfiguration checkoutConfiguration = LoadCheckoutConfiguration(market);
+            
 			string ToFullSiteUrl(Func<CheckoutConfiguration, string> fieldSelector)
 			{
-				var url = fieldSelector(configuration).Replace("{orderGroupId}", orderGroup.OrderLink.OrderGroupId.ToString());
+                if (string.IsNullOrWhiteSpace(fieldSelector(checkoutConfiguration)))
+                {
+                    return null;
+                }
+
+				var url = fieldSelector(checkoutConfiguration)?.ToString().Replace("{orderGroupId}", orderGroup.OrderLink.OrderGroupId.ToString());
 				if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
 				{
 					return uri.ToString();
@@ -304,41 +321,64 @@ namespace PayEx.Checkout.Episerver
 
 			return new Urls
 			{
-				TermsOfServiceUrl = configuration.TermsOfServiceUrl,
+				TermsOfServiceUrl = checkoutConfiguration.TermsOfServiceUrl,
 				CallbackUrl = ToFullSiteUrl(c => c.CallbackUrl),
-				CancelUrl = ToFullSiteUrl(c => c.CancelUrl),
+                PaymentUrl = ToFullSiteUrl(c => c.PaymentUrl),
+				CancelUrl = string.IsNullOrWhiteSpace(checkoutConfiguration.PaymentUrl) ? ToFullSiteUrl(c => c.CancelUrl) : null,
 				CompleteUrl = ToFullSiteUrl(c => c.CompleteUrl),
-				LogoUrl = configuration.LogoUrl,
-				HostUrls = configuration.HostUrls
-			};
+				LogoUrl = checkoutConfiguration.LogoUrl,
+				HostUrls = checkoutConfiguration.HostUrls
+            };
 		}
 
 
+        public CheckoutConfiguration LoadCheckoutConfiguration(IMarket market)
+        {
+            return _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
+        }
 
-		public CheckoutConfiguration GetConfiguration(IMarket market)
-		{
-			return _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
-		}
+        public SwedbankPayOptions GetConfiguration(IMarket market)
+        {
+            var checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
+            return SwedbankPayOptions(checkoutConfiguration);
+        }
 
-		private CheckoutConfiguration GetConfiguration(MarketId marketId)
-		{
-			return _checkoutConfigurationLoader.GetConfiguration(marketId);
-		}
+        private static SwedbankPayOptions SwedbankPayOptions(CheckoutConfiguration checkoutConfiguration)
+        {
+            return new SwedbankPayOptions
+            {
+                Token = checkoutConfiguration.Token,
+                MerchantId = checkoutConfiguration.MerchantId,
+                ApiBaseUrl = !string.IsNullOrWhiteSpace(checkoutConfiguration.ApiUrl) ? new Uri(checkoutConfiguration.ApiUrl) : null,
+                CallBackUrl = !string.IsNullOrWhiteSpace(checkoutConfiguration.CallbackUrl) ? new Uri(checkoutConfiguration.CallbackUrl) : null,
+                CancelPageUrl = !string.IsNullOrWhiteSpace(checkoutConfiguration.CallbackUrl) ? new Uri(checkoutConfiguration.CancelUrl) : null,
+                CompletePageUrl = !string.IsNullOrWhiteSpace(checkoutConfiguration.CompleteUrl) ? new Uri(checkoutConfiguration.CompleteUrl) : null,
+                MerchantName = "Authority"
+            };
+        }
 
-		private PayExApi GetPayExApi()
+        private SwedbankPayOptions GetConfiguration(MarketId marketId)
+        {
+            var checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(marketId);
+            return SwedbankPayOptions(checkoutConfiguration);
+        }
+
+		private SwedbankPayClient GetSwedbankPayClient()
 		{
 			var market = _marketService.GetMarket(_currentMarket.GetCurrentMarket().MarketId);
-			var checkoutConfiguration = GetCheckoutConfiguration(market);
-			var payExApi = new PayExApi(checkoutConfiguration.ApiUrl, checkoutConfiguration.Token);
-			return payExApi;
-		}
+			var swedbankPayOptions = GetConfiguration(market);
+            var swedbankPayClient = new SwedbankPayClient(swedbankPayOptions);
+            return swedbankPayClient;
+        }
 
-		private PayExApi GetPayExApi(IOrderGroup orderGroup)
+		private SwedbankPayClient GetSwedbankPayClient(IOrderGroup orderGroup)
 		{
 			var market = _marketService.GetMarket(orderGroup.MarketId);
-			var checkoutConfiguration = GetCheckoutConfiguration(market);
-			var payExApi = new PayExApi(checkoutConfiguration.ApiUrl, checkoutConfiguration.Token);
-			return payExApi;
+            var swedbankPayOrderService = _swedbankPayOrderServiceFactory.Create(market);
+            
+            var swedbankPayOptions = GetConfiguration(market);
+            var swedbankPayClient = new SwedbankPayClient(swedbankPayOptions);
+			return swedbankPayClient;
 		}
 	}
 }

@@ -159,6 +159,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsyncHelper.cs" />
     <Compile Include="CheckoutConfiguration.cs" />
     <Compile Include="ConnectionConfiguration.cs" />
     <Compile Include="Constants.cs" />

@@ -2,18 +2,20 @@
 {
     using EPiServer.Commerce.Order;
     using EPiServer.Logging;
+
     using Mediachase.Commerce;
     using Mediachase.Commerce.Orders;
+
     using PayEx.Checkout.Episerver.Common;
+
     using System;
     using System.Net;
-    using PayEx.Net.Api.Exceptions;
 
     public class AuthorizePaymentStep : AuthorizePaymentStepBase
     {
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(AuthorizePaymentStep));
         
-        public AuthorizePaymentStep(IPayment payment, MarketId marketId, PayExOrderServiceFactory payExOrderServiceFactory) : base(payment, marketId, payExOrderServiceFactory)
+        public AuthorizePaymentStep(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, marketId, swedbankPayOrderServiceFactory)
         {
         }
 
@@ -22,7 +24,7 @@
             var orderId = orderGroup.Properties[Constants.PayExCheckoutOrderIdCartField]?.ToString();
             try
             {
-                var result = PayExOrderService.GetOrder(orderId);
+                var result = SwedbankPayOrderService.GetPaymentOrder(orderId);
 
                 if (result != null)
                 {
@@ -31,7 +33,7 @@
 
                 AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Authorize completed");
             }
-            catch (Exception ex) when (ex is PayExException || ex is WebException)
+            catch (Exception ex)
             {
                 var exceptionMessage = GetExceptionMessage(ex);
 

@@ -136,6 +136,9 @@
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\Quicksilver\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="SwedbankPay.Client, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\demo\packages\SwedbankPay.Net.Client.0.0.5-alpha\lib\netstandard2.0\SwedbankPay.Client.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
@@ -195,10 +198,6 @@
     <ProjectReference Include="..\PayEx.Checkout.Episerver.OrderManagement\PayEx.Checkout.Episerver.OrderManagement.csproj">
       <Project>{8e3481e0-8017-4202-9aeb-ee413c049655}</Project>
       <Name>PayEx.Checkout.Episerver.OrderManagement</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PayEx.Net.Api\PayEx.Net.Api.csproj">
-      <Project>{36CB67B9-904D-490B-9BC8-986F308AB2A1}</Project>
-      <Name>PayEx.Net.Api</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

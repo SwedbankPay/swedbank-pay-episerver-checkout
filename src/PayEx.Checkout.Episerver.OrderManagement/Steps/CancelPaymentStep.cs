@@ -2,22 +2,25 @@
 {
     using EPiServer.Commerce.Order;
     using EPiServer.Logging;
+
     using Mediachase.Commerce;
     using Mediachase.Commerce.Orders;
+
     using PayEx.Checkout.Episerver.Common;
-    using PayEx.Net.Api.Exceptions;
+    using PayEx.Checkout.Episerver.Common.Helpers;
+    using PayEx.Checkout.Episerver.OrderManagement.Extensions;
+
     using System;
     using System.Linq;
     using System.Net;
-    using PayEx.Checkout.Episerver.Common.Helpers;
-    using PayEx.Checkout.Episerver.OrderManagement.Extensions;
-    using PayEx.Net.Api.Models;
+    using System.Transactions;
+    using SwedbankPay.Client.Models.Request.Transaction;
 
     public class CancelPaymentStep : PaymentStep
     {
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(CancelPaymentStep));
 
-        public CancelPaymentStep(IPayment payment, MarketId marketId, PayExOrderServiceFactory payExOrderServiceFactory) : base(payment, marketId, payExOrderServiceFactory)
+        public CancelPaymentStep(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, marketId, swedbankPayOrderServiceFactory)
         {
         }
 
@@ -32,15 +35,14 @@
                     var previousPayment = orderForm.Payments.FirstOrDefault(x => x.IsPayExPayment());
                     if (previousPayment != null && previousPayment.TransactionType == TransactionType.Sale.ToString())
                     {
-                        var captureRequestObject = new PaymentOrderTransactionObject
-						{
-                            Transaction = new Transaction
-                            {
-                                Amount = amount,
-                                Description = "Order canceled"
-                            }
+                        var transaction = new TransactionRequest
+                        {
+                            Amount = amount,
+                            Description = "Order canceled"
                         };
-                        var reversalResponseObject = PayExOrderService.Reversal(captureRequestObject, orderId);
+                        var captureRequestObject = new TransactionRequestContainer(transaction);
+                        
+                        var reversalResponseObject = SwedbankPayOrderService.Reversal(captureRequestObject, orderId).Result;
                         if (reversalResponseObject == null)
                         {
                             payment.Status = PaymentStatus.Failed.ToString();
@@ -58,7 +60,7 @@
                   
                     else if (!string.IsNullOrEmpty(orderId))
                     {
-                        var cancelResponseObject = PayExOrderService.CancelOrder(orderId);
+                        var cancelResponseObject = SwedbankPayOrderService.CancelOrder(orderId);
                         if (cancelResponseObject != null)
                         {
                             payment.Status = PaymentStatus.Processed.ToString();
@@ -72,7 +74,7 @@
                         }
                     }
                 }
-                catch (Exception ex) when (ex is PayExException || ex is WebException)
+                catch (Exception ex)
                 {
                     var exceptionMessage = GetExceptionMessage(ex);
 
