@@ -5,6 +5,7 @@
     using EPiServer.Reference.Commerce.Site.Features.Cart.Services;
     using EPiServer.Reference.Commerce.Site.Features.Market.Services;
     using EPiServer.Reference.Commerce.Site.Features.Payment.Services;
+    using EPiServer.Reference.Commerce.Site.Infrastructure.Facades;
     using EPiServer.ServiceLocation;
 
     using Mediachase.Commerce.Markets;
@@ -27,6 +28,9 @@
         private readonly IMarketService _marketService;
         private readonly IPayExCheckoutService _payExCheckoutService;
         private bool _isInitalized;
+        private readonly CustomerContextFacade _customerContext;
+        private readonly IOrderRepository _orderRepository;
+        
 
         public PayExCheckoutPaymentMethod()
             : this(
@@ -35,9 +39,10 @@
                 ServiceLocator.Current.GetInstance<LanguageService>(),
                 ServiceLocator.Current.GetInstance<IPaymentManagerFacade>(),
                 ServiceLocator.Current.GetInstance<ICartService>(),
-                ServiceLocator.Current.GetInstance<IMarketService>(),
-                ServiceLocator.Current.GetInstance<IPayExCheckoutService>())
-        {
+                ServiceLocator.Current.GetInstance<IMarketService>()
+                , ServiceLocator.Current.GetInstance<IPayExCheckoutService>()
+                , ServiceLocator.Current.GetInstance<CustomerContextFacade>(), ServiceLocator.Current.GetInstance<IOrderRepository>()
+        ){
         }
 
         public PayExCheckoutPaymentMethod(
@@ -47,13 +52,15 @@
             IPaymentManagerFacade paymentManager,
             ICartService cartService,
             IMarketService marketService,
-            IPayExCheckoutService payExCheckoutService)
+            IPayExCheckoutService payExCheckoutService, CustomerContextFacade customerContext, IOrderRepository orderRepository)
             : base(localizationService, orderGroupFactory, languageService, paymentManager)
         {
             _orderGroupFactory = orderGroupFactory;
             _cartService = cartService;
             _marketService = marketService;
             _payExCheckoutService = payExCheckoutService;
+            _orderRepository = orderRepository;
+            _customerContext = customerContext;
         }
 
         public void InitializeValues()
@@ -67,9 +74,11 @@
             {
                 return;
             }
-
-            var cart = _cartService.LoadCart(_cartService.DefaultCartName);
+            
+            var cart = _cartService.LoadCart(cartName);
             var market = _marketService.GetMarket(cart.MarketId);
+
+            var cart2 = _orderRepository.LoadCart<ICart>(_customerContext.CurrentContactId, cartName, market.MarketId);
             CheckoutConfiguration = _payExCheckoutService.LoadCheckoutConfiguration(market);
             Culture = market.DefaultLanguage.TextInfo.CultureName;
 
