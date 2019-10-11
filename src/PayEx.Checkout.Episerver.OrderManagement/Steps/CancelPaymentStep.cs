@@ -20,7 +20,7 @@
     {
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(CancelPaymentStep));
 
-        public CancelPaymentStep(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, marketId, swedbankPayOrderServiceFactory)
+        public CancelPaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, market, swedbankPayOrderServiceFactory)
         {
         }
 
@@ -42,7 +42,7 @@
                         };
                         var captureRequestObject = new TransactionRequestContainer(transaction);
                         
-                        var reversalResponseObject = SwedbankPayOrderService.Reversal(captureRequestObject, orderId).Result;
+                        var reversalResponseObject = AsyncHelper.RunSync(() => SwedbankPayOrderService.Reversal(captureRequestObject, orderId));
                         if (reversalResponseObject == null)
                         {
                             payment.Status = PaymentStatus.Failed.ToString();
