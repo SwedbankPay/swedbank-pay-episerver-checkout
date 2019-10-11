@@ -16,14 +16,14 @@
         public ISwedbankPayOrderService SwedbankPayOrderService { get; }
         public MarketId MarketId { get; }
 
-        public PaymentStep(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory)
+        public PaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory)
         {
-            MarketId = marketId;
+            MarketId = market.MarketId;
             PaymentMethod = PaymentManager.GetPaymentMethod(payment.PaymentMethodId);
             
             if(PaymentMethod != null)
             {
-                SwedbankPayOrderService = swedbankPayOrderServiceFactory.Create(PaymentMethod.GetConnectionConfiguration(marketId));
+                SwedbankPayOrderService = swedbankPayOrderServiceFactory.Create(market);
             }
         }
 
