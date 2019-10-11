@@ -20,8 +20,8 @@
     {
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(CreditPaymentStep));
 
-        public CreditPaymentStep(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) 
-            : base(payment, marketId, swedbankPayOrderServiceFactory)
+        public CreditPaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) 
+            : base(payment, market, swedbankPayOrderServiceFactory)
         {
         }
 
@@ -45,11 +45,12 @@
                                 var transactionRequest = new TransactionRequest
                                 {
                                     Amount = amount,
-                                    Description = string.IsNullOrWhiteSpace(returnForm.ReturnComment) ? "credit" : returnForm.ReturnComment
+                                    Description = string.IsNullOrWhiteSpace(returnForm.ReturnComment) ? "credit" : returnForm.ReturnComment,
+                                    VatAmount = 0 //TODO Get correct value
                                 };
                                 var captureRequestObject = new TransactionRequestContainer(transactionRequest);
                                 
-                                var reversalResponseObject = SwedbankPayOrderService.Reversal(captureRequestObject, orderId);
+                                var reversalResponseObject = AsyncHelper.RunSync(() => SwedbankPayOrderService.Reversal(captureRequestObject, orderId));
                                 if (reversalResponseObject == null)
                                 {
                                     payment.Status = PaymentStatus.Failed.ToString();
