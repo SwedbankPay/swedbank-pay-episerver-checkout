@@ -1,4 +1,6 @@
-﻿namespace PayEx.Checkout.Episerver.OrderManagement.Steps
+﻿using EPiServer.Commerce.Order.Internal;
+
+namespace PayEx.Checkout.Episerver.OrderManagement.Steps
 {
     using EPiServer.Commerce.Order;
     using EPiServer.Logging;
@@ -22,9 +24,9 @@
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(CapturePaymentStep));
         private IMarket _market;
 
-        public CapturePaymentStep(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory, IMarketService marketService) : base(payment, marketId, swedbankPayOrderServiceFactory)
+        public CapturePaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory, IMarketService marketService) : base(payment, market, swedbankPayOrderServiceFactory)
         {
-            _market = marketService.GetMarket(marketId);
+            _market = market;
         }
 
         public override bool Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment, ref string message)
@@ -43,10 +45,24 @@
                         }
 
                         var orderItems = Enumerable.ToList<OrderItem>(shipment.LineItems.Select(l => FromLineItem(l, orderGroup.Currency)));
+
                         orderItems.Add(new OrderItem
                         {
-                            Amount = AmountHelper.GetAmount(shipment.GetShippingCost(_market, orderGroup.Currency)),
-                            Description = "Shipping cost"
+                            Type = "SHIPPING_FEE",
+                            Reference = "SHIPPING",
+                            Quantity = 1,
+                            DiscountPrice = AmountHelper.GetAmount(orderGroup.GetShippingTotal().Amount),
+                            DiscountDescription = "",
+                            Name = "SHIPPINGFEE",
+                            VatAmount = 0, //TODO Get correct value
+                            ItemUrl = "", //TODO Get correct value
+                            ImageUrl = "", //TODO Get correct value
+                            Description = "Shipping fee",
+                            Amount = AmountHelper.GetAmount(orderGroup.GetShippingTotal().Amount),
+                            Class = "NOTAPPLICABLE",
+                            UnitPrice = AmountHelper.GetAmount(orderGroup.GetShippingTotal().Amount),
+                            QuantityUnit = "PCS",
+                            VatPercent = 0 //TODO Get correct value
                         });
 
                         var transaction = new TransactionRequest
@@ -55,10 +71,12 @@
                             Amount = amount,
                             VatAmount = 0,
                             PayeeReference = "",
+                            
                             OrderItems = orderItems
                         };
 
-                        var transactionResponse = SwedbankPayOrderService.Capture(new TransactionRequestContainer(transaction), orderId).Result;
+                        var transactionResponse = AsyncHelper.RunSync(() =>
+                            SwedbankPayOrderService.Capture(new TransactionRequestContainer(transaction), orderId));
                         AddNoteAndSaveChanges(orderGroup, payment.TransactionType, transactionResponse == null
                                 ? $"Capture is not possible on this order {orderId}"
                                 : $"Captured {payment.Amount}, id {transactionResponse.Id}");
@@ -88,20 +106,21 @@
         {
             var itemDescription = new OrderItem
             {
-                Name = item.DisplayName,
-                Type = "",
-                Class = "",
-                ItemUrl = "",
-                ImageUrl = "",
+                Reference = item.Code,
+                Amount = AmountHelper.GetAmount(item.GetExtendedPrice(currency)),
+                Class = "FASHION", //TODO Get Value from interface 
                 Description = "",
                 DiscountDescription = "",
-                Quantity = (int)item.Quantity,
-                QuantityUnit = "",
-                UnitPrice = AmountHelper.GetAmount(item.PlacedPrice),
                 DiscountPrice = AmountHelper.GetAmount(item.GetDiscountedPrice(currency)),
-                VatPercent = 0,
-                Amount = AmountHelper.GetAmount(item.GetExtendedPrice(currency)),
-                VatAmount = 0
+                ImageUrl = "",
+                ItemUrl = "",
+                Name = item.DisplayName,
+                Quantity = (int)(item.Quantity),
+                QuantityUnit = "PCS", //TODO Get Value from interface
+                Type = "PRODUCT", //TODO Get Value from interface
+                UnitPrice = AmountHelper.GetAmount(item.PlacedPrice),
+                VatAmount = 0,
+                VatPercent = 0
             };
 
             return itemDescription;
