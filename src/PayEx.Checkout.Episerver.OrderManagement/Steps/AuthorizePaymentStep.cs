@@ -15,7 +15,7 @@
     {
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(AuthorizePaymentStep));
         
-        public AuthorizePaymentStep(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, marketId, swedbankPayOrderServiceFactory)
+        public AuthorizePaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, market, swedbankPayOrderServiceFactory)
         {
         }
 

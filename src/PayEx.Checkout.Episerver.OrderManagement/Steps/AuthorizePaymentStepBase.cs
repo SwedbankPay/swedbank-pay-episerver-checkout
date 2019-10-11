@@ -7,7 +7,7 @@
 
     public abstract class AuthorizePaymentStepBase : PaymentStep
     {
-        public AuthorizePaymentStepBase(IPayment payment, MarketId marketId, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, marketId, swedbankPayOrderServiceFactory)
+        public AuthorizePaymentStepBase(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, market, swedbankPayOrderServiceFactory)
         {
         }
 
