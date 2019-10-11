@@ -55,10 +55,11 @@
                     _orderForm = OrderGroup.Forms.FirstOrDefault(form => form.Payments.Contains(payment));
                 }
 
-                var authorizePaymentStep = new AuthorizePaymentStep(payment, OrderGroup.MarketId, SwedbankPayOrderServiceFactory);
-                var capturePaymentStep = new CapturePaymentStep(payment, OrderGroup.MarketId, SwedbankPayOrderServiceFactory, MarketService);
-                var creditPaymentStep = new CreditPaymentStep(payment, OrderGroup.MarketId, SwedbankPayOrderServiceFactory);
-                var cancelPaymentStep = new CancelPaymentStep(payment, OrderGroup.MarketId, SwedbankPayOrderServiceFactory);
+                var market = MarketService.GetMarket(OrderGroup.MarketId);
+                var authorizePaymentStep = new AuthorizePaymentStep(payment, market, SwedbankPayOrderServiceFactory);
+                var capturePaymentStep = new CapturePaymentStep(payment, market, SwedbankPayOrderServiceFactory, MarketService);
+                var creditPaymentStep = new CreditPaymentStep(payment, market, SwedbankPayOrderServiceFactory);
+                var cancelPaymentStep = new CancelPaymentStep(payment, market, SwedbankPayOrderServiceFactory);
 
                 authorizePaymentStep.SetSuccessor(capturePaymentStep);
                 capturePaymentStep.SetSuccessor(creditPaymentStep); 
