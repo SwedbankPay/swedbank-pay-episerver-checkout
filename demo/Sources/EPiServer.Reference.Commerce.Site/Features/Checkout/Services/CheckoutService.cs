@@ -100,6 +100,7 @@
                     shipments.ElementAt(index).ShippingAddress = _addressBookService.ConvertToAddress(viewModel.Shipments[index].Address, cart);
                 }
             }
+            _orderRepository.Save(cart);
         }
 
         public virtual void CreateAndAddPaymentToCart(ICart cart, CheckoutViewModel viewModel)
