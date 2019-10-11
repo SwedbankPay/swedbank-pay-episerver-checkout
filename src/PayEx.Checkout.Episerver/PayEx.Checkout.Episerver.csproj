@@ -174,15 +174,18 @@
     <Compile Include="Controllers\PayExCheckoutController.cs" />
     <Compile Include="DefaultCheckoutConfigurationLoader.cs" />
     <Compile Include="Extensions\PaymentMethodsExtensions.cs" />
+    <Compile Include="Extensions\SwedBankPayConfigurationExtensions.cs" />
     <Compile Include="Helpers\CountryCodeHelper.cs" />
     <Compile Include="Helpers\CountryRegionProvider.cs" />
     <Compile Include="Helpers\ICountryRegionProvider.cs" />
     <Compile Include="IPayExCheckoutService.cs" />
+    <Compile Include="IRequestFactory.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="Operations.cs" />
     <Compile Include="PayExCheckoutGateway.cs" />
     <Compile Include="PayexService.cs" />
     <Compile Include="PayExCheckoutService.cs" />
+    <Compile Include="RequestFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
