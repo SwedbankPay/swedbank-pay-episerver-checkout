@@ -12,7 +12,8 @@
             .on('click', '#AlternativeAddressButton', Checkout.enableShippingAddress)
             .on('click', '.remove-shipping-address', Checkout.removeShippingAddress)
             .on('click', '.js-add-couponcode', Checkout.addCouponCode)
-            .on('click', '.js-remove-couponcode', Checkout.removeCouponCode);
+            .on('click', '.js-remove-couponcode', Checkout.removeCouponCode)
+           
 
         Checkout.initializeAddressAreas();
     },
@@ -125,9 +126,26 @@
             data: form.serialize(),
             success: function (result) {
                 Checkout.updateOrderSummary();
+                Checkout.refreshPayment();
             }
         });
     },
+    refreshPayment: function () {
+        var view = $("#CheckoutView");
+
+        if (view.length == 0) {
+            return;
+        }
+        var url = $('.jsChangePayment:checked').data('url');
+        $.ajax({
+            type: "POST",
+            url: url,
+            success: function (result) {
+                $('.jsPaymentMethod').replaceWith($(result).find('.jsPaymentMethod'));
+                Misc.updateValidation('jsCheckoutForm');
+            }
+        });
+    }, 
     changePayment: function () {
         $.ajax({
             type: "POST",
