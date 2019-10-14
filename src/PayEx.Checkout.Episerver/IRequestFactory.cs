@@ -9,5 +9,6 @@ namespace PayEx.Checkout.Episerver
     public interface IRequestFactory
     {
         PaymentOrderRequestContainer Create(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null);
+        ConsumerResourceRequest Create(IMarket market, string email, string mobilePhone, string ssn);
     }
 }
