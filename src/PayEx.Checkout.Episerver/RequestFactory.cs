@@ -10,8 +10,10 @@ using PayEx.Checkout.Episerver.Extensions;
 using PayEx.Checkout.Episerver.Helpers;
 using SwedbankPay.Client.Models.Common;
 using SwedbankPay.Client.Models.Request;
+using SwedbankPay.Client.Models.Response;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 
@@ -58,6 +60,29 @@ namespace PayEx.Checkout.Episerver
             
             return CreateRequest(orderGroup, market, consumerProfileRef);
 
+        }
+
+        public virtual ConsumerResourceRequest Create(IMarket market, string email = null, string mobilePhone = null, string ssn = null)
+        {
+            var twoLetterIsoRegionName = new RegionInfo(market.DefaultLanguage.TextInfo.CultureName).TwoLetterISORegionName;
+
+            var initiateConsumerSessionRequestObject = new ConsumerResourceRequest
+            {
+                Email = email,
+                Msisdn = mobilePhone,
+                ConsumerCountryCode = twoLetterIsoRegionName
+            };
+
+            if (!string.IsNullOrWhiteSpace(ssn))
+            {
+                initiateConsumerSessionRequestObject.NationalIdentifier = new NationalIdentifier
+                {
+                    CountryCode = twoLetterIsoRegionName,
+                    SocialSecurityNumber = ssn
+                };
+            }
+
+            return initiateConsumerSessionRequestObject;
         }
 
         private void PopulateOrderItems(IOrderGroup orderGroup, IMarket market)
