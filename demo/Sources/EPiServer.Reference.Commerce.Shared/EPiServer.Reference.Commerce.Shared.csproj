@@ -220,6 +220,12 @@
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
+    <Reference Include="RestSharp, Version=106.6.6.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\RestSharp.106.6.6\lib\net452\RestSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="SwedbankPay.Client, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SwedbankPay.Net.Client.0.0.5-alpha\lib\netstandard2.0\SwedbankPay.Client.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Annotations, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.ComponentModel.Annotations.4.4.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
@@ -289,6 +295,7 @@
     <Compile Include="..\AssemblyVersionAuto.cs">
       <Link>AssemblyVersionAuto.cs</Link>
     </Compile>
+    <Compile Include="CustomRequestFactory.cs" />
     <Compile Include="GenericCreditCardPaymentGateway.cs" />
     <Compile Include="CatalogIndexer\RestIndexer.cs" />
     <Compile Include="Identity\ConsentData.cs" />
@@ -312,6 +319,14 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.Common\SwedbankPay.Checkout.Episerver.Common.csproj">
+      <Project>{D773B6A3-EE81-40AA-B585-4F0D164ADE97}</Project>
+      <Name>SwedbankPay.Checkout.Episerver.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver\SwedbankPay.Checkout.Episerver.csproj">
+      <Project>{9588675B-3D10-4F5C-A0D3-5260734E821B}</Project>
+      <Name>SwedbankPay.Checkout.Episerver</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

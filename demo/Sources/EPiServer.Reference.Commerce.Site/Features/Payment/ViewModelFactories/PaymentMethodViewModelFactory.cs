@@ -6,12 +6,10 @@ using EPiServer.Reference.Commerce.Site.Features.Payment.ViewModels;
 using EPiServer.ServiceLocation;
 
 using Mediachase.Commerce;
-
-using PayEx.Checkout.Episerver.Common;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SwedbankPay.Checkout.Episerver.Common;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Payment.ViewModelFactories
 {
@@ -40,10 +38,10 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.ViewModelFactories
             var viewModel = CreatePaymentMethodSelectionViewModel();
             viewModel.SelectedPaymentMethod = viewModel.PaymentMethods.Single(x => x.PaymentMethod.PaymentMethodId == paymentMethodId);
 
-            if (viewModel.SelectedPaymentMethod?.PaymentMethod.SystemKeyword == Constants.PayExCheckoutSystemKeyword)
+            if (viewModel.SelectedPaymentMethod?.PaymentMethod.SystemKeyword == Constants.SwedbankPayCheckoutSystemKeyword)
             {
-                var payExCheckoutPaymentMethod = viewModel.SelectedPaymentMethod.PaymentMethod as PayExCheckoutPaymentMethod;
-                payExCheckoutPaymentMethod?.InitializeValues();
+                var swedbankPayCheckoutPaymentMethod = viewModel.SelectedPaymentMethod.PaymentMethod as SwedbankPayCheckoutPaymentMethod;
+                swedbankPayCheckoutPaymentMethod?.InitializeValues();
             }
 
             return viewModel;
@@ -57,10 +55,10 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.ViewModelFactories
                 viewModel.SelectedPaymentMethod.PaymentMethod = paymentMethod;
             }
 
-            if (viewModel.SelectedPaymentMethod?.PaymentMethod.SystemKeyword == Constants.PayExCheckoutSystemKeyword)
+            if (viewModel.SelectedPaymentMethod?.PaymentMethod.SystemKeyword == Constants.SwedbankPayCheckoutSystemKeyword)
             {
-                var payExCheckoutPaymentMethod = viewModel.SelectedPaymentMethod.PaymentMethod as PayExCheckoutPaymentMethod;
-                payExCheckoutPaymentMethod?.InitializeValues();
+                var swedbankPayCheckoutPaymentMethod = viewModel.SelectedPaymentMethod.PaymentMethod as SwedbankPayCheckoutPaymentMethod;
+                swedbankPayCheckoutPaymentMethod?.InitializeValues();
             }
 
             return viewModel;

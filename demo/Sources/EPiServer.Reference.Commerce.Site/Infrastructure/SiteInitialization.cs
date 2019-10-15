@@ -30,6 +30,10 @@ using System.Web.Routing;
 using System.Web.WebPages;
 using EPiServer.Personalization.Common;
 using EPiServer.Personalization.Commerce.Tracking;
+using SwedbankPay.Checkout.Episerver;
+using EPiServer.Commerce.Order;
+using EPiServer.Reference.Commerce.Shared;
+using SwedbankPay.Checkout.Episerver.Common;
 
 namespace EPiServer.Reference.Commerce.Site.Infrastructure
 {
@@ -84,6 +88,11 @@ namespace EPiServer.Reference.Commerce.Site.Infrastructure
                         locator.GetInstance<ICurrentMarket>(),
                         locator.GetInstance<CookieService>(),
                         defaultImplementation));
+
+            services.Intercept<IRequestFactory>(
+               (locator, defaultImplementation) =>
+                   new CustomRequestFactory(locator.GetInstance<ICheckoutConfigurationLoader>(),
+                       locator.GetInstance<IOrderGroupCalculator>(), locator.GetInstance<IShippingCalculator>()));
 
             services.AddTransient<IModelBinderProvider, ModelBinderProvider>();
             services.AddHttpContextOrThreadScoped<SiteContext, CustomCurrencySiteContext>();

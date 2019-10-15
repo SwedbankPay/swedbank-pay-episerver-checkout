@@ -15,6 +15,8 @@ using EPiServer.Web.Routing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using SwedbankPay.Checkout.Episerver;
+using SwedbankPay.Checkout.Episerver.Common;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
 {
@@ -22,9 +24,6 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
     using EPiServer.Reference.Commerce.Site.Features.Start.Pages;
     using Mediachase.Commerce.Markets;
     using Mediachase.Commerce.Orders;
-    using PayEx.Checkout.Episerver;
-    using PayEx.Checkout.Episerver.Common;
-    using PayEx.Checkout.Episerver.Helpers;
 
     public class CheckoutController : PageController<CheckoutPage>
     {
@@ -37,7 +36,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
         private readonly ICartService _cartService;
         private readonly IRecommendationService _recommendationService;
         private readonly OrderValidationService _orderValidationService;
-        private readonly IPayExCheckoutService _payExCheckoutService;
+        private readonly ISwedbankPayCheckoutService _swedbankPayCheckoutService;
         private readonly IContentLoader _contentLoader;
         private readonly IMarketService _marketService;
         private ICart _cart;
@@ -54,7 +53,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
             IRecommendationService recommendationService,
             CheckoutService checkoutService,
             OrderValidationService orderValidationService,
-            IPayExCheckoutService payExCheckoutService,
+            ISwedbankPayCheckoutService swedbankPayCheckoutService,
             IContentLoader contentLoader,
             IMarketService marketService)
         {
@@ -68,7 +67,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
             _recommendationService = recommendationService;
             _checkoutService = checkoutService;
             _orderValidationService = orderValidationService;
-            _payExCheckoutService = payExCheckoutService;
+            _swedbankPayCheckoutService = swedbankPayCheckoutService;
             _contentLoader = contentLoader;
             _marketService = marketService;
         }
@@ -234,14 +233,14 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
 
             payment.PaymentType = PaymentType.Other;
             payment.PaymentMethodId = paymentMethod.PaymentMethodId;
-            payment.PaymentMethodName = Constants.PayExCheckoutSystemKeyword;
+            payment.PaymentMethodName = Constants.SwedbankPaySystemKeyword;
             payment.Amount = Cart.GetTotal().Amount;
 
 
 
             payment.Status = PaymentStatus.Pending.ToString();
             payment.TransactionType = instrument == "swish" ? TransactionType.Sale.ToString() : TransactionType.Authorization.ToString();
-          
+
             payment.BillingAddress = _addressBookService.ConvertToAddress(viewModel.BillingAddress, Cart);
 
             Cart.AddPayment(payment);
@@ -256,9 +255,9 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
 
 
         [HttpPost]
-        public JsonResult CreatePayExPurchase(string consumerProfileRef)
+        public JsonResult CreateSwedbankPayPurchase(string consumerProfileRef)
         {
-            var paymentOrderResponseObject = _payExCheckoutService.CreateOrUpdateOrder(Cart, Request.UserAgent, consumerProfileRef);
+            var paymentOrderResponseObject = _swedbankPayCheckoutService.CreateOrUpdateOrder(Cart, Request.UserAgent, consumerProfileRef);
             return new JsonResult
             {
                 Data = paymentOrderResponseObject
@@ -267,17 +266,17 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
 
 
         [HttpGet]
-        public ActionResult PayexCheckoutConfirmation(int orderGroupId)
+        public ActionResult SwedbankPayCheckoutConfirmation(int orderGroupId)
         {
             var cart = _orderRepository.Load<ICart>(orderGroupId);
             if (cart != null)
             {
                 var market = _marketService.GetMarket(cart.MarketId);
-                var orderRef = cart.Properties[Constants.PayExCheckoutOrderIdCartField]?.ToString();
-                var order = _payExCheckoutService.GetOrder(orderRef, market);
+                var orderRef = cart.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
+                var order = _swedbankPayCheckoutService.GetOrder(orderRef, market);
                 if (order.PaymentOrder.State == "Ready")
                 {
-                    var purchaseOrder = _checkoutService.CreatePurchaseOrderForPayEx(orderRef, order, cart);
+                    var purchaseOrder = _checkoutService.CreatePurchaseOrderForSwedbankPay(orderRef, order, cart);
                     if (purchaseOrder == null)
                     {
                         ModelState.AddModelError("", "Error occurred while creating a purchase order");

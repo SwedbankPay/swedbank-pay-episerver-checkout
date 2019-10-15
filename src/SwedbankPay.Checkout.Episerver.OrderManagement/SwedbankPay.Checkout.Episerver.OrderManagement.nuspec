@@ -1,0 +1,19 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>SwedbankPay.Checkout.Episerver.OrderManagement</id>
+    <version>$version$</version>
+    <title>SwedbankPay Checkout Episerver Order management</title>
+    <authors>Authority AB</authors>
+    <owners />
+    <iconUrl>http://nuget.episerver.com/Framework/Styles/images/icons/default_package_icon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Library for Order management with SwedbankPay Checkout integration for Episerver Commerce</description>
+    <tags>EPiServerModulePackage ThirdPartyAddOn PaymentProvider Episerver Commerce 12</tags>
+    <dependencies>
+      <dependency id="EPiServer.CMS.Core" version="[11.0, 12.0)" />
+      <dependency id="EPiServer.Commerce.Core" version="[13.0, 14.0)" />
+      <dependency id="PayEx.Net.Api" version="[1.0, 2.0)" />
+    </dependencies>
+  </metadata>
+</package>

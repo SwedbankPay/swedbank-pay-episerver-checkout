@@ -11,13 +11,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPiServer.Reference.Commerc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPiServer.Reference.Commerce.Shared", "Sources\EPiServer.Reference.Commerce.Shared\EPiServer.Reference.Commerce.Shared.csproj", "{341C8E14-4EAE-4946-9841-45F9818265A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PayEx.Checkout.Episerver", "..\src\PayEx.Checkout.Episerver\PayEx.Checkout.Episerver.csproj", "{9588675B-3D10-4F5C-A0D3-5260734E821B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Checkout.Episerver", "..\src\SwedbankPay.Checkout.Episerver\SwedbankPay.Checkout.Episerver.csproj", "{9588675B-3D10-4F5C-A0D3-5260734E821B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PayEx.Checkout.Episerver.CommerceManager", "..\src\PayEx.Checkout.Episerver.CommerceManager\PayEx.Checkout.Episerver.CommerceManager.csproj", "{B70821A5-7EF6-44E8-A812-4E17254036A7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Checkout.Episerver.CommerceManager", "..\src\SwedbankPay.Checkout.Episerver.CommerceManager\SwedbankPay.Checkout.Episerver.CommerceManager.csproj", "{B70821A5-7EF6-44E8-A812-4E17254036A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PayEx.Checkout.Episerver.Common", "..\src\PayEx.Checkout.Episerver.Common\PayEx.Checkout.Episerver.Common.csproj", "{D773B6A3-EE81-40AA-B585-4F0D164ADE97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Checkout.Episerver.Common", "..\src\SwedbankPay.Checkout.Episerver.Common\SwedbankPay.Checkout.Episerver.Common.csproj", "{D773B6A3-EE81-40AA-B585-4F0D164ADE97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PayEx.Checkout.Episerver.OrderManagement", "..\src\PayEx.Checkout.Episerver.OrderManagement\PayEx.Checkout.Episerver.OrderManagement.csproj", "{8E3481E0-8017-4202-9AEB-EE413C049655}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Checkout.Episerver.OrderManagement", "..\src\SwedbankPay.Checkout.Episerver.OrderManagement\SwedbankPay.Checkout.Episerver.OrderManagement.csproj", "{8E3481E0-8017-4202-9AEB-EE413C049655}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

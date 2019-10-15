@@ -502,7 +502,7 @@
     <Compile Include="Features\Payment\PaymentMethods\CashOnDeliveryPaymentMethod.cs" />
     <Compile Include="Features\Payment\PaymentMethods\CreditCardPaymentMethodBase.cs" />
     <Compile Include="Features\Payment\PaymentMethods\GenericCreditCardPaymentMethod.cs" />
-    <Compile Include="Features\Payment\PaymentMethods\PayExCheckoutPaymentMethod.cs" />
+    <Compile Include="Features\Payment\PaymentMethods\SwedbankPayCheckoutPaymentMethod.cs" />
     <Compile Include="Features\Payment\Services\IPaymentManagerFacade.cs" />
     <Compile Include="Features\Payment\Services\PaymentManagerFacade.cs" />
     <Compile Include="Features\Payment\ViewModelFactories\PaymentMethodViewModelFactory.cs" />
@@ -895,8 +895,8 @@
     <Content Include="Views\RegistrationConfirmationMail\Index.cshtml" />
     <Content Include="Views\ProfilePage\EditOptins.cshtml" />
     <Content Include="Views\Login\Unapproved.cshtml" />
-    <Content Include="Views\Payment\_PayExCheckout.cshtml" />
-    <Content Include="Views\Shared\_PayExCheckoutConfirmation.cshtml" />
+    <Content Include="Views\Payment\_SwedbankPayCheckout.cshtml" />
+    <Content Include="Views\Shared\_SwedbankPayCheckoutConfirmation.cshtml" />
     <Content Include="modules\_protected\EPiServer.Cms.TinyMce\web.config" />
     <Content Include="modules\_protected\EPiServer.Cms.TinyMce\EPiServer.Cms.TinyMce.zip" />
     <Content Include="EPiServerFramework.Dev.config" />
@@ -1037,13 +1037,13 @@
     <Content Include="Views\Shared\_Facet.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\PayEx.Checkout.Episerver.Common\PayEx.Checkout.Episerver.Common.csproj">
-      <Project>{D773B6A3-EE81-40AA-B585-4F0D164ADE97}</Project>
-      <Name>PayEx.Checkout.Episerver.Common</Name>
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.Common\SwedbankPay.Checkout.Episerver.Common.csproj">
+      <Project>{d773b6a3-ee81-40aa-b585-4f0d164ade97}</Project>
+      <Name>SwedbankPay.Checkout.Episerver.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\src\PayEx.Checkout.Episerver\PayEx.Checkout.Episerver.csproj">
-      <Project>{9588675B-3D10-4F5C-A0D3-5260734E821B}</Project>
-      <Name>PayEx.Checkout.Episerver</Name>
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver\SwedbankPay.Checkout.Episerver.csproj">
+      <Project>{9588675b-3d10-4f5c-a0d3-5260734e821b}</Project>
+      <Name>SwedbankPay.Checkout.Episerver</Name>
     </ProjectReference>
     <ProjectReference Include="..\EPiServer.Reference.Commerce.Shared\EPiServer.Reference.Commerce.Shared.csproj">
       <Project>{341c8e14-4eae-4946-9841-45f9818265a8}</Project>

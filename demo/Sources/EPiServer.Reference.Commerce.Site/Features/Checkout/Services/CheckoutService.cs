@@ -1,4 +1,7 @@
-﻿namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
+﻿using SwedbankPay.Checkout.Episerver;
+using SwedbankPay.Checkout.Episerver.Common;
+
+namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
 {
     using EPiServer.Commerce.Order;
     using EPiServer.Core;
@@ -16,9 +19,7 @@
     using Mediachase.Commerce.Orders;
     using Mediachase.Commerce.Orders.Exceptions;
 
-    using PayEx.Checkout.Episerver;
-    using PayEx.Checkout.Episerver.Common;
-
+    using SwedbankPay.Checkout.Episerver;
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
@@ -41,7 +42,7 @@
         private readonly IMailService _mailService;
         private readonly ILogger _log = LogManager.GetLogger(typeof(CheckoutService));
         private readonly ICartService _cartService;
-        private readonly IPayExCheckoutService _payExCheckoutService;
+        private readonly ISwedbankPayCheckoutService _swedbankPayCheckoutService;
 
         public AuthenticatedPurchaseValidation AuthenticatedPurchaseValidation { get; }
         public AnonymousPurchaseValidation AnonymousPurchaseValidation { get; }
@@ -58,7 +59,7 @@
             LocalizationService localizationService,
             IMailService mailService,
             ICartService cartService,
-            IPayExCheckoutService payExCheckoutService)
+            ISwedbankPayCheckoutService swedbankPayCheckoutService)
         {
             _addressBookService = addressBookService;
             _orderGroupFactory = orderGroupFactory;
@@ -70,7 +71,7 @@
             _localizationService = localizationService;
             _mailService = mailService;
             _cartService = cartService;
-            _payExCheckoutService = payExCheckoutService;
+            _swedbankPayCheckoutService = swedbankPayCheckoutService;
 
             AuthenticatedPurchaseValidation = new AuthenticatedPurchaseValidation(_localizationService);
             AnonymousPurchaseValidation = new AnonymousPurchaseValidation(_localizationService);
@@ -243,7 +244,7 @@
             }
         }
 
-        public IPurchaseOrder CreatePurchaseOrderForPayEx(string orderRef, PaymentOrderResponseContainer order, ICart cart)
+        public IPurchaseOrder CreatePurchaseOrderForSwedbankPay(string orderRef, PaymentOrderResponseContainer order, ICart cart)
         {
             cart.ProcessPayments(_paymentProcessor, _orderGroupCalculator);
             
@@ -259,13 +260,13 @@
 
             if (purchaseOrder == null)
             {
-                _payExCheckoutService.CancelOrder(cart);
+                _swedbankPayCheckoutService.CancelOrder(cart);
                 return null;
             }
             else
             {
-                _payExCheckoutService.Complete(purchaseOrder);
-                purchaseOrder.Properties[Constants.PayExOrderIdField] = orderRef;
+                _swedbankPayCheckoutService.Complete(purchaseOrder);
+                purchaseOrder.Properties[Constants.SwedbankPayOrderIdField] = orderRef;
 
                 _orderRepository.Save(purchaseOrder);
                 return purchaseOrder;
