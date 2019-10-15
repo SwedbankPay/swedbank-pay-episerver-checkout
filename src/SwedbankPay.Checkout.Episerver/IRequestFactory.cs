@@ -7,7 +7,7 @@ namespace SwedbankPay.Checkout.Episerver
 {
     public interface IRequestFactory
     {
-        PaymentOrderRequestContainer Create(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null);
-        ConsumerResourceRequest Create(IMarket market, string email, string mobilePhone, string ssn);
+        PaymentOrderRequestContainer CreatePaymentOrderRequestContainer(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null);
+        ConsumerResourceRequest CreateConsumerResourceRequest(IMarket market, string email, string mobilePhone, string ssn);
     }
 }

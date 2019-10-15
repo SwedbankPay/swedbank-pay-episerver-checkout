@@ -13,9 +13,9 @@ namespace EPiServer.Reference.Commerce.Shared
         public CustomRequestFactory(ICheckoutConfigurationLoader checkoutConfigurationLoader, IOrderGroupCalculator orderGroupCalculator, IShippingCalculator shippingCalculator) : base(checkoutConfigurationLoader, orderGroupCalculator, shippingCalculator)
         {
         }
-        public override PaymentOrderRequestContainer Create(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null)
+        public override PaymentOrderRequestContainer CreatePaymentOrderRequestContainer(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null)
         {
-            var test = base.Create(orderGroup, market, paymentMethodDto, consumerProfileRef);
+            var test = base.CreatePaymentOrderRequestContainer(orderGroup, market, paymentMethodDto, consumerProfileRef);
             test.Paymentorder.Amount = 500;
             test.Paymentorder.VatAmount = 0;
             

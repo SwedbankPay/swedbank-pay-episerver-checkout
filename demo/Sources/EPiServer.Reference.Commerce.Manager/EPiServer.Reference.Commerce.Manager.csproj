@@ -433,19 +433,19 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\PayEx.Checkout.Episerver.CommerceManager\SwedbankPay.Checkout.Episerver.CommerceManager.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.CommerceManager\SwedbankPay.Checkout.Episerver.CommerceManager.csproj">
       <Project>{b70821a5-7ef6-44e8-a812-4e17254036a7}</Project>
       <Name>SwedbankPay.Checkout.Episerver.CommerceManager</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\src\PayEx.Checkout.Episerver.Common\SwedbankPay.Checkout.Episerver.Common.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.Common\SwedbankPay.Checkout.Episerver.Common.csproj">
       <Project>{d773b6a3-ee81-40aa-b585-4f0d164ade97}</Project>
       <Name>SwedbankPay.Checkout.Episerver.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\src\PayEx.Checkout.Episerver.OrderManagement\SwedbankPay.Checkout.Episerver.OrderManagement.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.OrderManagement\SwedbankPay.Checkout.Episerver.OrderManagement.csproj">
       <Project>{8e3481e0-8017-4202-9aeb-ee413c049655}</Project>
       <Name>SwedbankPay.Checkout.Episerver.OrderManagement</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\src\PayEx.Checkout.Episerver\SwedbankPay.Checkout.Episerver.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver\SwedbankPay.Checkout.Episerver.csproj">
       <Project>{9588675b-3d10-4f5c-a0d3-5260734e821b}</Project>
       <Name>SwedbankPay.Checkout.Episerver</Name>
     </ProjectReference>

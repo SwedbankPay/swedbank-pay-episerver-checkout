@@ -36,7 +36,7 @@ namespace SwedbankPay.Checkout.Episerver
             _shippingCalculator = shippingCalculator;
         }
 
-        public virtual PaymentOrderRequestContainer Create(
+        public virtual PaymentOrderRequestContainer CreatePaymentOrderRequestContainer(
           IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null)
         {
             if (orderGroup == null)
@@ -61,7 +61,7 @@ namespace SwedbankPay.Checkout.Episerver
 
         }
 
-        public virtual ConsumerResourceRequest Create(IMarket market, string email = null, string mobilePhone = null, string ssn = null)
+        public virtual ConsumerResourceRequest CreateConsumerResourceRequest(IMarket market, string email = null, string mobilePhone = null, string ssn = null)
         {
             var twoLetterIsoRegionName = new RegionInfo(market.DefaultLanguage.TextInfo.CultureName).TwoLetterISORegionName;
 
