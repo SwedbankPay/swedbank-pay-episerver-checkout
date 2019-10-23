@@ -233,7 +233,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
 
             payment.PaymentType = PaymentType.Other;
             payment.PaymentMethodId = paymentMethod.PaymentMethodId;
-            payment.PaymentMethodName = Constants.SwedbankPaySystemKeyword;
+            payment.PaymentMethodName = Constants.SwedbankPayCheckoutSystemKeyword;
             payment.Amount = Cart.GetTotal().Amount;
 
 
@@ -272,7 +272,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
             if (cart != null)
             {
                 var market = _marketService.GetMarket(cart.MarketId);
-                var orderRef = cart.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
+                var orderRef = cart.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
                 var order = _swedbankPayCheckoutService.GetOrder(orderRef, market);
                 if (order.PaymentOrder.State == "Ready")
                 {
