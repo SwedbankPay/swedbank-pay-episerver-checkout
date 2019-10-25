@@ -1,15 +1,16 @@
 ﻿using EPiServer.Commerce.Order;
 using Mediachase.Commerce;
 using SwedbankPay.Checkout.Episerver.Common;
-using SwedbankPay.Client;
-using SwedbankPay.Client.Models;
-using SwedbankPay.Client.Models.Response;
+using SwedbankPay.Sdk;
+using SwedbankPay.Sdk.Models;
+using SwedbankPay.Sdk.Models.Response;
+using SwedbankPay.Sdk.Models.Response.PaymentOrder;
 
 namespace SwedbankPay.Checkout.Episerver
 {
     public interface ISwedbankPayCheckoutService
     {
-        ConsumerResourceResponse InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null);
+        ConsumersResponse InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null);
         ShippingDetails GetShippingDetails(string uri);
 
         PaymentOrderResponseContainer CreateOrUpdateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null);

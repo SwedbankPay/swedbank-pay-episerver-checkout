@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using SwedbankPay.Client;
-using SwedbankPay.Client.Models;
-using SwedbankPay.Client.Models.Request.Transaction;
-using SwedbankPay.Client.Models.Response;
-using SwedbankPay.Client.Models.Vipps.TransactionAPI.Response;
+using SwedbankPay.Sdk;
+using SwedbankPay.Sdk.Models;
+using SwedbankPay.Sdk.Models.Request.Transaction;
+using SwedbankPay.Sdk.Models.Response.PaymentOrder;
+using SwedbankPay.Sdk.Models.Vipps.TransactionAPI.Response;
 
 namespace SwedbankPay.Checkout.Episerver.OrderManagement
 {

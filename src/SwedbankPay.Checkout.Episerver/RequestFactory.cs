@@ -13,8 +13,8 @@ using SwedbankPay.Checkout.Episerver.Common;
 using SwedbankPay.Checkout.Episerver.Common.Helpers;
 using SwedbankPay.Checkout.Episerver.Extensions;
 using SwedbankPay.Checkout.Episerver.Helpers;
-using SwedbankPay.Client.Models.Common;
-using SwedbankPay.Client.Models.Request;
+using SwedbankPay.Sdk.Models.Common;
+using SwedbankPay.Sdk.Models.Request;
 
 namespace SwedbankPay.Checkout.Episerver
 {
@@ -61,11 +61,11 @@ namespace SwedbankPay.Checkout.Episerver
 
         }
 
-        public virtual ConsumerResourceRequest CreateConsumerResourceRequest(IMarket market, string email = null, string mobilePhone = null, string ssn = null)
+        public virtual ConsumersRequest CreateConsumerResourceRequest(IMarket market, string email = null, string mobilePhone = null, string ssn = null)
         {
             var twoLetterIsoRegionName = new RegionInfo(market.DefaultLanguage.TextInfo.CultureName).TwoLetterISORegionName;
 
-            var initiateConsumerSessionRequestObject = new ConsumerResourceRequest
+            var initiateConsumerSessionRequestObject = new ConsumersRequest
             {
                 Email = email,
                 Msisdn = mobilePhone,

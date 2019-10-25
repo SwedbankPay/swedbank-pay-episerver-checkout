@@ -1,6 +1,6 @@
 ﻿using System;
 using SwedbankPay.Checkout.Episerver.Common;
-using SwedbankPay.Client;
+using SwedbankPay.Sdk;
 
 namespace SwedbankPay.Checkout.Episerver.Extensions
 {

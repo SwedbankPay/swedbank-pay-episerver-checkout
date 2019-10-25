@@ -1,10 +1,10 @@
 ﻿using EPiServer.Commerce.Order;
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders.Dto;
-using SwedbankPay.Client.Models.Request;
 using System.Linq;
 using SwedbankPay.Checkout.Episerver;
 using SwedbankPay.Checkout.Episerver.Common;
+using SwedbankPay.Sdk.Models.Request;
 
 namespace EPiServer.Reference.Commerce.Shared
 {

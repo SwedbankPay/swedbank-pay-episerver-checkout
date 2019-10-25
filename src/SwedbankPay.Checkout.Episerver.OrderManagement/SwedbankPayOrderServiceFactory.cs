@@ -5,7 +5,7 @@ using Mediachase.Commerce.Orders.Dto;
 using Mediachase.Commerce.Orders.Managers;
 using SwedbankPay.Checkout.Episerver.Common;
 using SwedbankPay.Checkout.Episerver.Common.Extensions;
-using SwedbankPay.Client;
+using SwedbankPay.Sdk;
 
 namespace SwedbankPay.Checkout.Episerver.OrderManagement
 {

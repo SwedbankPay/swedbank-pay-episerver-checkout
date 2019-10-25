@@ -11,9 +11,10 @@ using Mediachase.Commerce.Orders.Managers;
 using SwedbankPay.Checkout.Episerver.Common;
 using SwedbankPay.Checkout.Episerver.Extensions;
 using SwedbankPay.Checkout.Episerver.OrderManagement;
-using SwedbankPay.Client;
-using SwedbankPay.Client.Models;
-using SwedbankPay.Client.Models.Response;
+using SwedbankPay.Sdk;
+using SwedbankPay.Sdk.Models;
+using SwedbankPay.Sdk.Models.Response;
+using SwedbankPay.Sdk.Models.Response.PaymentOrder;
 
 namespace SwedbankPay.Checkout.Episerver
 {
@@ -59,7 +60,7 @@ namespace SwedbankPay.Checkout.Episerver
             return CreateOrder(orderGroup, userAgent, consumerProfileRef); //TODO Change to UpdateOrder when SwedbankPay Api supports updating of orderitems
         }
 
-        public virtual ConsumerResourceResponse InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null)
+        public virtual ConsumersResponse InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null)
         {
 
             var swedbankPayClient = GetSwedbankPayClient();

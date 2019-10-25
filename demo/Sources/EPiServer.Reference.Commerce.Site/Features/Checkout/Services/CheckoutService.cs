@@ -1,24 +1,23 @@
 ﻿using SwedbankPay.Checkout.Episerver;
 using SwedbankPay.Checkout.Episerver.Common;
+using SwedbankPay.Sdk.Models.Response.PaymentOrder;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
 {
     using EPiServer.Commerce.Order;
-    using EPiServer.Core;
-    using EPiServer.Framework.Localization;
-    using EPiServer.Logging;
-    using EPiServer.Reference.Commerce.Shared.Services;
-    using EPiServer.Reference.Commerce.Site.Features.AddressBook.Services;
-    using EPiServer.Reference.Commerce.Site.Features.Cart.Services;
-    using EPiServer.Reference.Commerce.Site.Features.Cart.ViewModels;
-    using EPiServer.Reference.Commerce.Site.Features.Checkout.Pages;
-    using EPiServer.Reference.Commerce.Site.Features.Checkout.ViewModels;
-    using EPiServer.Reference.Commerce.Site.Features.Start.Pages;
-    using EPiServer.Reference.Commerce.Site.Infrastructure.Facades;
-
+    using Core;
+    using Framework.Localization;
+    using Logging;
+    using Commerce.Shared.Services;
+    using AddressBook.Services;
+    using Cart.Services;
+    using Cart.ViewModels;
+    using Pages;
+    using ViewModels;
+    using Start.Pages;
+    using Infrastructure.Facades;
     using Mediachase.Commerce.Orders;
     using Mediachase.Commerce.Orders.Exceptions;
-
     using SwedbankPay.Checkout.Episerver;
     using System;
     using System.Collections.Generic;
@@ -26,7 +25,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
     using System.Globalization;
     using System.Linq;
     using System.Web.Mvc;
-    using SwedbankPay.Client.Models.Response;
+   
 
 
     public class CheckoutService
