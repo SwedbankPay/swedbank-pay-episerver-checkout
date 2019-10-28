@@ -7,7 +7,8 @@ using Mediachase.Commerce.Orders;
 using SwedbankPay.Checkout.Episerver.Common;
 using SwedbankPay.Checkout.Episerver.Common.Helpers;
 using SwedbankPay.Checkout.Episerver.OrderManagement.Extensions;
-using SwedbankPay.Sdk.Models.Request.Transaction;
+using SwedbankPay.Sdk.Transactions;
+
 
 namespace SwedbankPay.Checkout.Episerver.OrderManagement.Steps
 {
