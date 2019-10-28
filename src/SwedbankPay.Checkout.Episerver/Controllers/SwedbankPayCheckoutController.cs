@@ -1,5 +1,5 @@
 ﻿using System.Web.Mvc;
-using SwedbankPay.Checkout.Episerver.Helpers;
+using SwedbankPay.Checkout.Episerver.Common.Helpers;
 
 namespace SwedbankPay.Checkout.Episerver.Controllers
 {

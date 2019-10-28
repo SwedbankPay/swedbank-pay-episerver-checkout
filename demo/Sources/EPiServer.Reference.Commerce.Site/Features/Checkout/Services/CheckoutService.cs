@@ -1,6 +1,5 @@
-﻿using SwedbankPay.Checkout.Episerver;
-using SwedbankPay.Checkout.Episerver.Common;
-using SwedbankPay.Sdk.Models.Response.PaymentOrder;
+﻿using SwedbankPay.Checkout.Episerver.Common;
+using SwedbankPay.Sdk.PaymentOrders;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
 {

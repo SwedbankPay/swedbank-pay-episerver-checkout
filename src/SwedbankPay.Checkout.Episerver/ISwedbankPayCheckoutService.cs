@@ -2,9 +2,8 @@
 using Mediachase.Commerce;
 using SwedbankPay.Checkout.Episerver.Common;
 using SwedbankPay.Sdk;
-using SwedbankPay.Sdk.Models;
-using SwedbankPay.Sdk.Models.Response;
-using SwedbankPay.Sdk.Models.Response.PaymentOrder;
+using SwedbankPay.Sdk.Consumers;
+using SwedbankPay.Sdk.PaymentOrders;
 
 namespace SwedbankPay.Checkout.Episerver
 {

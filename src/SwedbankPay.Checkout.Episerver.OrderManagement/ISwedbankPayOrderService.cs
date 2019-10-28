@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
-using SwedbankPay.Sdk.Models;
-using SwedbankPay.Sdk.Models.Request.Transaction;
-using SwedbankPay.Sdk.Models.Response.PaymentOrder;
-using SwedbankPay.Sdk.Models.Vipps.TransactionAPI.Response;
+using SwedbankPay.Sdk.PaymentOrders;
+using SwedbankPay.Sdk.Transactions;
 
 namespace SwedbankPay.Checkout.Episerver.OrderManagement
 {
