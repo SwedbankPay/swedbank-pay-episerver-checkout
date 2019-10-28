@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using EPiServer.Commerce.Order;
 using EPiServer.Logging;
 using Mediachase.Commerce;
@@ -7,19 +6,21 @@ using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders;
 using SwedbankPay.Checkout.Episerver.Common;
 using SwedbankPay.Checkout.Episerver.Common.Helpers;
-using SwedbankPay.Sdk.Models.Common;
-using SwedbankPay.Sdk.Models.Request.Transaction;
+using SwedbankPay.Sdk.PaymentOrders;
+using SwedbankPay.Sdk.Transactions;
 
 namespace SwedbankPay.Checkout.Episerver.OrderManagement.Steps
 {
     public class CapturePaymentStep : PaymentStep
     {
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(CapturePaymentStep));
-        private IMarket _market;
+        private readonly IMarket _market;
+        private readonly IRequestFactory _requestFactory;
 
-        public CapturePaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory, IMarketService marketService) : base(payment, market, swedbankPayOrderServiceFactory)
+        public CapturePaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory, IMarketService marketService, IRequestFactory requestFactory) : base(payment, market, swedbankPayOrderServiceFactory)
         {
             _market = market;
+            _requestFactory = requestFactory;
         }
 
         public override bool Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment, ref string message)
@@ -37,39 +38,10 @@ namespace SwedbankPay.Checkout.Episerver.OrderManagement.Steps
                             throw new InvalidOperationException("Can't find correct shipment");
                         }
 
-                        var orderItems = Enumerable.ToList<OrderItem>(shipment.LineItems.Select(l => FromLineItem(l, orderGroup.Currency)));
-
-                        orderItems.Add(new OrderItem
-                        {
-                            Type = "SHIPPING_FEE",
-                            Reference = "SHIPPING",
-                            Quantity = 1,
-                            DiscountPrice = AmountHelper.GetAmount(orderGroup.GetShippingTotal().Amount),
-                            DiscountDescription = "",
-                            Name = "SHIPPINGFEE",
-                            VatAmount = 0, //TODO Get correct value
-                            ItemUrl = "", //TODO Get correct value
-                            ImageUrl = "", //TODO Get correct value
-                            Description = "Shipping fee",
-                            Amount = AmountHelper.GetAmount(orderGroup.GetShippingTotal().Amount),
-                            Class = "NOTAPPLICABLE",
-                            UnitPrice = AmountHelper.GetAmount(orderGroup.GetShippingTotal().Amount),
-                            QuantityUnit = "PCS",
-                            VatPercent = 0 //TODO Get correct value
-                        });
-
-                        var transaction = new TransactionRequest
-                        {
-                            Description = "Capturing the authorized payment",
-                            Amount = amount,
-                            VatAmount = 0,
-                            PayeeReference = "",
-                            
-                            OrderItems = orderItems
-                        };
-
+                        var captureTransactionRequest = _requestFactory.GetTransactionRequest(payment, _market, shipment, description:"Capturing the authorized payment");
+                        
                         var transactionResponse = AsyncHelper.RunSync(() =>
-                            SwedbankPayOrderService.Capture(new TransactionRequestContainer(transaction), orderId));
+                            SwedbankPayOrderService.Capture(new TransactionRequestContainer(captureTransactionRequest), orderId));
                         AddNoteAndSaveChanges(orderGroup, payment.TransactionType, transactionResponse == null
                                 ? $"Capture is not possible on this order {orderId}"
                                 : $"Captured {payment.Amount}, id {transactionResponse.Id}");
