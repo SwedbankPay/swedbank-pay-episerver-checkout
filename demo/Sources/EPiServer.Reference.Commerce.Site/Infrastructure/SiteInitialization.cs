@@ -89,10 +89,10 @@ namespace EPiServer.Reference.Commerce.Site.Infrastructure
                         locator.GetInstance<CookieService>(),
                         defaultImplementation));
 
-            services.Intercept<IRequestFactory>(
-               (locator, defaultImplementation) =>
-                   new CustomRequestFactory(locator.GetInstance<ICheckoutConfigurationLoader>(),
-                       locator.GetInstance<IOrderGroupCalculator>(), locator.GetInstance<IShippingCalculator>()));
+            //services.Intercept<IRequestFactory>(
+            //   (locator, defaultImplementation) =>
+            //       new CustomRequestFactory(locator.GetInstance<ICheckoutConfigurationLoader>(),
+            //           locator.GetInstance<IOrderGroupCalculator>(), locator.GetInstance<IShippingCalculator>()));
 
             services.AddTransient<IModelBinderProvider, ModelBinderProvider>();
             services.AddHttpContextOrThreadScoped<SiteContext, CustomCurrencySiteContext>();
