@@ -7,17 +7,21 @@ using Mediachase.Commerce.Orders;
 using Mediachase.MetaDataPlus;
 using SwedbankPay.Checkout.Episerver.Common;
 using SwedbankPay.Checkout.Episerver.Common.Helpers;
-using SwedbankPay.Sdk.Models.Request.Transaction;
+using SwedbankPay.Sdk.Transactions;
 
 namespace SwedbankPay.Checkout.Episerver.OrderManagement.Steps
 {
     public class CreditPaymentStep : PaymentStep
     {
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(CreditPaymentStep));
+        private readonly IRequestFactory _requestFactory;
+        private readonly IMarket _market; 
 
-        public CreditPaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) 
+        public CreditPaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory, IRequestFactory requestFactory) 
             : base(payment, market, swedbankPayOrderServiceFactory)
         {
+            _requestFactory = requestFactory;
+            _market = market;
         }
 
         public override bool Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment, ref string message)
@@ -37,13 +41,13 @@ namespace SwedbankPay.Checkout.Episerver.OrderManagement.Steps
                             
                             if (returnForm != null)
                             {
-                                var transactionRequest = new TransactionRequest
-                                {
-                                    Amount = amount,
-                                    Description = string.IsNullOrWhiteSpace(returnForm.ReturnComment) ? "credit" : returnForm.ReturnComment,
-                                    VatAmount = 0 //TODO Get correct value
-                                };
-                                var captureRequestObject = new TransactionRequestContainer(transactionRequest);
+                                var transactionDescription = string.IsNullOrWhiteSpace(returnForm.ReturnComment)
+                                        ? "credit"
+                                        : returnForm.ReturnComment;
+                                var captureTransactionRequest =
+                                    _requestFactory.GetTransactionRequest(payment, _market, shipment, description: transactionDescription);
+                                
+                                var captureRequestObject = new TransactionRequestContainer(captureTransactionRequest);
                                 
                                 var reversalResponseObject = AsyncHelper.RunSync(() => SwedbankPayOrderService.Reversal(captureRequestObject, orderId));
                                 if (reversalResponseObject == null)

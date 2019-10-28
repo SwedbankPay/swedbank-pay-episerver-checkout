@@ -6,6 +6,7 @@ using EPiServer.ServiceLocation;
 using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders;
 using Mediachase.Commerce.Plugins.Payment;
+using SwedbankPay.Checkout.Episerver.Common;
 using SwedbankPay.Checkout.Episerver.OrderManagement;
 using SwedbankPay.Checkout.Episerver.OrderManagement.Steps;
 
@@ -23,8 +24,10 @@ namespace SwedbankPay.Checkout.Episerver
         private SwedbankPayOrderServiceFactory SwedbankPayOrderServiceFactory => InjectedSwedbankPayOrderServiceFactory.Service;
 
         internal Injected<IMarketService> InjectedMarketService { get; set; }
-        private IMarketService MarketService => InjectedMarketService.Service;
 
+        private IMarketService MarketService => InjectedMarketService.Service;
+        internal Injected<IRequestFactory> InjectedRequestFactory { get; set; }
+        private IRequestFactory RequestFactory => InjectedRequestFactory.Service;
 
         public PaymentProcessingResult ProcessPayment(IOrderGroup orderGroup, IPayment payment)
         {
@@ -57,8 +60,8 @@ namespace SwedbankPay.Checkout.Episerver
 
                 var market = MarketService.GetMarket(OrderGroup.MarketId);
                 var authorizePaymentStep = new AuthorizePaymentStep(payment, market, SwedbankPayOrderServiceFactory);
-                var capturePaymentStep = new CapturePaymentStep(payment, market, SwedbankPayOrderServiceFactory, MarketService);
-                var creditPaymentStep = new CreditPaymentStep(payment, market, SwedbankPayOrderServiceFactory);
+                var capturePaymentStep = new CapturePaymentStep(payment, market, SwedbankPayOrderServiceFactory, MarketService, RequestFactory);
+                var creditPaymentStep = new CreditPaymentStep(payment, market, SwedbankPayOrderServiceFactory, RequestFactory);
                 var cancelPaymentStep = new CancelPaymentStep(payment, market, SwedbankPayOrderServiceFactory);
 
                 authorizePaymentStep.SetSuccessor(capturePaymentStep);
