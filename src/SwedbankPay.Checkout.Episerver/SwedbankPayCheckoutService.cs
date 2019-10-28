@@ -9,12 +9,11 @@ using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders.Dto;
 using Mediachase.Commerce.Orders.Managers;
 using SwedbankPay.Checkout.Episerver.Common;
-using SwedbankPay.Checkout.Episerver.Extensions;
+using SwedbankPay.Checkout.Episerver.Common.Extensions;
 using SwedbankPay.Checkout.Episerver.OrderManagement;
 using SwedbankPay.Sdk;
-using SwedbankPay.Sdk.Models;
-using SwedbankPay.Sdk.Models.Response;
-using SwedbankPay.Sdk.Models.Response.PaymentOrder;
+using SwedbankPay.Sdk.Consumers;
+using SwedbankPay.Sdk.PaymentOrders;
 
 namespace SwedbankPay.Checkout.Episerver
 {
@@ -66,11 +65,11 @@ namespace SwedbankPay.Checkout.Episerver
             var swedbankPayClient = GetSwedbankPayClient();
             var market = _marketService.GetMarket(_currentMarket.GetCurrentMarket().MarketId);
 
-            var initiateConsumerSessionRequestObject = _requestFactory.CreateConsumerResourceRequest(market, email, mobilePhone, ssn); 
+            var initiateConsumerSessionRequestObject = _requestFactory.GetConsumerResourceRequest(market, email, mobilePhone, ssn); 
 
             try
             {
-                var initiateConsumerSessionResponseObject = AsyncHelper.RunSync(() => swedbankPayClient.Consumer.InitiateSession(initiateConsumerSessionRequestObject));
+                var initiateConsumerSessionResponseObject = AsyncHelper.RunSync(() => swedbankPayClient.Consumers.InitiateSession(initiateConsumerSessionRequestObject));
                 return initiateConsumerSessionResponseObject;
             }
             //TODO swed
@@ -90,7 +89,7 @@ namespace SwedbankPay.Checkout.Episerver
         public virtual ShippingDetails GetShippingDetails(string uri)
         {
             var swedbankPayClient = GetSwedbankPayClient();
-            return AsyncHelper.RunSync(() => swedbankPayClient.Consumer.GetShippingDetails(uri));
+            return AsyncHelper.RunSync(() => swedbankPayClient.Consumers.GetShippingDetails(uri));
         }
 
         public virtual PaymentOrderResponseContainer CreateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null)
@@ -101,7 +100,7 @@ namespace SwedbankPay.Checkout.Episerver
             try
             {
                 
-                var paymentOrderRequestContainer = _requestFactory.CreatePaymentOrderRequestContainer(orderGroup, market, PaymentMethodDto, consumerProfileRef);
+                var paymentOrderRequestContainer = _requestFactory.GetPaymentOrderRequestContainer(orderGroup, market, PaymentMethodDto, consumerProfileRef);
                 
                 var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.CreatePaymentOrder(paymentOrderRequestContainer));
 
@@ -130,7 +129,7 @@ namespace SwedbankPay.Checkout.Episerver
             var market = _marketService.GetMarket(orderGroup.MarketId);
             var swedbankPayClient = GetSwedbankPayClient(orderGroup);
 
-            var paymentOrderRequestContainer = _requestFactory.CreatePaymentOrderRequestContainer(orderGroup, market, PaymentMethodDto);
+            var paymentOrderRequestContainer = _requestFactory.GetPaymentOrderRequestContainer(orderGroup, market, PaymentMethodDto);
             var paymentOrderResponseObject = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.UpdatePaymentOrder(orderId, paymentOrderRequestContainer));
 
             orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = paymentOrderResponseObject.PaymentOrder.Id;
