@@ -318,7 +318,7 @@
       <HintPath>..\..\packages\structuremap.web.4.0.0.315\lib\net40\StructureMap.Web.dll</HintPath>
     </Reference>
     <Reference Include="SwedbankPay.Sdk, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\SwedbankPay.Sdk.0.1.0-alpha\lib\netstandard2.0\SwedbankPay.Sdk.dll</HintPath>
+      <HintPath>..\..\packages\SwedbankPay.Sdk.0.1.1-alpha\lib\netstandard2.0\SwedbankPay.Sdk.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Annotations, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.ComponentModel.Annotations.4.4.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>

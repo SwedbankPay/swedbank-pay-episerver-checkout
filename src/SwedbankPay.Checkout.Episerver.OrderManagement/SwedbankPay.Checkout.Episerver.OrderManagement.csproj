@@ -137,7 +137,7 @@
       <HintPath>..\..\demo\packages\RestSharp.106.6.6\lib\net452\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="SwedbankPay.Sdk, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\demo\packages\SwedbankPay.Sdk.0.1.0-alpha\lib\netstandard2.0\SwedbankPay.Sdk.dll</HintPath>
+      <HintPath>..\..\demo\packages\SwedbankPay.Sdk.0.1.1-alpha\lib\netstandard2.0\SwedbankPay.Sdk.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
