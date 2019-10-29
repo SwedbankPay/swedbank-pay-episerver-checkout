@@ -37,6 +37,8 @@ using SwedbankPay.Checkout.Episerver.Common;
 
 namespace EPiServer.Reference.Commerce.Site.Infrastructure
 {
+    using Mediachase.Commerce.Catalog;
+
     [ModuleDependency(typeof(EPiServer.Commerce.Initialization.InitializationModule))]
     public class SiteInitialization : IConfigurableModule
     {
@@ -88,6 +90,11 @@ namespace EPiServer.Reference.Commerce.Site.Infrastructure
                         locator.GetInstance<ICurrentMarket>(),
                         locator.GetInstance<CookieService>(),
                         defaultImplementation));
+
+
+            services.Intercept<ITaxCalculator>((locator, calculator) =>
+                new SwedbankPayTaxCalculator(locator.GetInstance<IContentRepository>(),
+                    locator.GetInstance<ReferenceConverter>()));
 
             //services.Intercept<IRequestFactory>(
             //   (locator, defaultImplementation) =>

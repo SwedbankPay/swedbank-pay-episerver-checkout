@@ -1,52 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Web;
-using EPiServer;
-using EPiServer.Business.Commerce.Exception;
-using EPiServer.Commerce.Catalog.ContentTypes;
-using EPiServer.Commerce.Order;
-using EPiServer.ServiceLocation;
-using EPiServer.Web;
-using Mediachase.Commerce;
-using Mediachase.Commerce.Catalog;
-using Mediachase.Commerce.Catalog.Managers;
-using Mediachase.Commerce.Orders;
-using Mediachase.Commerce.Orders.Dto;
-using SwedbankPay.Checkout.Episerver.Common.Extensions;
-using SwedbankPay.Checkout.Episerver.Common.Helpers;
-using SwedbankPay.Sdk;
-using SwedbankPay.Sdk.Consumers;
-using SwedbankPay.Sdk.PaymentOrders;
-using SwedbankPay.Sdk.Transactions;
-
-namespace SwedbankPay.Checkout.Episerver.Common
+﻿namespace SwedbankPay.Checkout.Episerver.Common
 {
+    using EPiServer;
+    using EPiServer.Business.Commerce.Exception;
+    using EPiServer.Commerce.Catalog.ContentTypes;
+    using EPiServer.Commerce.Order;
+    using EPiServer.Commerce.Order.Calculator;
+    using EPiServer.ServiceLocation;
+    using EPiServer.Web;
+
+    using Mediachase.Commerce;
+    using Mediachase.Commerce.Catalog;
+    using Mediachase.Commerce.Catalog.Managers;
+    using Mediachase.Commerce.Orders.Dto;
+
+    using SwedbankPay.Checkout.Episerver.Common.Extensions;
+    using SwedbankPay.Checkout.Episerver.Common.Helpers;
+    using SwedbankPay.Sdk;
+    using SwedbankPay.Sdk.Consumers;
+    using SwedbankPay.Sdk.PaymentOrders;
+    using SwedbankPay.Sdk.Transactions;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Linq;
+    using System.Web;
+
     [ServiceConfiguration(typeof(IRequestFactory))]
     public class RequestFactory : IRequestFactory
     {
         private readonly ICheckoutConfigurationLoader _checkoutConfigurationLoader;
-        private readonly IOrderGroupCalculator _orderGroupCalculator;       
+        private readonly IContentRepository _contentRepository;
+        private readonly IOrderGroupCalculator _orderGroupCalculator;
         private readonly IShippingCalculator _shippingCalculator;
-
         private readonly ITaxCalculator _taxCalculator;
         private readonly ReferenceConverter _referenceConverter;
 
-        private readonly IContentRepository _contentRepository;
         //private ICollection<OrderItem> _orderItems;
 
         public RequestFactory(
              ICheckoutConfigurationLoader checkoutConfigurationLoader,
-             IOrderGroupCalculator orderGroupCalculator,                         
-             IShippingCalculator shippingCalculator, ITaxCalculator taxCalculator, ReferenceConverter referenceConverter, IContentRepository contentRepository)
+             IContentRepository contentRepository,
+             IOrderGroupCalculator orderGroupCalculator,
+             IShippingCalculator shippingCalculator,
+             ITaxCalculator taxCalculator,
+             ReferenceConverter referenceConverter)
         {
-            _checkoutConfigurationLoader = checkoutConfigurationLoader;   
+            _checkoutConfigurationLoader = checkoutConfigurationLoader;
+            _contentRepository = contentRepository;
             _orderGroupCalculator = orderGroupCalculator;
             _shippingCalculator = shippingCalculator;
             _taxCalculator = taxCalculator;
             _referenceConverter = referenceConverter;
-            _contentRepository = contentRepository;
         }
 
         public virtual PaymentOrderRequestContainer GetPaymentOrderRequestContainer(
@@ -70,7 +75,7 @@ namespace SwedbankPay.Checkout.Episerver.Common
             var firstShipment = orderGroup.GetFirstShipment();
             var orderItems = GetOrderItems(market, orderGroup.GetFirstShipment());
             orderItems.Add(GetShippingOrderItem(firstShipment, market));
-            
+
             return CreatePaymentOrderRequestContainer(orderGroup, market, consumerProfileRef, orderItems);
 
         }
@@ -97,14 +102,14 @@ namespace SwedbankPay.Checkout.Episerver.Common
 
             return initiateConsumerSessionRequestObject;
         }
-        
+
         public virtual TransactionRequest GetTransactionRequest(IPayment payment, IMarket market, IShipment shipment, string description) // TODO is this the right way to do it?
         {
             var currency = shipment.ParentOrderGroup.Currency;
             var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
             vatAmount += _shippingCalculator.GetShippingTax(shipment, market, currency);
             var amount = AmountHelper.GetAmount(payment.Amount);
-            
+
             var transactionRequest = new TransactionRequest
             {
                 Amount = amount,
@@ -126,11 +131,6 @@ namespace SwedbankPay.Checkout.Episerver.Common
                 var amount = AmountHelper.GetAmount(item.GetExtendedPrice(currency));
                 var vatAmount = AmountHelper.GetAmount(item.GetSalesTax(market, currency, shipment.ShippingAddress));
                 
-                var test = _taxCalculator.GetSalesTax(item, market, shipment.ShippingAddress, item.GetExtendedPrice(currency));
-                var reference = _referenceConverter.GetContentLink(item.Code);
-                var variationContent = _contentRepository.Get<VariationContent>(reference);
-                var taxCategory = CatalogTaxManager.GetTaxCategoryNameById(variationContent.TaxCategoryId.Value);
-                
                 return new OrderItem
                 {
                     Reference = item.LineItemId.ToString(),
@@ -146,10 +146,10 @@ namespace SwedbankPay.Checkout.Episerver.Common
                     QuantityUnit = "PCS", //TODO Get Value from interface
                     Type = "PRODUCT", //TODO Get Value from interface
                     UnitPrice = unitPrice,
-                    VatAmount = vatAmount, 
+                    VatAmount = vatAmount,
                     VatPercent = (int)((double)vatAmount / amount * 10000) //TODO Get correct value
                 };
-            }).ToList();          
+            }).ToList();
         }
 
         private PaymentOrderRequestContainer CreatePaymentOrderRequestContainer(IOrderGroup orderGroup, IMarket market, string consumerProfileRef, IEnumerable<OrderItem> orderItems)
@@ -184,7 +184,7 @@ namespace SwedbankPay.Checkout.Episerver.Common
                         ConsumerProfileRef = consumerProfileRef
                     };
                 }
-                
+
             }
             return paymentOrderRequestObject;
         }
@@ -193,7 +193,7 @@ namespace SwedbankPay.Checkout.Episerver.Common
         {
             var currency = shipment.ParentOrderGroup.Currency;
             var shippingVatAmount = AmountHelper.GetAmount(_shippingCalculator.GetShippingTax(shipment, market, currency));
-            var shippingAmount = AmountHelper.GetAmount( _shippingCalculator.GetShippingCost(shipment, market, currency));
+            var shippingAmount = AmountHelper.GetAmount(_shippingCalculator.GetShippingCost(shipment, market, currency));
 
             return new OrderItem
             {
@@ -242,7 +242,7 @@ namespace SwedbankPay.Checkout.Episerver.Common
                 CancelUrl = string.IsNullOrWhiteSpace(checkoutConfiguration.PaymentUrl) ? ToFullSiteUrl(c => c.CancelUrl) : null,
                 CompleteUrl = ToFullSiteUrl(c => c.CompleteUrl),
                 LogoUrl = checkoutConfiguration.LogoUrl,
-                HostUrls = checkoutConfiguration.HostUrls                
+                HostUrls = checkoutConfiguration.HostUrls
             };
         }
 
