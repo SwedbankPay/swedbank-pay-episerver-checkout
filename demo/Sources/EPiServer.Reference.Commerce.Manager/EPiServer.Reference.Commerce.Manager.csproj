@@ -382,6 +382,7 @@
     <Compile Include="..\AssemblyVersionAuto.cs">
       <Link>AssemblyVersionAuto.cs</Link>
     </Compile>
+    <Compile Include="SiteInitialization.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="IRIConfigurationModule.cs" />
     <Compile Include="Login.aspx.designer.cs">
