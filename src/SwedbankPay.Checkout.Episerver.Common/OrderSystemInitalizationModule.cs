@@ -16,7 +16,7 @@
     {
         public void Initialize(InitializationEngine context)
         {
-            AddCustomProperty(Constants.SwedbankPayOrderIdField, "PurchaseOrder", "Mediachase.Commerce.Orders.User", MetaDataType.ShortString);
+            AddCustomProperty(Constants.SwedbankPayOrderIdField, "PurchaseOrder", "Mediachase.Commerce.Orders", MetaDataType.ShortString);
         }
 
         public void Uninitialize(InitializationEngine context)
