@@ -45,6 +45,7 @@ namespace SwedbankPay.Checkout.Episerver.OrderManagement.Steps
                         AddNoteAndSaveChanges(orderGroup, payment.TransactionType, transactionResponse == null
                                 ? $"Capture is not possible on this order {orderId}"
                                 : $"Captured {payment.Amount}, id {transactionResponse.Id}");
+                        return true;
                     }
                     catch (Exception ex)
                     {
@@ -57,7 +58,8 @@ namespace SwedbankPay.Checkout.Episerver.OrderManagement.Steps
                         return false;
                     }
                 }
-                return true;
+                return false;
+
             }
             else if (Successor != null)
             {

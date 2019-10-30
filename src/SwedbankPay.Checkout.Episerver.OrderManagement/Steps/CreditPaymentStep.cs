@@ -44,9 +44,8 @@ namespace SwedbankPay.Checkout.Episerver.OrderManagement.Steps
                                 var transactionDescription = string.IsNullOrWhiteSpace(returnForm.ReturnComment)
                                         ? "credit"
                                         : returnForm.ReturnComment;
-                                var captureTransactionRequest =
-                                    _requestFactory.GetTransactionRequest(payment, _market, shipment, description: transactionDescription);
-                                
+                                var captureTransactionRequest = _requestFactory.GetTransactionRequest(payment, _market, shipment, description: transactionDescription, false);
+
                                 var captureRequestObject = new TransactionRequestContainer(captureTransactionRequest);
                                 
                                 var reversalResponseObject = AsyncHelper.RunSync(() => SwedbankPayOrderService.Reversal(captureRequestObject, orderId));

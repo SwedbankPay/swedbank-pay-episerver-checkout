@@ -11,6 +11,6 @@ namespace SwedbankPay.Checkout.Episerver.Common
     {
         PaymentOrderRequestContainer GetPaymentOrderRequestContainer(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null);
         ConsumersRequest GetConsumerResourceRequest(IMarket market, string email, string mobilePhone, string ssn);
-        TransactionRequest GetTransactionRequest(IPayment payment, IMarket market, IShipment shipment, string description);
+        TransactionRequest GetTransactionRequest(IPayment payment, IMarket market, IShipment shipment, string description, bool addShipmentInOrderItem = true);
     }
 }

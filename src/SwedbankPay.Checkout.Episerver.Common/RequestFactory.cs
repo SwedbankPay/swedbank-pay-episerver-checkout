@@ -1,16 +1,11 @@
 ﻿namespace SwedbankPay.Checkout.Episerver.Common
 {
-    using EPiServer;
     using EPiServer.Business.Commerce.Exception;
-    using EPiServer.Commerce.Catalog.ContentTypes;
     using EPiServer.Commerce.Order;
-    using EPiServer.Commerce.Order.Calculator;
     using EPiServer.ServiceLocation;
     using EPiServer.Web;
 
     using Mediachase.Commerce;
-    using Mediachase.Commerce.Catalog;
-    using Mediachase.Commerce.Catalog.Managers;
     using Mediachase.Commerce.Orders.Dto;
 
     using SwedbankPay.Checkout.Episerver.Common.Extensions;
@@ -30,28 +25,19 @@
     public class RequestFactory : IRequestFactory
     {
         private readonly ICheckoutConfigurationLoader _checkoutConfigurationLoader;
-        private readonly IContentRepository _contentRepository;
         private readonly IOrderGroupCalculator _orderGroupCalculator;
         private readonly IShippingCalculator _shippingCalculator;
-        private readonly ITaxCalculator _taxCalculator;
-        private readonly ReferenceConverter _referenceConverter;
-
+        
         //private ICollection<OrderItem> _orderItems;
 
         public RequestFactory(
              ICheckoutConfigurationLoader checkoutConfigurationLoader,
-             IContentRepository contentRepository,
              IOrderGroupCalculator orderGroupCalculator,
-             IShippingCalculator shippingCalculator,
-             ITaxCalculator taxCalculator,
-             ReferenceConverter referenceConverter)
+             IShippingCalculator shippingCalculator)    
         {
             _checkoutConfigurationLoader = checkoutConfigurationLoader;
-            _contentRepository = contentRepository;
             _orderGroupCalculator = orderGroupCalculator;
             _shippingCalculator = shippingCalculator;
-            _taxCalculator = taxCalculator;
-            _referenceConverter = referenceConverter;
         }
 
         public virtual PaymentOrderRequestContainer GetPaymentOrderRequestContainer(
@@ -103,12 +89,18 @@
             return initiateConsumerSessionRequestObject;
         }
 
-        public virtual TransactionRequest GetTransactionRequest(IPayment payment, IMarket market, IShipment shipment, string description) // TODO is this the right way to do it?
+        public virtual TransactionRequest GetTransactionRequest(IPayment payment, IMarket market, IShipment shipment, string description, bool addShipmentInOrderItem = true) // TODO is this the right way to do it?
         {
             var currency = shipment.ParentOrderGroup.Currency;
             var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
-            vatAmount += _shippingCalculator.GetShippingTax(shipment, market, currency);
             var amount = AmountHelper.GetAmount(payment.Amount);
+
+            var orderItems = GetOrderItems(market, shipment);
+            if (addShipmentInOrderItem)
+            {
+                vatAmount += _shippingCalculator.GetShippingTax(shipment, market, currency);
+                orderItems.Add(GetShippingOrderItem(shipment, market));
+            }
 
             var transactionRequest = new TransactionRequest
             {
@@ -116,9 +108,9 @@
                 Description = description,
                 VatAmount = AmountHelper.GetAmount(vatAmount),
                 PayeeReference = DateTime.Now.Ticks.ToString(),
-                OrderItems = GetOrderItems(market, shipment)
+                OrderItems = orderItems
             };
-            transactionRequest.OrderItems.Add(GetShippingOrderItem(shipment, market));
+            
             return transactionRequest;
         }
 
@@ -156,7 +148,6 @@
         {
             var configuration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId).ToSwedbankPayConfiguration();
             var totals = _orderGroupCalculator.GetOrderGroupTotals(orderGroup);
-            var vatAmount = _taxCalculator.GetSalesTax(orderGroup.GetAllLineItems(), market, orderGroup.GetFirstShipment().ShippingAddress, orderGroup.Currency);
             var paymentOrderRequestObject = new PaymentOrderRequestContainer();
             if (configuration != null && totals != null)
             {
