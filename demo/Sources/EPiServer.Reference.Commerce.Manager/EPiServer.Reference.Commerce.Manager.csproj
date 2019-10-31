@@ -369,7 +369,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Apps\Order\Payments\Plugins\SwedbankPayCheckout\ConfigurePayment.ascx" />
+    <Content Include="Apps\Order\Payments\Plugins\SwedbankPayCheckout\ConfigurePayment.ascx">
+      <SubType>ASPXCodeBehind</SubType>
+    </Content>
     <Content Include="BlobStorage\Public\placeholder.txt" />
     <Content Include="Default.aspx" />
     <Content Include="EPiServerDefault.aspx" />
@@ -437,21 +439,21 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.CommerceManager\SwedbankPay.Checkout.Episerver.CommerceManager.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.CommerceManager\SwedbankPay.Episerver.Checkout.CommerceManager.csproj">
       <Project>{b70821a5-7ef6-44e8-a812-4e17254036a7}</Project>
-      <Name>SwedbankPay.Checkout.Episerver.CommerceManager</Name>
+      <Name>SwedbankPay.Episerver.Checkout.CommerceManager</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.Common\SwedbankPay.Checkout.Episerver.Common.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj">
       <Project>{d773b6a3-ee81-40aa-b585-4f0d164ade97}</Project>
-      <Name>SwedbankPay.Checkout.Episerver.Common</Name>
+      <Name>SwedbankPay.Episerver.Checkout.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.OrderManagement\SwedbankPay.Checkout.Episerver.OrderManagement.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout.OrderManagement\SwedbankPay.Episerver.Checkout.OrderManagement.csproj">
       <Project>{8e3481e0-8017-4202-9aeb-ee413c049655}</Project>
-      <Name>SwedbankPay.Checkout.Episerver.OrderManagement</Name>
+      <Name>SwedbankPay.Episerver.Checkout.OrderManagement</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver\SwedbankPay.Checkout.Episerver.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout\SwedbankPay.Episerver.Checkout.csproj">
       <Project>{9588675b-3d10-4f5c-a0d3-5260734e821b}</Project>
-      <Name>SwedbankPay.Checkout.Episerver</Name>
+      <Name>SwedbankPay.Episerver.Checkout</Name>
     </ProjectReference>
     <ProjectReference Include="..\EPiServer.Reference.Commerce.Shared\EPiServer.Reference.Commerce.Shared.csproj">
       <Project>{341c8e14-4eae-4946-9841-45f9818265a8}</Project>

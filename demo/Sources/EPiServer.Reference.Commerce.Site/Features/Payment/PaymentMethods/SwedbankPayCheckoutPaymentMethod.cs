@@ -1,5 +1,5 @@
-﻿using SwedbankPay.Checkout.Episerver;
-using SwedbankPay.Checkout.Episerver.Common;
+﻿using SwedbankPay.Episerver.Checkout;
+using SwedbankPay.Episerver.Checkout.Common;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
 {
@@ -13,12 +13,8 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
 
     using Mediachase.Commerce.Markets;
     using Mediachase.Commerce.Orders;
-
-    using SwedbankPay.Checkout.Episerver;
     using System.ComponentModel;
     using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
     using System.Web;
 
     [ServiceConfiguration(typeof(IPaymentMethod))]

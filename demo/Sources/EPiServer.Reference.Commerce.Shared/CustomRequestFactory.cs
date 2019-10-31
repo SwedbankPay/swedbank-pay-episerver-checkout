@@ -1,12 +1,12 @@
-﻿namespace EPiServer.Reference.Commerce.Shared
+﻿using SwedbankPay.Episerver.Checkout.Common;
+
+namespace EPiServer.Reference.Commerce.Shared
 {
     using EPiServer.Commerce.Order;
 
     using Mediachase.Commerce;
     using Mediachase.Commerce.Catalog;
     using Mediachase.Commerce.Orders.Dto;
-
-    using SwedbankPay.Checkout.Episerver.Common;
     using SwedbankPay.Sdk.PaymentOrders;
 
     using System.Linq;
@@ -20,7 +20,7 @@
             IShippingCalculator shippingCalculator,
             ITaxCalculator taxCalculator,
             ReferenceConverter referenceConverter)
-            : base(checkoutConfigurationLoader, contentRepository, orderGroupCalculator, shippingCalculator, taxCalculator, referenceConverter)
+            : base(checkoutConfigurationLoader, orderGroupCalculator, shippingCalculator)
         {
         }
 

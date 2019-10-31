@@ -1,4 +1,6 @@
-﻿namespace EPiServer.Reference.Commerce.Manager
+﻿using SwedbankPay.Episerver.Checkout.Common;
+
+namespace EPiServer.Reference.Commerce.Manager
 {
     using EPiServer.Commerce.Order;
     using EPiServer.Framework;
@@ -6,8 +8,6 @@
     using EPiServer.ServiceLocation;
 
     using Mediachase.Commerce.Catalog;
-
-    using SwedbankPay.Checkout.Episerver.Common;
 
     [ModuleDependency(typeof(EPiServer.Web.InitializationModule))]
     public class SiteInitialization : IConfigurableModule

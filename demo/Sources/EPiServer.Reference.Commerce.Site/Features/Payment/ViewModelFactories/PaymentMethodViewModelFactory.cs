@@ -9,7 +9,7 @@ using Mediachase.Commerce;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SwedbankPay.Checkout.Episerver.Common;
+using SwedbankPay.Episerver.Checkout.Common;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Payment.ViewModelFactories
 {

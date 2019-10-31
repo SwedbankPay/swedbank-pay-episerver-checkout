@@ -1,4 +1,5 @@
-﻿using SwedbankPay.Checkout.Episerver.Common;
+﻿using SwedbankPay.Episerver.Checkout;
+using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Sdk.PaymentOrders;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
@@ -17,7 +18,6 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
     using Infrastructure.Facades;
     using Mediachase.Commerce.Orders;
     using Mediachase.Commerce.Orders.Exceptions;
-    using SwedbankPay.Checkout.Episerver;
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;

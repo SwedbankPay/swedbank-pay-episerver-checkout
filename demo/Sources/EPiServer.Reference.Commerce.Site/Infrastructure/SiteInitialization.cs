@@ -28,12 +28,9 @@ using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
-using EPiServer.Personalization.Common;
 using EPiServer.Personalization.Commerce.Tracking;
-using SwedbankPay.Checkout.Episerver;
 using EPiServer.Commerce.Order;
-using EPiServer.Reference.Commerce.Shared;
-using SwedbankPay.Checkout.Episerver.Common;
+using SwedbankPay.Episerver.Checkout.Common;
 
 namespace EPiServer.Reference.Commerce.Site.Infrastructure
 {

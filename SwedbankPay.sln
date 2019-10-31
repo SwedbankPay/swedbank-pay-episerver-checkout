@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29020.237
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Checkout.Episerver", "src\SwedbankPay.Checkout.Episerver\SwedbankPay.Checkout.Episerver.csproj", "{9588675B-3D10-4F5C-A0D3-5260734E821B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Episerver.Checkout", "src\SwedbankPay.Episerver.Checkout\SwedbankPay.Episerver.Checkout.csproj", "{9588675B-3D10-4F5C-A0D3-5260734E821B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Checkout.Episerver.CommerceManager", "src\SwedbankPay.Checkout.Episerver.CommerceManager\SwedbankPay.Checkout.Episerver.CommerceManager.csproj", "{B70821A5-7EF6-44E8-A812-4E17254036A7}"
 EndProject

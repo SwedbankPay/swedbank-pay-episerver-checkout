@@ -319,13 +319,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.Common\SwedbankPay.Checkout.Episerver.Common.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj">
       <Project>{D773B6A3-EE81-40AA-B585-4F0D164ADE97}</Project>
-      <Name>SwedbankPay.Checkout.Episerver.Common</Name>
+      <Name>SwedbankPay.Episerver.Checkout.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver\SwedbankPay.Checkout.Episerver.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout\SwedbankPay.Episerver.Checkout.csproj">
       <Project>{9588675B-3D10-4F5C-A0D3-5260734E821B}</Project>
-      <Name>SwedbankPay.Checkout.Episerver</Name>
+      <Name>SwedbankPay.Episerver.Checkout</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

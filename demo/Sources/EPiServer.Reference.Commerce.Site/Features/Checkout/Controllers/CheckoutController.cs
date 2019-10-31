@@ -15,8 +15,8 @@ using EPiServer.Web.Routing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using SwedbankPay.Checkout.Episerver;
-using SwedbankPay.Checkout.Episerver.Common;
+using SwedbankPay.Episerver.Checkout;
+using SwedbankPay.Episerver.Checkout.Common;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
 {
