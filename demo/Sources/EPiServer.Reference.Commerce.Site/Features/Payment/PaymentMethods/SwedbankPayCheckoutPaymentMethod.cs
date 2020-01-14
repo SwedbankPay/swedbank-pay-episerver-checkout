@@ -1,16 +1,16 @@
-﻿using SwedbankPay.Episerver.Checkout;
-using SwedbankPay.Episerver.Checkout.Common;
+﻿
 
 namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
 {
+    using SwedbankPay.Episerver.Checkout;
+    using SwedbankPay.Episerver.Checkout.Common;
     using EPiServer.Commerce.Order;
-    using EPiServer.Framework.Localization;
-    using EPiServer.Reference.Commerce.Site.Features.Cart.Services;
-    using EPiServer.Reference.Commerce.Site.Features.Market.Services;
-    using EPiServer.Reference.Commerce.Site.Features.Payment.Services;
-    using EPiServer.Reference.Commerce.Site.Infrastructure.Facades;
-    using EPiServer.ServiceLocation;
-
+    using Framework.Localization;
+    using Cart.Services;
+    using Market.Services;
+    using Services;
+    using Infrastructure.Facades;
+    using ServiceLocation;
     using Mediachase.Commerce.Markets;
     using Mediachase.Commerce.Orders;
     using System.ComponentModel;

@@ -439,7 +439,7 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\SwedbankPay.Checkout.Episerver.CommerceManager\SwedbankPay.Episerver.Checkout.CommerceManager.csproj">
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout.CommerceManager\SwedbankPay.Episerver.Checkout.CommerceManager.csproj">
       <Project>{b70821a5-7ef6-44e8-a812-4e17254036a7}</Project>
       <Name>SwedbankPay.Episerver.Checkout.CommerceManager</Name>
     </ProjectReference>
