@@ -1,5 +1,7 @@
 ﻿
 
+using System;
+
 namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
 {
     using SwedbankPay.Episerver.Checkout;
@@ -94,7 +96,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
         private void GetCheckoutJavascriptSource(ICart cart)
         {
             var orderData = _swedbankPayCheckoutService.CreateOrUpdateOrder(cart, HttpContext.Current.Request.UserAgent);
-            JavascriptSource = orderData.Operations.FirstOrDefault(x => x.Rel == Operations.ViewPaymentOrder)?.Href;
+            JavascriptSource = orderData.Operations.View?.Href;
             UseCheckoutSource = true;
         }
 
@@ -103,9 +105,9 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
             string email = "PayexTester@payex.com";
             string phone = "+46739000001";
             string ssn = "199710202392";
-
+            
             var orderData = _swedbankPayCheckoutService.InitiateConsumerSession(email, phone, ssn);
-            JavascriptSource = orderData.Operations.FirstOrDefault(x => x.Rel == Operations.ViewConsumerIdentification)?.Href;
+            JavascriptSource = orderData.Operations.ViewConsumerIdentification?.Href;
         }
 
         public override IPayment CreatePayment(decimal amount, IOrderGroup orderGroup)
@@ -132,7 +134,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
         public string Error { get; }
         public CheckoutConfiguration CheckoutConfiguration { get; set; }
         public string Culture { get; set; }
-        public string JavascriptSource { get; set; }
+        public Uri JavascriptSource { get; set; }
         public bool UseCheckoutSource { get; set; }
     }
 }

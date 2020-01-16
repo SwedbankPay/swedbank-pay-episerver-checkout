@@ -4,6 +4,7 @@ using EPiServer.Logging;
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders;
 using SwedbankPay.Episerver.Checkout.Common;
+using SwedbankPay.Sdk.Exceptions;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -11,37 +12,39 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
     {
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(AuthorizePaymentStep));
         
-        public AuthorizePaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, market, swedbankPayOrderServiceFactory)
+        public AuthorizePaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory) : base(payment, market, swedbankPayClientFactory)
         {
         }
 
         public override bool ProcessAuthorization(IPayment payment, IOrderGroup orderGroup, ref string message)
         {
             var orderId = orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
-            try
+            if (!string.IsNullOrEmpty(orderId))
             {
-                var result = SwedbankPayOrderService.GetPaymentOrder(orderId);
-
-                if (result != null)
+                try
                 {
-                    return true;
+                    var result = SwedbankPayClient.PaymentOrder.Get(new Uri(orderId));
+                    if (result != null)
+                    {
+                        return true;
+                    }
+
+                    AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Authorize completed");
+                }
+                catch (Exception ex)
+                {
+                    payment.Status = PaymentStatus.Failed.ToString();
+                    AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {ex.Message}");
+                    Logger.Error(ex.Message, ex);
+
+                    return false;
                 }
 
-                AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Authorize completed");
-            }
-            catch (Exception ex)
-            {
-                var exceptionMessage = GetExceptionMessage(ex);
-
-                payment.Status = PaymentStatus.Failed.ToString();
-                message = exceptionMessage;
-                AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {exceptionMessage}");
-                Logger.Error(exceptionMessage, ex);
-
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
+
         }
     }
 }

@@ -243,7 +243,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
             }
         }
 
-        public IPurchaseOrder CreatePurchaseOrderForSwedbankPay(string orderRef, PaymentOrderResponseContainer order, ICart cart)
+        public IPurchaseOrder CreatePurchaseOrderForSwedbankPay(string orderRef, ICart cart)
         {
             cart.ProcessPayments(_paymentProcessor, _orderGroupCalculator);
             

@@ -22,6 +22,7 @@ using Mediachase.Commerce.Core;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Web;
 using System.Web.Http;
@@ -31,10 +32,12 @@ using System.Web.WebPages;
 using EPiServer.Personalization.Commerce.Tracking;
 using EPiServer.Commerce.Order;
 using SwedbankPay.Episerver.Checkout.Common;
+using SwedbankPay.Sdk;
 
 namespace EPiServer.Reference.Commerce.Site.Infrastructure
 {
     using Mediachase.Commerce.Catalog;
+  
 
     [ModuleDependency(typeof(EPiServer.Commerce.Initialization.InitializationModule))]
     public class SiteInitialization : IConfigurableModule
@@ -97,13 +100,15 @@ namespace EPiServer.Reference.Commerce.Site.Infrastructure
             //   (locator, defaultImplementation) =>
             //       new CustomRequestFactory(locator.GetInstance<ICheckoutConfigurationLoader>(),
             //           locator.GetInstance<IOrderGroupCalculator>(), locator.GetInstance<IShippingCalculator>()));
+           
+            services.AddSingleton<HttpClient>(locator => locator.GetInstance<IHttpClientFactory>().CreateClient());
 
             services.AddTransient<IModelBinderProvider, ModelBinderProvider>();
             services.AddHttpContextOrThreadScoped<SiteContext, CustomCurrencySiteContext>();
             services.AddTransient<HttpContextBase>(locator => HttpContext.Current.ContextBaseOrNull());
 
             services.AddSingleton<ServiceAccessor<IContentRouteHelper>>(locator => locator.GetInstance<IContentRouteHelper>);
-
+            
             DependencyResolver.SetResolver(new StructureMapDependencyResolver(context.StructureMap()));
             GlobalConfiguration.Configure(config =>
             {

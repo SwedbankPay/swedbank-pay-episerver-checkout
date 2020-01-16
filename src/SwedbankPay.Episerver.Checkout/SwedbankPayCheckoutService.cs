@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using EPiServer.Commerce.Order;
 using EPiServer.Globalization;
@@ -9,7 +11,6 @@ using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders.Dto;
 using Mediachase.Commerce.Orders.Managers;
 using SwedbankPay.Episerver.Checkout.Common;
-using SwedbankPay.Episerver.Checkout.Common.Extensions;
 using SwedbankPay.Episerver.Checkout.OrderManagement;
 using SwedbankPay.Sdk;
 using SwedbankPay.Sdk.Consumers;
@@ -24,12 +25,11 @@ namespace SwedbankPay.Episerver.Checkout
         private readonly ICheckoutConfigurationLoader _checkoutConfigurationLoader;
         private readonly IMarketService _marketService;
         private readonly IOrderRepository _orderRepository;
-        private readonly SwedbankPayOrderServiceFactory _swedbankPayOrderServiceFactory;
+        private readonly SwedbankPayClientFactory _swedbankPayClientFactory;
         private readonly ILogger _logger = LogManager.GetLogger(typeof(SwedbankSwedbankPayCheckoutService));
         private PaymentMethodDto _paymentMethodDto;
-        private SwedbankPayOptions _checkoutConfiguration;
         private readonly IRequestFactory _requestFactory;
-
+        
         public PaymentMethodDto PaymentMethodDto => _paymentMethodDto ?? (_paymentMethodDto = PaymentManager.GetPaymentMethodBySystemName(Constants.SwedbankPayCheckoutSystemKeyword, ContentLanguage.PreferredCulture.Name, returnInactive: true));
 
         public SwedbankSwedbankPayCheckoutService(
@@ -37,47 +37,41 @@ namespace SwedbankPay.Episerver.Checkout
             ICheckoutConfigurationLoader checkoutConfigurationLoader,
             IMarketService marketService,
             IOrderRepository orderRepository,
-            SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory, IRequestFactory requestFactory)
+            SwedbankPayClientFactory swedbankPayClientFactory, IRequestFactory requestFactory)
         {
             _currentMarket = currentMarket;
             _checkoutConfigurationLoader = checkoutConfigurationLoader;
             _marketService = marketService;
             _orderRepository = orderRepository;
-            _swedbankPayOrderServiceFactory = swedbankPayOrderServiceFactory;
             _requestFactory = requestFactory;
         }
-
-        public SwedbankPayOptions GetCheckoutConfiguration(IMarket market)
-        {
-            return _checkoutConfiguration ?? (_checkoutConfiguration = GetConfiguration(market));
-        }
-
-        public virtual PaymentOrderResponseContainer CreateOrUpdateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null)
+        
+        public virtual PaymentOrder CreateOrUpdateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null)
         {
             var orderId = orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
             //return string.IsNullOrWhiteSpace(orderId) ? CreateOrder(orderGroup, userAgent, consumerProfileRef) :  UpdateOrder(orderId, orderGroup, userAgent);
             return CreateOrder(orderGroup, userAgent, consumerProfileRef); //TODO Change to UpdateOrder when SwedbankPay Api supports updating of orderitems
         }
 
-        public virtual ConsumersResponse InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null)
+        public virtual Consumer InitiateConsumerSession(string email = null, string mobilePhone = null,
+            string ssn = null)
         {
+            var market = _currentMarket.GetCurrentMarket();
+            var swedbankPayClient = _swedbankPayClientFactory.Create(market);
 
-            var swedbankPayClient = GetSwedbankPayClient();
-            var market = _marketService.GetMarket(_currentMarket.GetCurrentMarket().MarketId);
-
-            var initiateConsumerSessionRequestObject = _requestFactory.GetConsumerResourceRequest(market, email, mobilePhone, ssn); 
-
+            var config = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
+            
             try
             {
-                var initiateConsumerSessionResponseObject = AsyncHelper.RunSync(() => swedbankPayClient.Consumers.InitiateSession(initiateConsumerSessionRequestObject));
-                return initiateConsumerSessionResponseObject;
+                var initiateConsumerSessionRequest =
+                    _requestFactory.GetConsumerResourceRequest(market.DefaultLanguage, config.ShippingAddressRestrictedToCountries.Select(x => new RegionInfo(x)),
+                        string.IsNullOrEmpty(email) ? null : new EmailAddress(email), string.IsNullOrEmpty(mobilePhone) ? null : new Msisdn(mobilePhone),
+                        string.IsNullOrEmpty(ssn) ? null : new NationalIdentifier(new RegionInfo(market.DefaultLanguage.Name), ssn));
+                
+                return AsyncHelper.RunSync(() => swedbankPayClient.Consumers.InitiateSession(initiateConsumerSessionRequest));
+                
             }
-            //TODO swed
-            //catch (PayExException ex)
-            //{
-            //	_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
-            //	throw;
-            //}
+            
             catch (Exception ex)
             {
                 _logger.Error(ex.Message, ex);
@@ -86,67 +80,71 @@ namespace SwedbankPay.Episerver.Checkout
         }
 
 
-        public virtual ShippingDetails GetShippingDetails(string uri)
+        public virtual ShippingDetails GetShippingDetails(Uri uri)
         {
-            var swedbankPayClient = GetSwedbankPayClient();
+            var market = _currentMarket.GetCurrentMarket();
+            var swedbankPayClient = _swedbankPayClientFactory.Create(market);
+
             return AsyncHelper.RunSync(() => swedbankPayClient.Consumers.GetShippingDetails(uri));
         }
 
-        public virtual PaymentOrderResponseContainer CreateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null)
+        public virtual PaymentOrder CreateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null)
         {
-            var swedbankPayClient = GetSwedbankPayClient(orderGroup);
-            var market = _marketService.GetMarket(orderGroup.MarketId);
+            var market = _currentMarket.GetCurrentMarket();
+            var swedbankPayClient = _swedbankPayClientFactory.Create(market);
 
             try
             {
                 
-                var paymentOrderRequestContainer = _requestFactory.GetPaymentOrderRequestContainer(orderGroup, market, PaymentMethodDto, consumerProfileRef);
+                var paymentOrderRequest = _requestFactory.GetPaymentOrderRequest(orderGroup, market, PaymentMethodDto, consumerProfileRef);
                 
-                var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.CreatePaymentOrder(paymentOrderRequestContainer));
-
-                orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = paymentOrder.PaymentOrder.Id;
+                var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrder.Create(paymentOrderRequest));
+                
+                orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = paymentOrder.PaymentOrderResponse.Id;
 
                 _orderRepository.Save(orderGroup);
                 return paymentOrder;
             }
-            //TODO swed
-            //catch (PayExException ex)
-            //{
-            //	_logger.Error($"{ex.ErrorCode} - {ex.Error.Title}... {ex.Error.Detail}::: {string.Join(", ", ex.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}");
-            //	throw;
-            //}
+            
             catch (Exception ex)
             {
                 _logger.Error(ex.Message, ex);
                 throw;
             }
         }
+        
 
-
-
-        public virtual PaymentOrderResponseContainer UpdateOrder(string orderId, IOrderGroup orderGroup, string userAgent)
+        public virtual PaymentOrder UpdateOrder(Uri orderId, IOrderGroup orderGroup, string userAgent)
         {
             var market = _marketService.GetMarket(orderGroup.MarketId);
-            var swedbankPayClient = GetSwedbankPayClient(orderGroup);
+            var swedbankPayClient = _swedbankPayClientFactory.Create(PaymentMethodDto, orderGroup.MarketId);
+            var total = orderGroup.GetTotal();
 
-            var paymentOrderRequestContainer = _requestFactory.GetPaymentOrderRequestContainer(orderGroup, market, PaymentMethodDto);
-            var paymentOrderResponseObject = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.UpdatePaymentOrder(orderId, paymentOrderRequestContainer));
 
-            orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = paymentOrderResponseObject.PaymentOrder.Id;
+            var updateOrderRequest = _requestFactory.GetUpdateRequest(orderGroup);
+            
+            var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrder.Get(orderId));
+
+            if (paymentOrder?.Operations?.Update != null)
+            {
+                var response = AsyncHelper.RunSync(() => paymentOrder.Operations.Update(updateOrderRequest));
+            }
+            
+            orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = paymentOrder?.PaymentOrderResponse.Id;
             _orderRepository.Save(orderGroup);
 
-            return paymentOrderResponseObject;
+            return paymentOrder;
         }
 
-        public virtual PaymentOrderResponseContainer GetOrder(string id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
+        public virtual PaymentOrder GetOrder(Uri id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
         {
-            var swedbankPayOptions = GetConfiguration(market);
-            var swedbankPayClient = new SwedbankPayClient(swedbankPayOptions);
+            var config = LoadCheckoutConfiguration(market);
+            var swedbankPayClient = _swedbankPayClientFactory.Create(config);
 
             try
             {
-                var paymentOrderResponseContainer = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.GetPaymentOrder(id, paymentOrderExpand));
-                return paymentOrderResponseContainer;
+                
+                return AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrder.Get(id, paymentOrderExpand));
             }
             //TODO swed
             //catch (PayExException ex)
@@ -165,18 +163,26 @@ namespace SwedbankPay.Episerver.Checkout
         public void CancelOrder(IOrderGroup orderGroup)
         {
             var market = _marketService.GetMarket(orderGroup.MarketId);
-            var swedbankPayOrderService = _swedbankPayOrderServiceFactory.Create(market);
+            var swedbankPayClient = _swedbankPayClientFactory.Create(market);
 
             var orderId = orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
             if (!string.IsNullOrWhiteSpace(orderId))
             {
                 try
                 {
-                    var cancelResponseObject = AsyncHelper.RunSync(() => swedbankPayOrderService.CancelOrder(orderId));
-                    if (cancelResponseObject != null)
+                    var cancelRequest = _requestFactory.GetCancelRequest();
+                        
+                    var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrder.Get(new Uri(orderId)));
+
+                    if (paymentOrder.Operations.Cancel != null)
                     {
-                        orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = null;
-                        _orderRepository.Save(orderGroup);
+                        var cancelResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Cancel(cancelRequest));
+                        if (cancelResponse.Cancellation.Transaction.Type == "Cancel" && cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
+                        {
+                            orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = null;
+                            _orderRepository.Save(orderGroup);
+                        }
+                        
                     }
 
                 }
@@ -231,28 +237,23 @@ namespace SwedbankPay.Episerver.Checkout
         {
             return _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
         }
+        
+        //private SwedbankPayClient GetSwedbankPayClient()
+        //{
+        //    var market = _marketService.GetMarket(_currentMarket.GetCurrentMarket().MarketId);
+        //    var swedbankPayOptions = GetConfiguration(market);
+        //    var swedbankPayClient = new SwedbankPayClient(swedbankPayOptions);
+        //    return swedbankPayClient;
+        //}
 
-        public SwedbankPayOptions GetConfiguration(IMarket market)
-        {
-            return _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name).ToSwedbankPayConfiguration();
-        }     
+        //private SwedbankPayClient GetSwedbankPayClient(IOrderGroup orderGroup)
+        //{
+        //    var market = _marketService.GetMarket(orderGroup.MarketId);
+        //    var swedbankPayOrderService = _swedbankPayClientFactory.Create(market);
 
-        private SwedbankPayClient GetSwedbankPayClient()
-        {
-            var market = _marketService.GetMarket(_currentMarket.GetCurrentMarket().MarketId);
-            var swedbankPayOptions = GetConfiguration(market);
-            var swedbankPayClient = new SwedbankPayClient(swedbankPayOptions);
-            return swedbankPayClient;
-        }
-
-        private SwedbankPayClient GetSwedbankPayClient(IOrderGroup orderGroup)
-        {
-            var market = _marketService.GetMarket(orderGroup.MarketId);
-            var swedbankPayOrderService = _swedbankPayOrderServiceFactory.Create(market);
-
-            var swedbankPayOptions = GetConfiguration(market);
-            var swedbankPayClient = new SwedbankPayClient(swedbankPayOptions);
-            return swedbankPayClient;
-        }
+        //    var swedbankPayOptions = GetConfiguration(market);
+        //    var swedbankPayClient = new SwedbankPayClient(swedbankPayOptions);
+        //    return swedbankPayClient;
+        //}
     }
 }

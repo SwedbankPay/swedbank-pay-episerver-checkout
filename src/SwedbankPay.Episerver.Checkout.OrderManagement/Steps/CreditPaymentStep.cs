@@ -6,8 +6,7 @@ using Mediachase.Commerce;
 using Mediachase.Commerce.Orders;
 using Mediachase.MetaDataPlus;
 using SwedbankPay.Episerver.Checkout.Common;
-using SwedbankPay.Episerver.Checkout.Common.Helpers;
-using SwedbankPay.Sdk.Transactions;
+using SwedbankPay.Sdk;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -17,8 +16,8 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
         private readonly IRequestFactory _requestFactory;
         private readonly IMarket _market; 
 
-        public CreditPaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory, IRequestFactory requestFactory) 
-            : base(payment, market, swedbankPayOrderServiceFactory)
+        public CreditPaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory, IRequestFactory requestFactory) 
+            : base(payment, market, swedbankPayClientFactory)
         {
             _requestFactory = requestFactory;
             _market = market;
@@ -30,12 +29,10 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             {
                 try
                 {
-                    var amount = AmountHelper.GetAmount((decimal) payment.Amount);
                     var orderId = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
                     if (!string.IsNullOrEmpty(orderId))
                     {
-                        var purchaseOrder = orderGroup as IPurchaseOrder;
-                        if (purchaseOrder != null)
+                        if (orderGroup is IPurchaseOrder purchaseOrder)
                         {
                             var returnForm = purchaseOrder.ReturnForms.FirstOrDefault(x => ((OrderForm)x).Status == ReturnFormStatus.Complete.ToString() && ((OrderForm)x).ObjectState == MetaObjectState.Modified);
                             
@@ -44,26 +41,35 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                                 var transactionDescription = string.IsNullOrWhiteSpace(returnForm.ReturnComment)
                                         ? "credit"
                                         : returnForm.ReturnComment;
-                                var captureTransactionRequest = _requestFactory.GetTransactionRequest(payment, _market, shipment, description: transactionDescription, false);
+                                var reversalRequest =
+                                    _requestFactory.GetReversalRequest(payment, _market, shipment, true);
 
-                                var captureRequestObject = new TransactionRequestContainer(captureTransactionRequest);
-                                
-                                var reversalResponseObject = AsyncHelper.RunSync(() => SwedbankPayOrderService.Reversal(captureRequestObject, orderId));
-                                if (reversalResponseObject == null)
+                                var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId)));
+
+                                if (paymentOrder.Operations.Reversal != null)
                                 {
-                                    payment.Status = PaymentStatus.Failed.ToString();
-                                    message = "Reversal is not a valid operation";
-                                    AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {message}");
-                                    Logger.Error($"Reversal is not a valid operation for {orderId}");
-                                    return false;
+                                    var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reversal(reversalRequest));
+
+                                    if (reversalResponse.Reversal.Transaction.Type == "Reversal" && reversalResponse.Reversal.Transaction.State.Equals(State.Completed))
+                                    {
+                                        payment.Status = PaymentStatus.Processed.ToString();
+
+                                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
+                                        return true;
+                                    }
+                                    
                                 }
+
+                                payment.Status = PaymentStatus.Failed.ToString();
+                                message = "Reversal is not a valid operation";
+                                AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {message}");
+                                Logger.Error($"Reversal is not a valid operation for {orderId}");
+                                return false;
+
                             }
                         }
-                        payment.Status = PaymentStatus.Processed.ToString();
-
-                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
-
-                        return true;
+                        
+                        return false;
                     }
                 }
                 catch (Exception ex)

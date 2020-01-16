@@ -1,4 +1,5 @@
-﻿using EPiServer.Commerce.Order;
+﻿using System;
+using EPiServer.Commerce.Order;
 using Mediachase.Commerce;
 using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Sdk;
@@ -9,24 +10,19 @@ namespace SwedbankPay.Episerver.Checkout
 {
     public interface ISwedbankPayCheckoutService
     {
-        ConsumersResponse InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null);
-        ShippingDetails GetShippingDetails(string uri);
+        Consumer InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null);
+        ShippingDetails GetShippingDetails(Uri uri);
 
-        PaymentOrderResponseContainer CreateOrUpdateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null);
+        PaymentOrder CreateOrUpdateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null);
 
 
-        PaymentOrderResponseContainer CreateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null);
-        PaymentOrderResponseContainer UpdateOrder(string orderId, IOrderGroup orderGroup, string userAgent);
+        PaymentOrder CreateOrder(IOrderGroup orderGroup, string userAgent, string consumerProfileRef = null);
+        PaymentOrder UpdateOrder(Uri orderId, IOrderGroup orderGroup, string userAgent);
 
         CheckoutConfiguration LoadCheckoutConfiguration(IMarket market);
-
-        SwedbankPayOptions GetConfiguration(IMarket market);
-
-        PaymentOrderResponseContainer GetOrder(string id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None);
-
-        //Task<PaymentResponse> GetPayment(string id, IOrderGroup orderGroup, PaymentExpand paymentExpand = PaymentExpand.None);
-
-
+        
+        PaymentOrder GetOrder(Uri id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None);
+        
 		void CancelOrder(IOrderGroup orderGroup);
         void Complete(IPurchaseOrder purchaseOrder);
     }

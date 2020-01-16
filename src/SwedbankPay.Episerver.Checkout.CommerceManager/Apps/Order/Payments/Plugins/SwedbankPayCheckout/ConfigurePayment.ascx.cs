@@ -82,7 +82,7 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
                 MarketId = currentMarket,
 
                 Token = txtToken.Text,
-                ApiUrl = txtApiUrl.Text,
+                ApiUrl = new Uri(txtApiUrl.Text),
                 MerchantId = txtMerchantId.Text,
                 UseAnonymousCheckout = chkAnonymous.Checked,
                 ShippingAddressRestrictedToCountries = selectedRestrictedCountries
@@ -137,9 +137,8 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
         {
 
             txtToken.Text = checkoutConfiguration.Token;
-            txtApiUrl.Text = checkoutConfiguration.ApiUrl;
+            txtApiUrl.Text = checkoutConfiguration.ApiUrl?.ToString();
             txtMerchantId.Text = checkoutConfiguration.MerchantId;
-
             txtHostUrls.Text = checkoutConfiguration.HostUrls != null && checkoutConfiguration.HostUrls.Any() ? string.Join("; ", checkoutConfiguration.HostUrls) : null;
             txtCompletetUrl.Text = checkoutConfiguration.CompleteUrl?.ToString();
             txtCancelUrl.Text = checkoutConfiguration.CancelUrl?.ToString();

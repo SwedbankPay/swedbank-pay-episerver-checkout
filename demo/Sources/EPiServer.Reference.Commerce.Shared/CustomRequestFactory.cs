@@ -24,18 +24,18 @@ namespace EPiServer.Reference.Commerce.Shared
         {
         }
 
-        public override PaymentOrderRequestContainer GetPaymentOrderRequestContainer(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null)
-        {
-            var test = base.GetPaymentOrderRequestContainer(orderGroup, market, paymentMethodDto, consumerProfileRef);
-            test.Paymentorder.Amount = 500;
-            test.Paymentorder.VatAmount = 0;
+        //public override PaymentOrderRequestContainer GetPaymentOrderRequestContainer(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null)
+        //{
+        //    var test = base.GetPaymentOrderRequestContainer(orderGroup, market, paymentMethodDto, consumerProfileRef);
+        //    test.Paymentorder.Amount = 500;
+        //    test.Paymentorder.VatAmount = 0;
 
-            test.Paymentorder.OrderItems.Remove(test.Paymentorder.OrderItems.First(x => x.Reference == "SHIPPING"));
-            test.Paymentorder.OrderItems.First().Amount = 500;
-            test.Paymentorder.OrderItems.First().VatAmount = 0;
+        //    test.Paymentorder.OrderItems.Remove(test.Paymentorder.OrderItems.First(x => x.Reference == "SHIPPING"));
+        //    test.Paymentorder.OrderItems.First().Amount = 500;
+        //    test.Paymentorder.OrderItems.First().VatAmount = 0;
 
-            return test;
+        //    return test;
 
-        }
+        //}
     }
 }

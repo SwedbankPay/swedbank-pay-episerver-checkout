@@ -1,15 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using SwedbankPay.Sdk.PaymentOrders;
-using SwedbankPay.Sdk.Transactions;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement
 {
     public interface ISwedbankPayOrderService
     {
-	    Task<PaymentOrderResponseContainer> GetPaymentOrder(string id, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None);
-        Task<TransactionResponse> Capture(TransactionRequestContainer request, string orderId);
-        Task<TransactionResponse> Reversal(TransactionRequestContainer request, string orderId);
-        Task<TransactionResponse> CancelOrder(string orderId);
+	    Task<PaymentOrder> GetPaymentOrder(Uri id, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None);
+        Task<PaymentOrderResponse> Capture(CaptureRequest request, Uri orderId);
+        Task<PaymentOrderResponse> Reversal(ReversalRequest request, Uri orderId);
+        Task<PaymentOrderResponse> CancelOrder(Uri orderId);
     }
 }
 

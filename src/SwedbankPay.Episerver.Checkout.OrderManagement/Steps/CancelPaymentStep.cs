@@ -7,16 +7,20 @@ using Mediachase.Commerce.Orders;
 using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Episerver.Checkout.Common.Helpers;
 using SwedbankPay.Episerver.Checkout.OrderManagement.Extensions;
-using SwedbankPay.Sdk.Transactions;
+using SwedbankPay.Sdk;
+using SwedbankPay.Sdk.PaymentOrders;
+using SwedbankPay.Sdk.Payments;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
     public class CancelPaymentStep : PaymentStep
     {
+        private readonly IRequestFactory _requestFactory;
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(CancelPaymentStep));
 
-        public CancelPaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory) : base(payment, market, swedbankPayOrderServiceFactory)
+        public CancelPaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory, IRequestFactory requestFactory) : base(payment, market, swedbankPayClientFactory)
         {
+            _requestFactory = requestFactory;
         }
 
         public override bool Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment, ref string message)
@@ -26,48 +30,49 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                 try
                 {
                     var orderId = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
-                    var amount = AmountHelper.GetAmount((decimal)payment.Amount);
-                    var previousPayment = orderForm.Payments.FirstOrDefault(x => x.IsSwedbankPayPayment());
-                    if (previousPayment != null && previousPayment.TransactionType == TransactionType.Sale.ToString())
-                    {
-                        var transaction = new TransactionRequest
-                        {
-                            Amount = amount,
-                            Description = "Order canceled"
-                        };
-                        var captureRequestObject = new TransactionRequestContainer(transaction);
+                    //var previousPayment = orderForm.Payments.FirstOrDefault(x => x.IsSwedbankPayPayment());
+                    //if (previousPayment != null && previousPayment.TransactionType == TransactionType.Sale.ToString())
+                    //{
+                    //    var cancelRequest = _requestFactory.GetCancelRequest();
+                    //    var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId)));
+                    //    paymentOrder.Operations.Cancel
+                    //    var cancelResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Cancel(cancelRequest));
                         
-                        var reversalResponseObject = AsyncHelper.RunSync(() => SwedbankPayOrderService.Reversal(captureRequestObject, orderId));
-                        if (reversalResponseObject == null)
-                        {
-                            payment.Status = PaymentStatus.Failed.ToString();
-                            message = "Reversal is not a valid operation";
-                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {message}");
-                            Logger.Error($"Reversal is not a valid operation for {orderId}");
-                            return false;
-                        }
+                    //    if (reversalResponseObject == null)
+                    //    {
+                    //        payment.Status = PaymentStatus.Failed.ToString();
+                    //        message = "Reversal is not a valid operation";
+                    //        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {message}");
+                    //        Logger.Error($"Reversal is not a valid operation for {orderId}");
+                    //        return false;
+                    //    }
 
-                        payment.Status = PaymentStatus.Processed.ToString();
+                    //    payment.Status = PaymentStatus.Processed.ToString();
 
-                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
-                    }
-                    
-                  
-                    else if (!string.IsNullOrEmpty(orderId))
+                    //    AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
+                    //}
+
+                    if (string.IsNullOrEmpty(orderId)) return false;
+                    var cancelRequest = _requestFactory.GetCancelRequest();
+                    var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId)));
+                    if (paymentOrder.Operations.Cancel != null)
                     {
-                        var cancelResponseObject = SwedbankPayOrderService.CancelOrder(orderId);
-                        if (cancelResponseObject != null)
+                        var cancelResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Cancel(cancelRequest));
+                        if (cancelResponse.Cancellation.Transaction.Type == "Cancel" && cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
                         {
                             payment.Status = PaymentStatus.Processed.ToString();
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order cancelled at SwedbankPay");
                             return true;
                         }
-                        else
-                        {
-                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Cancel is not possible on this order {orderId}");
-                            return false;
-                        }
                     }
+                        
+                    else
+                    {
+                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Cancel is not possible on this order {orderId}");
+                        return false;
+                    }
+
+                    return false;
                 }
                 catch (Exception ex)
                 {

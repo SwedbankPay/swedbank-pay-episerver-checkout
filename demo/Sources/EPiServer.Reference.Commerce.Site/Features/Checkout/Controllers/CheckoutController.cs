@@ -1,4 +1,5 @@
-﻿using EPiServer.Commerce.Order;
+﻿using System;
+using EPiServer.Commerce.Order;
 using EPiServer.Core;
 using EPiServer.Reference.Commerce.Site.Features.Cart.Services;
 using EPiServer.Reference.Commerce.Site.Features.Checkout.Pages;
@@ -17,6 +18,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using SwedbankPay.Episerver.Checkout;
 using SwedbankPay.Episerver.Checkout.Common;
+using SwedbankPay.Sdk;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
 {
@@ -251,9 +253,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
                 Data = true
             };
         }
-
-
-
+        
         [HttpPost]
         public JsonResult CreateSwedbankPayPurchase(string consumerProfileRef)
         {
@@ -273,10 +273,10 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
             {
                 var market = _marketService.GetMarket(cart.MarketId);
                 var orderRef = cart.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
-                var order = _swedbankPayCheckoutService.GetOrder(orderRef, market);
-                if (order.PaymentOrder.State == "Ready")
+                var order = _swedbankPayCheckoutService.GetOrder(new Uri(orderRef), market);
+                if (order.PaymentOrderResponse.State.Equals( State.Ready))
                 {
-                    var purchaseOrder = _checkoutService.CreatePurchaseOrderForSwedbankPay(orderRef, order, cart);
+                    var purchaseOrder = _checkoutService.CreatePurchaseOrderForSwedbankPay(orderRef, cart);
                     if (purchaseOrder == null)
                     {
                         ModelState.AddModelError("", "Error occurred while creating a purchase order");

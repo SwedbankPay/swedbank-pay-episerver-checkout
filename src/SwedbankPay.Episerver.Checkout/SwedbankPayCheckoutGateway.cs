@@ -20,8 +20,8 @@ namespace SwedbankPay.Episerver.Checkout
         public IOrderGroup OrderGroup { get; set; }
 
 
-        internal Injected<SwedbankPayOrderServiceFactory> InjectedSwedbankPayOrderServiceFactory { get; set; }
-        private SwedbankPayOrderServiceFactory SwedbankPayOrderServiceFactory => InjectedSwedbankPayOrderServiceFactory.Service;
+        internal Injected<SwedbankPayClientFactory> InjectedSwedbankPayClientFactory { get; set; }
+        private SwedbankPayClientFactory SwedbankPayClientFactory => InjectedSwedbankPayClientFactory.Service;
 
         internal Injected<IMarketService> InjectedMarketService { get; set; }
 
@@ -59,10 +59,10 @@ namespace SwedbankPay.Episerver.Checkout
                 }
 
                 var market = MarketService.GetMarket(OrderGroup.MarketId);
-                var authorizePaymentStep = new AuthorizePaymentStep(payment, market, SwedbankPayOrderServiceFactory);
-                var capturePaymentStep = new CapturePaymentStep(payment, market, SwedbankPayOrderServiceFactory, MarketService, RequestFactory);
-                var creditPaymentStep = new CreditPaymentStep(payment, market, SwedbankPayOrderServiceFactory, RequestFactory);
-                var cancelPaymentStep = new CancelPaymentStep(payment, market, SwedbankPayOrderServiceFactory);
+                var authorizePaymentStep = new AuthorizePaymentStep(payment, market, SwedbankPayClientFactory);
+                var capturePaymentStep = new CapturePaymentStep(payment, market, SwedbankPayClientFactory, MarketService, RequestFactory);
+                var creditPaymentStep = new CreditPaymentStep(payment, market, SwedbankPayClientFactory, RequestFactory);
+                var cancelPaymentStep = new CancelPaymentStep(payment, market, SwedbankPayClientFactory, RequestFactory);
 
                 authorizePaymentStep.SetSuccessor(capturePaymentStep);
                 capturePaymentStep.SetSuccessor(creditPaymentStep); 

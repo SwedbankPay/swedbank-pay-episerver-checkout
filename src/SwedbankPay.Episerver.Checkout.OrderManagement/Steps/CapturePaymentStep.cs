@@ -6,8 +6,8 @@ using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders;
 using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Episerver.Checkout.Common.Helpers;
+using SwedbankPay.Sdk;
 using SwedbankPay.Sdk.PaymentOrders;
-using SwedbankPay.Sdk.Transactions;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -17,7 +17,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
         private readonly IMarket _market;
         private readonly IRequestFactory _requestFactory;
 
-        public CapturePaymentStep(IPayment payment, IMarket market, SwedbankPayOrderServiceFactory swedbankPayOrderServiceFactory, IMarketService marketService, IRequestFactory requestFactory) : base(payment, market, swedbankPayOrderServiceFactory)
+        public CapturePaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory, IMarketService marketService, IRequestFactory requestFactory) : base(payment, market, swedbankPayClientFactory)
         {
             _market = market;
             _requestFactory = requestFactory;
@@ -37,15 +37,29 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         {
                             throw new InvalidOperationException("Can't find correct shipment");
                         }
-
-                        var captureTransactionRequest = _requestFactory.GetTransactionRequest(payment, _market, shipment, description:"Capturing the authorized payment");
                         
-                        var transactionResponse = AsyncHelper.RunSync(() =>
-                            SwedbankPayOrderService.Capture(new TransactionRequestContainer(captureTransactionRequest), orderId));
-                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, transactionResponse == null
-                                ? $"Capture is not possible on this order {orderId}"
-                                : $"Captured {payment.Amount}, id {transactionResponse.Id}");
-                        return true;
+                        var captureRequest = _requestFactory.GetCaptureRequest(payment, _market, shipment, addShipmentInOrderItem: true);
+                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId)));
+                        
+                        if (paymentOrder.Operations.Capture != null)
+                        {
+                            var captureResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Capture(captureRequest));
+
+                            if (captureResponse.Capture.Transaction.Type == "Capture" && captureResponse.Capture.Transaction.State.Equals(State.Completed))
+                            {
+                                payment.Status = PaymentStatus.Processed.ToString();
+                                AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order captured at SwedbankPay");
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Capture is not possible on this order {orderId}");
+                            return false;
+                        }
+
+                        return false;
+                       
                     }
                     catch (Exception ex)
                     {
@@ -67,30 +81,6 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             }
 
             return false;
-        }
-
-        private OrderItem FromLineItem(ILineItem item, Currency currency)
-        {
-            var itemDescription = new OrderItem
-            {
-                Reference = item.Code,
-                Amount = AmountHelper.GetAmount(item.GetExtendedPrice(currency)),
-                Class = "FASHION", //TODO Get Value from interface 
-                Description = "",
-                DiscountDescription = "",
-                DiscountPrice = AmountHelper.GetAmount(item.GetDiscountedPrice(currency)),
-                ImageUrl = "",
-                ItemUrl = "",
-                Name = item.DisplayName,
-                Quantity = (int)(item.Quantity),
-                QuantityUnit = "PCS", //TODO Get Value from interface
-                Type = "PRODUCT", //TODO Get Value from interface
-                UnitPrice = AmountHelper.GetAmount(item.PlacedPrice),
-                VatAmount = 0,
-                VatPercent = 0
-            };
-
-            return itemDescription;
         }
     }
 }

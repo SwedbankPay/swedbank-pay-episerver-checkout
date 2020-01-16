@@ -8,13 +8,13 @@ using EPiServer.Commerce.Order;
 using EPiServer.ServiceLocation;
 using EPiServer.Web;
 using Mediachase.Commerce;
+using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders.Dto;
 using SwedbankPay.Episerver.Checkout.Common.Extensions;
 using SwedbankPay.Episerver.Checkout.Common.Helpers;
 using SwedbankPay.Sdk;
 using SwedbankPay.Sdk.Consumers;
 using SwedbankPay.Sdk.PaymentOrders;
-using SwedbankPay.Sdk.Transactions;
 
 namespace SwedbankPay.Episerver.Checkout.Common
 {
@@ -25,19 +25,17 @@ namespace SwedbankPay.Episerver.Checkout.Common
         private readonly IOrderGroupCalculator _orderGroupCalculator;
         private readonly IShippingCalculator _shippingCalculator;
         
-        //private ICollection<OrderItem> _orderItems;
-
         public RequestFactory(
              ICheckoutConfigurationLoader checkoutConfigurationLoader,
              IOrderGroupCalculator orderGroupCalculator,
              IShippingCalculator shippingCalculator)    
         {
-            _checkoutConfigurationLoader = checkoutConfigurationLoader;
+            _checkoutConfigurationLoader = checkoutConfigurationLoader ?? throw new ArgumentNullException(nameof(checkoutConfigurationLoader));
             _orderGroupCalculator = orderGroupCalculator;
             _shippingCalculator = shippingCalculator;
         }
 
-        public virtual PaymentOrderRequestContainer GetPaymentOrderRequestContainer(
+        public virtual PaymentOrderRequest GetPaymentOrderRequest(
           IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null)
         {
             if (orderGroup == null)
@@ -56,182 +54,150 @@ namespace SwedbankPay.Episerver.Checkout.Common
             }
 
             var firstShipment = orderGroup.GetFirstShipment();
-            var orderItems = GetOrderItems(market, orderGroup.GetFirstShipment());
+            var orderItems = GetOrderItems(market, orderGroup.GetFirstShipment()).ToList();
             orderItems.Add(GetShippingOrderItem(firstShipment, market));
 
-            return CreatePaymentOrderRequestContainer(orderGroup, market, consumerProfileRef, orderItems);
+            return CreatePaymentOrderRequest(orderGroup, market, consumerProfileRef, orderItems);
 
         }
 
-        public virtual ConsumersRequest GetConsumerResourceRequest(IMarket market, string email = null, string mobilePhone = null, string ssn = null)
+        public virtual ConsumersRequest GetConsumerResourceRequest(CultureInfo language, IEnumerable<RegionInfo> shippingAddressRestrictedToCountryCodes, EmailAddress email = null, Msisdn msisdn = null, NationalIdentifier nationalIdentifier = null)
         {
-            var twoLetterIsoRegionName = new RegionInfo(market.DefaultLanguage.TextInfo.CultureName).TwoLetterISORegionName;
-
-            var initiateConsumerSessionRequestObject = new ConsumersRequest
-            {
-                Email = email,
-                Msisdn = mobilePhone,
-                ConsumerCountryCode = twoLetterIsoRegionName
-            };
-
-            if (!string.IsNullOrWhiteSpace(ssn))
-            {
-                initiateConsumerSessionRequestObject.NationalIdentifier = new NationalIdentifier
-                {
-                    CountryCode = twoLetterIsoRegionName,
-                    SocialSecurityNumber = ssn
-                };
-            }
-
-            return initiateConsumerSessionRequestObject;
+            return new ConsumersRequest(language, shippingAddressRestrictedToCountryCodes, Operation.Initiate, msisdn, email, nationalIdentifier);
         }
 
-        public virtual TransactionRequest GetTransactionRequest(IPayment payment, IMarket market, IShipment shipment, string description, bool addShipmentInOrderItem = true) // TODO is this the right way to do it?
+        public virtual ReversalRequest GetReversalRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true) 
         {
             var currency = shipment.ParentOrderGroup.Currency;
             var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
             var amount = AmountHelper.GetAmount(payment.Amount);
 
-            var orderItems = GetOrderItems(market, shipment);
+            var orderItems = GetOrderItems(market, shipment).ToList();
             if (addShipmentInOrderItem)
             {
                 vatAmount += _shippingCalculator.GetShippingTax(shipment, market, currency);
                 orderItems.Add(GetShippingOrderItem(shipment, market));
             }
 
-            var transactionRequest = new TransactionRequest
-            {
-                Amount = amount,
-                Description = description,
-                VatAmount = AmountHelper.GetAmount(vatAmount),
-                PayeeReference = DateTime.Now.Ticks.ToString(),
-                OrderItems = orderItems
-            };
-            
-            return transactionRequest;
+            return new ReversalRequest(Amount.FromDecimal(amount), Amount.FromDecimal(vatAmount), orderItems, "Reversing payment.",
+                DateTime.Now.Ticks.ToString());
+           
         }
 
-        private List<OrderItem> GetOrderItems(IMarket market, IShipment shipment)
+        public virtual CaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true) 
+        {
+            var currency = shipment.ParentOrderGroup.Currency;
+            var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
+            var amount = AmountHelper.GetAmount(payment.Amount);
+
+            var orderItems = GetOrderItems(market, shipment).ToList();
+            if (addShipmentInOrderItem)
+            {
+                vatAmount += _shippingCalculator.GetShippingTax(shipment, market, currency);
+                orderItems.Add(GetShippingOrderItem(shipment, market));
+            }
+            
+            return new CaptureRequest(Amount.FromDecimal(amount), Amount.FromDecimal(vatAmount), orderItems, "Capturing payment.", DateTime.Now.Ticks.ToString());
+        }
+
+        public virtual CancelRequest GetCancelRequest()
+        {
+            return new CancelRequest(DateTime.Now.Ticks.ToString(), "Cancelling Paymentorder");
+        }
+
+        public virtual AbortRequest GetAbortRequest()
+        {
+            return new AbortRequest();
+        }
+        public virtual UpdateRequest GetUpdateRequest(IOrderGroup orderGroup)
+        {
+            var totals = _orderGroupCalculator.GetOrderGroupTotals(orderGroup);
+            return new UpdateRequest(Amount.FromDecimal(totals.Total.Amount), Amount.FromDecimal(totals.TaxTotal));
+        }
+
+        private IEnumerable<OrderItem> GetOrderItems(IMarket market, IShipment shipment)
         {
             return shipment.LineItems.Select(item =>
             {
-                var unitPrice = AmountHelper.GetAmount(item.PlacedPrice);
+                var unitPrice = item.PlacedPrice;
                 var currency = shipment.ParentOrderGroup.Currency;
-                var amount = AmountHelper.GetAmount(item.GetExtendedPrice(currency));
-                var vatAmount = AmountHelper.GetAmount(item.GetSalesTax(market, currency, shipment.ShippingAddress));
-                
-                return new OrderItem
-                {
-                    Reference = item.LineItemId.ToString(),
-                    Amount = market.PricesIncludeTax ? amount : amount + vatAmount,
-                    Class = "FASHION", //TODO Get Value from interface 
-                    Description = "",
-                    DiscountDescription = "",
-                    DiscountPrice = AmountHelper.GetAmount(item.GetDiscountedPrice(currency)),
-                    ImageUrl = "", //TODO Get correct value
-                    ItemUrl = "", //TODO Get correct value
-                    Name = item.DisplayName,
-                    Quantity = (int)(item.Quantity),
-                    QuantityUnit = "PCS", //TODO Get Value from interface
-                    Type = "PRODUCT", //TODO Get Value from interface
-                    UnitPrice = unitPrice,
-                    VatAmount = vatAmount,
-                    VatPercent = (int)((double)vatAmount / amount * 10000) //TODO Get correct value
-                };
-            }).ToList();
+                var extendedPrice = item.GetExtendedPrice(currency);
+                var salesTax = item.GetSalesTax(market, currency, shipment.ShippingAddress);
+                var vatPercent = (int)(salesTax / extendedPrice * 10000);
+
+                var amount = market.PricesIncludeTax ? extendedPrice : extendedPrice + salesTax;
+
+                return new OrderItem(item.LineItemId.ToString(), item.DisplayName, OrderItemType.Product, "FASHION",
+                    item.Quantity, "PCS", Amount.FromDecimal(unitPrice), vatPercent, Amount.FromDecimal(amount),
+                    Amount.FromDecimal(salesTax));
+            });
         }
 
-        private PaymentOrderRequestContainer CreatePaymentOrderRequestContainer(IOrderGroup orderGroup, IMarket market, string consumerProfileRef, IEnumerable<OrderItem> orderItems)
+        private PaymentOrderRequest CreatePaymentOrderRequest(IOrderGroup orderGroup, IMarket market, string consumerProfileRef, List<OrderItem> orderItems)
         {
-            var configuration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId).ToSwedbankPayConfiguration();
+            var configuration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
+            var currencyCode = orderGroup.Currency.CurrencyCode;
             var totals = _orderGroupCalculator.GetOrderGroupTotals(orderGroup);
-            var paymentOrderRequestObject = new PaymentOrderRequestContainer();
-            if (configuration != null && totals != null)
+
+            var payer = !string.IsNullOrEmpty(consumerProfileRef) ? new Payer
             {
-                paymentOrderRequestObject.Paymentorder = new PaymentOrderRequest
-                {
-                    Amount = AmountHelper.GetAmount(totals.Total),
-                    VatAmount = AmountHelper.GetAmount(totals.TaxTotal),
-                    Currency = orderGroup.Currency.CurrencyCode,
-                    Description = "Description",
-                    Language = market.DefaultLanguage.TextInfo.CultureName,
-                    UserAgent = HttpContext.Current.Request.UserAgent,
-                    Urls = GetMerchantUrls(orderGroup, market),
-                    PayeeInfo = new PayeeInfo
-                    {
-                        PayeeId = configuration.MerchantId,
-                        PayeeReference = DateTime.Now.Ticks.ToString()
-                    },
-                    OrderItems = orderItems.ToList()
-                };
+                ConsumerProfileRef = consumerProfileRef
+            } : null; 
 
-                if (!string.IsNullOrWhiteSpace(consumerProfileRef))
-                {
-                    paymentOrderRequestObject.Paymentorder.Payer = new Payer
-                    {
-                        ConsumerProfileRef = consumerProfileRef
-                    };
-                }
-
-            }
-            return paymentOrderRequestObject;
+            return new PaymentOrderRequest(Operation.Purchase, new CurrencyCode(currencyCode),
+                Amount.FromDecimal(totals.Total), Amount.FromDecimal(totals.TaxTotal), "Description",
+                HttpContext.Current.Request.UserAgent, market.DefaultLanguage, false, 
+                GetMerchantUrls(orderGroup, market), new PayeeInfo(new Guid(configuration.MerchantId), 
+                    DateTime.Now.Ticks.ToString()), orderItems: orderItems, payer: payer);
         }
 
         private OrderItem GetShippingOrderItem(IShipment shipment, IMarket market)
         {
             var currency = shipment.ParentOrderGroup.Currency;
-            var shippingVatAmount = AmountHelper.GetAmount(_shippingCalculator.GetShippingTax(shipment, market, currency));
-            var shippingAmount = AmountHelper.GetAmount(_shippingCalculator.GetShippingCost(shipment, market, currency));
+            var shippingVatAmount = _shippingCalculator.GetShippingTax(shipment, market, currency);
+            var shippingAmount = _shippingCalculator.GetShippingCost(shipment, market, currency);
 
-            return new OrderItem
-            {
-                Type = "SHIPPING_FEE",
-                Reference = "SHIPPING",
-                Quantity = 1,
-                DiscountPrice = shippingAmount,
-                DiscountDescription = "",
-                Name = "SHIPPINGFEE",
-                VatAmount = shippingVatAmount,
-                ItemUrl = "",
-                ImageUrl = "",
-                Description = "Shipping fee",
-                Amount = market.PricesIncludeTax ? shippingAmount : shippingAmount + shippingVatAmount,
-                Class = "NOTAPPLICABLE",
-                UnitPrice = shippingAmount,
-                QuantityUnit = "PCS",
-                VatPercent = (int)((double)shippingVatAmount / shippingAmount * 10000)
-            };
+            var amount = market.PricesIncludeTax ? shippingAmount : shippingAmount + shippingVatAmount;
+
+            var vatPercent = (int)(shippingVatAmount.Amount / shippingAmount.Amount * 10000);
+
+            return new OrderItem("SHIPPING", "SHIPPINGFEE", OrderItemType.ShippingFee, "NOTAPPLICABLE", 1, "PCS",
+                Amount.FromDecimal(shippingAmount.Amount), vatPercent, Amount.FromDecimal(amount.Amount),
+                Amount.FromDecimal(shippingVatAmount.Amount));
         }
+
         private Urls GetMerchantUrls(IOrderGroup orderGroup, IMarket market)
         {
             CheckoutConfiguration checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
 
-            string ToFullSiteUrl(Func<CheckoutConfiguration, string> fieldSelector)
+            Uri ToFullSiteUrl(Func<CheckoutConfiguration, Uri> fieldSelector)
             {
-                if (string.IsNullOrWhiteSpace(fieldSelector(checkoutConfiguration)))
+                
+                if (fieldSelector(checkoutConfiguration) == null)
                 {
                     return null;
                 }
 
-                var url = fieldSelector(checkoutConfiguration)?.ToString().Replace("{orderGroupId}", orderGroup.OrderLink.OrderGroupId.ToString());
-                if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+                var uriBuilder = new UriBuilder(fieldSelector(checkoutConfiguration));
+                var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+                query["orderGroupId"] = orderGroup.OrderLink.OrderGroupId.ToString();
+                
+                uriBuilder.Query = query.ToString();
+                if (!uriBuilder.Uri.IsAbsoluteUri)
                 {
-                    return uri.ToString();
+                    return new Uri(SiteDefinition.Current.SiteUrl, uriBuilder.Uri.PathAndQuery);
                 }
 
-                return new Uri(SiteDefinition.Current.SiteUrl, url).ToString();
+                return uriBuilder.Uri;
+                
             }
 
-            return new Urls
-            {
-                TermsOfServiceUrl = checkoutConfiguration.TermsOfServiceUrl,
-                CallbackUrl = ToFullSiteUrl(c => c.CallbackUrl),
-                PaymentUrl = ToFullSiteUrl(c => c.PaymentUrl),
-                CancelUrl = string.IsNullOrWhiteSpace(checkoutConfiguration.PaymentUrl) ? ToFullSiteUrl(c => c.CancelUrl) : null,
-                CompleteUrl = ToFullSiteUrl(c => c.CompleteUrl),
-                LogoUrl = checkoutConfiguration.LogoUrl,
-                HostUrls = checkoutConfiguration.HostUrls
-            };
+            var cancelUrl = checkoutConfiguration.PaymentUrl != null ? ToFullSiteUrl(c => c.CancelUrl) : null;
+
+            return new Urls(checkoutConfiguration.HostUrls, ToFullSiteUrl(c => c.CompleteUrl),
+                checkoutConfiguration.TermsOfServiceUrl, cancelUrl, ToFullSiteUrl(c => c.PaymentUrl),
+                ToFullSiteUrl(c => c.CallbackUrl), checkoutConfiguration.LogoUrl);
+            
         }
 
     }

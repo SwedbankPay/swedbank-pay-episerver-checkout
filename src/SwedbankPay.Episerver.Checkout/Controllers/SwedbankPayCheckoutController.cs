@@ -1,28 +1,28 @@
-﻿using System.Web.Mvc;
+﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using EPiServer.Personalization;
 using SwedbankPay.Episerver.Checkout.Common.Helpers;
+using SwedbankPay.Sdk;
 
 namespace SwedbankPay.Episerver.Checkout.Controllers
 {
     public class SwedbankPayCheckoutController : Controller
     {
-        private readonly ISwedbankPayCheckoutService _swedbankPayCheckoutService;
+        private readonly ISwedbankPayClient _swedbankPayClient;
 
-        public SwedbankPayCheckoutController(ISwedbankPayCheckoutService swedbankPayCheckoutService)
+        public SwedbankPayCheckoutController(ISwedbankPayClient swedbankPayClient)
         {
-            _swedbankPayCheckoutService = swedbankPayCheckoutService;
+            _swedbankPayClient = swedbankPayClient;
         }
 
 
         [HttpPost]
-        public JsonResult GetSwedbankPayShippingDetails(string url)
+        public async Task<JsonResult> GetSwedbankPayShippingDetails(Uri url)
         {
-            var shippingDetails = _swedbankPayCheckoutService.GetShippingDetails(url);
-
-            if (!string.IsNullOrWhiteSpace(shippingDetails?.ShippingAddress?.CountryCode))
-            {
-                shippingDetails.ShippingAddress.CountryCode = CountryCodeHelper.GetThreeLetterCountryCode(shippingDetails.ShippingAddress.CountryCode);
-            }
-
+            var shippingDetails = await _swedbankPayClient.Consumers.GetShippingDetails(url);
+            
             return new JsonResult
             {
                 Data = shippingDetails
