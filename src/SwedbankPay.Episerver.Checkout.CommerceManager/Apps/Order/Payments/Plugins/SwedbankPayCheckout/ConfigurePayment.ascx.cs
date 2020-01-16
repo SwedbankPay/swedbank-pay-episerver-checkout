@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Web.UI.WebControls;
 using EPiServer.ServiceLocation;
 using Mediachase.Commerce;
 using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders.Dto;
+using Mediachase.Commerce.Orders.Managers;
 using Mediachase.Web.Console.Interfaces;
 using SwedbankPay.Episerver.Checkout.Common;
 
@@ -47,6 +51,9 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
             ConfigureUpdatePanelContentPanel.Update();
         }
 
+        protected void CountryList_CountryMoved(object sender, EventArgs e)
+        {
+        }
 
 
         public void SaveChanges(object dto)
@@ -63,6 +70,12 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
             }
             var currentMarket = marketDropDownList.SelectedValue;
 
+            List<string> selectedRestrictedCountries = new List<string>();
+            foreach (ListItem countryListRightItem in CountryList.RightItems)
+            {
+                selectedRestrictedCountries.Add(countryListRightItem.Value);
+            }
+
             var configuration = new CheckoutConfiguration
             {
                 MarketId = currentMarket,
@@ -76,7 +89,8 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
                 CallbackUrl = txtCallbackUrl.Text,
                 TermsOfServiceUrl = txtTermsOfServiceUrl.Text,
                 UseAnonymousCheckout = chkAnonymous.Checked,
-                PaymentUrl = txtPaymentUrl.Text
+                PaymentUrl = txtPaymentUrl.Text,
+                ShippingAddressRestrictedToCountries = selectedRestrictedCountries
             };
 
             _checkoutConfigurationLoader.SetConfiguration(configuration, paymentMethod, currentMarket);
@@ -114,6 +128,41 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
             txtTermsOfServiceUrl.Text = checkoutConfiguration.TermsOfServiceUrl;
             chkAnonymous.Checked = checkoutConfiguration.UseAnonymousCheckout;
             txtPaymentUrl.Text = checkoutConfiguration.PaymentUrl;
+            BindCountries(checkoutConfiguration.ShippingAddressRestrictedToCountries);
+        }
+
+
+        private void BindCountries(List<string> restrictedShippingCountries = null)
+        {
+            List<ListItem> listItemList1 = new List<ListItem>();
+            List<ListItem> listItemList2 = new List<ListItem>();
+
+            foreach (DataRow row in (InternalDataCollectionBase)CountryManager.GetCountries(true).Country.Rows)
+            {
+                bool flag = false;
+                if (restrictedShippingCountries != null && restrictedShippingCountries.Count > 0)
+                {
+                    foreach (string country in restrictedShippingCountries)
+                    {
+                        if (country.Equals(row["Code"].ToString()))
+                        {
+                            flag = true;
+                            break;
+                        }
+                    }
+                }
+                
+                ListItem listItem = new ListItem(row["Name"].ToString(), row["Code"].ToString());
+
+                if (flag)
+                    listItemList2.Add(listItem);
+                else
+                    listItemList1.Add(listItem);
+            }
+
+            this.CountryList.LeftDataSource = (object)listItemList1;
+            this.CountryList.RightDataSource = (object)listItemList2;
+            this.CountryList.DataBind();
         }
 
         private CheckoutConfiguration GetConfiguration(MarketId marketId, string languageId)

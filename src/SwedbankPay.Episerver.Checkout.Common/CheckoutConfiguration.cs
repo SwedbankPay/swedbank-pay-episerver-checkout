@@ -12,5 +12,6 @@ namespace SwedbankPay.Episerver.Checkout.Common
         public string PaymentUrl { get; set; }
         public string LogoUrl { get; set; }
         public bool UseAnonymousCheckout { get; set; }
+        public List<string> ShippingAddressRestrictedToCountries { get; set; }
     }
 }

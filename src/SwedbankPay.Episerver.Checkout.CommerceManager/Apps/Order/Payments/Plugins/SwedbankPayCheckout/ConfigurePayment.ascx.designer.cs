@@ -114,6 +114,24 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
         protected global::System.Web.UI.WebControls.RequiredFieldValidator requiredMerchantId;
 
         /// <summary>
+        /// Literal2 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal Literal2;
+
+        /// <summary>
+        /// CountryList control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::Mediachase.Web.Console.Controls.DualList CountryList;
+
+        /// <summary>
         /// txtHostUrls control.
         /// </summary>
         /// <remarks>

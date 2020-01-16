@@ -1,6 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="ConfigurePayment.ascx.cs" Inherits="SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plugins.SwedbankPayCheckout.ConfigurePayment" %>
-
 <%@ Register TagPrefix="mc" Namespace="Mediachase.BusinessFoundation" Assembly="Mediachase.BusinessFoundation, Version=10.4.3.0, Culture=neutral, PublicKeyToken=41d2e7a615ba286c" %>
+<%@ Register Assembly="Mediachase.WebConsoleLib" Namespace="Mediachase.Web.Console.Controls" TagPrefix="console" %>
+
 
 <asp:UpdatePanel UpdateMode="Conditional" ID="ConfigureUpdatePanelContentPanel" runat="server" RenderMode="Inline" ChildrenAsTriggers="true">
 	<ContentTemplate>
@@ -111,6 +112,28 @@
 					</tbody>
 				</table>
 
+
+				<h2>Shipping address restricted to countries</h2>
+                <table>
+                    <tr>
+                        <td colspan="2" class="FormSectionCell"><asp:Literal ID="Literal2" runat="server" 
+                                                                             Text="Countries"/></td>
+                    </tr>        
+                    <tr>
+                        <td class="FormFieldCell" colspan="2">
+                            <console:DualList ID="CountryList" runat="server" ListRows="6" EnableMoveAll="True"
+                                              CssClass="text" LeftDataTextField="Text" LeftDataValueField="Value"
+                                              RightDataTextField="Text" RightDataValueField="Value" ItemsName="Countries" OnItemsMoved="CountryList_CountryMoved">
+                                <RightListStyle Font-Bold="True" Width="200px" Height="150px"></RightListStyle>
+                                <ButtonStyle Width="100px"></ButtonStyle>
+                                <LeftListStyle Width="200px" Height="150px"></LeftListStyle>
+                            </console:DualList>
+                        </td>
+                    </tr>
+                </table>
+
+
+				
 
 				<h2>Merchant/callback URLs</h2>
 				<table class="DataForm swedbankpaypayment-table">
