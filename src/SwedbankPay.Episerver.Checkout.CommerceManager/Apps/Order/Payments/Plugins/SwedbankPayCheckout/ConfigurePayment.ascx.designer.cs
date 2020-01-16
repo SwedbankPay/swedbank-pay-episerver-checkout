@@ -159,13 +159,22 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
         protected global::System.Web.UI.WebControls.TextBox txtCompletetUrl;
 
         /// <summary>
-        /// requiredCheckoutUrl control.
+        /// requiredCompleteUrl control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.RequiredFieldValidator requiredCheckoutUrl;
+        protected global::System.Web.UI.WebControls.RequiredFieldValidator requiredCompleteUrl;
+
+        /// <summary>
+        /// regCompleteUrl control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator regCompleteUrl;
 
         /// <summary>
         /// txtCancelUrl control.
@@ -177,6 +186,15 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
         protected global::System.Web.UI.WebControls.TextBox txtCancelUrl;
 
         /// <summary>
+        /// regCancelUrl control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator regCancelUrl;
+
+        /// <summary>
         /// txtCallbackUrl control.
         /// </summary>
         /// <remarks>
@@ -184,6 +202,15 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox txtCallbackUrl;
+
+        /// <summary>
+        /// regCallbackUrl control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator regCallbackUrl;
 
         /// <summary>
         /// txtTermsOfServiceUrl control.
@@ -204,6 +231,15 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
         protected global::System.Web.UI.WebControls.RequiredFieldValidator requiredTermsOfServiceUrl;
 
         /// <summary>
+        /// regTermsOfServiceUrl control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator regTermsOfServiceUrl;
+
+        /// <summary>
         /// txtPaymentUrl control.
         /// </summary>
         /// <remarks>
@@ -211,5 +247,14 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox txtPaymentUrl;
+
+        /// <summary>
+        /// regPaymentUrl control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator regPaymentUrl;
     }
 }

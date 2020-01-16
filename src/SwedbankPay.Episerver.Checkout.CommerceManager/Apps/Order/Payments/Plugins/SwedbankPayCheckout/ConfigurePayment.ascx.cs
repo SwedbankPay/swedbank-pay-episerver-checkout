@@ -24,7 +24,8 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
             _marketService = ServiceLocator.Current.GetInstance<IMarketService>();
             _checkoutConfigurationLoader = ServiceLocator.Current.GetInstance<ICheckoutConfigurationLoader>();
 
-            if (IsPostBack || _paymentMethodDto?.PaymentMethodParameter == null) return;
+            if (IsPostBack || _paymentMethodDto?.PaymentMethodParameter == null)
+                return;
 
             var markets = _paymentMethodDto.PaymentMethod.First().GetMarketPaymentMethodsRows();
             if (markets == null || markets.Length == 0)
@@ -34,7 +35,7 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
                 return;
             }
 
-            
+
 
             var market = _marketService.GetMarket(markets.First().MarketId);
             var checkoutConfiguration = GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
@@ -83,17 +84,35 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
                 Token = txtToken.Text,
                 ApiUrl = txtApiUrl.Text,
                 MerchantId = txtMerchantId.Text,
-                HostUrls = Enumerable.Select<string, string>(txtHostUrls.Text?.Split(';'), c => c.Trim()).ToList(),
-                CompleteUrl = txtCompletetUrl.Text,
-                CancelUrl = txtCancelUrl.Text,
-                CallbackUrl = txtCallbackUrl.Text,
-                TermsOfServiceUrl = txtTermsOfServiceUrl.Text,
                 UseAnonymousCheckout = chkAnonymous.Checked,
-                PaymentUrl = txtPaymentUrl.Text,
                 ShippingAddressRestrictedToCountries = selectedRestrictedCountries
             };
 
-            _checkoutConfigurationLoader.SetConfiguration(configuration, paymentMethod, currentMarket);
+            try
+            {
+                configuration.HostUrls = txtHostUrls.Text?.Split(';').Select(c => new Uri(c.Trim())).ToList();
+                configuration.CompleteUrl = !string.IsNullOrWhiteSpace(txtCompletetUrl.Text)
+                    ? new Uri(txtCompletetUrl.Text)
+                    : null;
+                configuration.CancelUrl =
+                    !string.IsNullOrWhiteSpace(txtCancelUrl.Text) ? new Uri(txtCancelUrl.Text) : null;
+                configuration.CallbackUrl = !string.IsNullOrWhiteSpace(txtCallbackUrl.Text)
+                    ? new Uri(txtCallbackUrl.Text)
+                    : null;
+                configuration.TermsOfServiceUrl = !string.IsNullOrWhiteSpace(txtTermsOfServiceUrl.Text)
+                    ? new Uri(txtTermsOfServiceUrl.Text)
+                    : null;
+                configuration.PaymentUrl =
+                    !string.IsNullOrWhiteSpace(txtPaymentUrl.Text) ? new Uri(txtPaymentUrl.Text) : null;
+            }
+            catch (Exception e)
+            {
+
+            }
+            finally
+            {
+                _checkoutConfigurationLoader.SetConfiguration(configuration, paymentMethod, currentMarket);
+            }
         }
 
         public void LoadObject(object dto)
@@ -122,12 +141,12 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
             txtMerchantId.Text = checkoutConfiguration.MerchantId;
 
             txtHostUrls.Text = checkoutConfiguration.HostUrls != null && checkoutConfiguration.HostUrls.Any() ? string.Join("; ", checkoutConfiguration.HostUrls) : null;
-            txtCompletetUrl.Text = checkoutConfiguration.CompleteUrl;
-            txtCancelUrl.Text = checkoutConfiguration.CancelUrl;
-            txtCallbackUrl.Text = checkoutConfiguration.CallbackUrl;
-            txtTermsOfServiceUrl.Text = checkoutConfiguration.TermsOfServiceUrl;
+            txtCompletetUrl.Text = checkoutConfiguration.CompleteUrl?.ToString();
+            txtCancelUrl.Text = checkoutConfiguration.CancelUrl?.ToString();
+            txtCallbackUrl.Text = checkoutConfiguration.CallbackUrl?.ToString();
+            txtTermsOfServiceUrl.Text = checkoutConfiguration.TermsOfServiceUrl?.ToString();
             chkAnonymous.Checked = checkoutConfiguration.UseAnonymousCheckout;
-            txtPaymentUrl.Text = checkoutConfiguration.PaymentUrl;
+            txtPaymentUrl.Text = checkoutConfiguration.PaymentUrl?.ToString();
             BindCountries(checkoutConfiguration.ShippingAddressRestrictedToCountries);
         }
 
@@ -151,7 +170,7 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
                         }
                     }
                 }
-                
+
                 ListItem listItem = new ListItem(row["Name"].ToString(), row["Code"].ToString());
 
                 if (flag)

@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace SwedbankPay.Episerver.Checkout.Common
 {
     public class CheckoutConfiguration : ConnectionConfiguration
     {
-        public List<string> HostUrls { get; set; }
-        public string CompleteUrl { get; set; }
-        public string CancelUrl { get; set; }
-        public string CallbackUrl { get; set; }
-        public string TermsOfServiceUrl { get; set; }
-        public string PaymentUrl { get; set; }
-        public string LogoUrl { get; set; }
+        public List<Uri> HostUrls { get; set; }
+        public Uri CompleteUrl { get; set; }
+        public Uri CancelUrl { get; set; }
+        public Uri CallbackUrl { get; set; }
+        public Uri TermsOfServiceUrl { get; set; }
+        public Uri PaymentUrl { get; set; }
+        public Uri LogoUrl { get; set; }
         public bool UseAnonymousCheckout { get; set; }
         public List<string> ShippingAddressRestrictedToCountries { get; set; }
     }
