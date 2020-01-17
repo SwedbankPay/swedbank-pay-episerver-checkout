@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace SwedbankPay.Episerver.Checkout.Common.Helpers
 {
-    public class CountryRegionProvider : ICountryRegionProvider
+    internal class CountryRegionProvider : ICountryRegionProvider
     {
         public string GetStateName(string twoLetterCountryCode, string stateCode)
         {

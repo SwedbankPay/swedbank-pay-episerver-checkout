@@ -1,12 +1,14 @@
-﻿using System;
-using System.Linq;
-using EPiServer.Commerce.Order;
+﻿using EPiServer.Commerce.Order;
+
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders.Dto;
 using Mediachase.Commerce.Orders.Managers;
+
 using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Episerver.Checkout.Common.Extensions;
 using SwedbankPay.Sdk;
+
+using System.Linq;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -39,28 +41,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
         public void AddNoteAndSaveChanges(IOrderGroup orderGroup, string transactionType, string noteMessage)
         {
             var noteTitle = $"{PaymentMethod.PaymentMethod.FirstOrDefault()?.Name} {transactionType.ToLower()}";
-
             orderGroup.AddNote(noteTitle, $"Payment {transactionType.ToLower()}: {noteMessage}");
-        }
-
-        protected string GetExceptionMessage(Exception ex)
-        {
-            return string.Empty; //TODO swed
-            //var exceptionMessage = string.Empty;
-            //switch (ex)
-            //{
-            //    case PayExException apiException:
-
-            //        exceptionMessage =
-            //            $"{apiException.Error.Instance}" +
-            //            $"{apiException.ErrorCode} " +
-            //            $"{string.Join(", ", apiException.Error.Problems.Select(x => $"{x.Name}: {x.Description}"))}";
-            //        break;
-            //    case WebException webException:
-            //        exceptionMessage = webException.Message;
-            //        break;
-            //}
-            //return exceptionMessage;
         }
     }
 }

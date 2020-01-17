@@ -3,9 +3,9 @@ using SwedbankPay.Episerver.Checkout.Common;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Extensions
 {
-    public static class PaymentExtensions
+    internal static class PaymentExtensions
     {
-        public static bool IsSwedbankPayPayment(this IPayment payment)
+        internal static bool IsSwedbankPayPayment(this IPayment payment)
         {
             return payment?.PaymentMethodName?.StartsWith(Constants.SwedbankPaySystemKeyword) ?? false;
         }

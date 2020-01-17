@@ -1,8 +1,11 @@
-﻿using System;
-using System.Linq;
-using EPiServer.Commerce.Order;
+﻿using EPiServer.Commerce.Order;
+
 using Mediachase.Commerce.Orders;
+
 using SwedbankPay.Episerver.Checkout.OrderManagement.Extensions;
+
+using System;
+using System.Linq;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Events
 {

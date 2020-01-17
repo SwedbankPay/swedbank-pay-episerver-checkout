@@ -1,6 +1,8 @@
 ﻿using EPiServer.Commerce.Order;
+
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders;
+
 using SwedbankPay.Episerver.Checkout.Common;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps

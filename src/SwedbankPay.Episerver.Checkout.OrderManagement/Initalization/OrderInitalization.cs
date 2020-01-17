@@ -2,14 +2,15 @@
 using EPiServer.Framework;
 using EPiServer.Framework.Initialization;
 using EPiServer.ServiceLocation;
+
 using Mediachase.Commerce.Orders;
+
 using SwedbankPay.Episerver.Checkout.OrderManagement.Events;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Initalization
 {
     [InitializableModule]
     [ModuleDependency(typeof(EPiServer.Commerce.Initialization.InitializationModule))]
-
     internal class OrderInitalization : IInitializableModule
     {
         private IServiceLocator _locator;

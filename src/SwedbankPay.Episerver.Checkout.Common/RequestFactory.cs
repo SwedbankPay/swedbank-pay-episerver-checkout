@@ -8,9 +8,7 @@ using EPiServer.Commerce.Order;
 using EPiServer.ServiceLocation;
 using EPiServer.Web;
 using Mediachase.Commerce;
-using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders.Dto;
-using SwedbankPay.Episerver.Checkout.Common.Extensions;
 using SwedbankPay.Episerver.Checkout.Common.Helpers;
 using SwedbankPay.Sdk;
 using SwedbankPay.Sdk.Consumers;
@@ -24,80 +22,76 @@ namespace SwedbankPay.Episerver.Checkout.Common
         private readonly ICheckoutConfigurationLoader _checkoutConfigurationLoader;
         private readonly IOrderGroupCalculator _orderGroupCalculator;
         private readonly IShippingCalculator _shippingCalculator;
-        
+
         public RequestFactory(
-             ICheckoutConfigurationLoader checkoutConfigurationLoader,
-             IOrderGroupCalculator orderGroupCalculator,
-             IShippingCalculator shippingCalculator)    
+            ICheckoutConfigurationLoader checkoutConfigurationLoader,
+            IOrderGroupCalculator orderGroupCalculator,
+            IShippingCalculator shippingCalculator)
         {
-            _checkoutConfigurationLoader = checkoutConfigurationLoader ?? throw new ArgumentNullException(nameof(checkoutConfigurationLoader));
+            _checkoutConfigurationLoader = checkoutConfigurationLoader ??
+                                           throw new ArgumentNullException(nameof(checkoutConfigurationLoader));
             _orderGroupCalculator = orderGroupCalculator;
             _shippingCalculator = shippingCalculator;
         }
 
         public virtual PaymentOrderRequest GetPaymentOrderRequest(
-          IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string consumerProfileRef = null)
+            IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string description, string consumerProfileRef = null)
         {
-            if (orderGroup == null)
-            {
-                throw new ArgumentNullException(nameof(orderGroup));
-            }
-            if (market == null)
-            {
-                throw new ArgumentNullException(nameof(market));
-            }
+            if (orderGroup == null) throw new ArgumentNullException(nameof(orderGroup));
+            if (market == null) throw new ArgumentNullException(nameof(market));
 
             var marketCountry = CountryCodeHelper.GetTwoLetterCountryCode(market.Countries.FirstOrDefault());
             if (string.IsNullOrWhiteSpace(marketCountry))
-            {
                 throw new ConfigurationException($"Please select a country in Commerce Manager for market {orderGroup.MarketId}");
-            }
 
             var firstShipment = orderGroup.GetFirstShipment();
             var orderItems = GetOrderItems(market, orderGroup.GetFirstShipment()).ToList();
             orderItems.Add(GetShippingOrderItem(firstShipment, market));
 
-            return CreatePaymentOrderRequest(orderGroup, market, consumerProfileRef, orderItems);
-
+            return CreatePaymentOrderRequest(orderGroup, market, consumerProfileRef, orderItems, description);
         }
 
-        public virtual ConsumersRequest GetConsumerResourceRequest(CultureInfo language, IEnumerable<RegionInfo> shippingAddressRestrictedToCountryCodes, EmailAddress email = null, Msisdn msisdn = null, NationalIdentifier nationalIdentifier = null)
+        public virtual ConsumersRequest GetConsumerResourceRequest(CultureInfo language,
+            IEnumerable<RegionInfo> shippingAddressRestrictedToCountryCodes, EmailAddress email = null,
+            Msisdn msisdn = null, NationalIdentifier nationalIdentifier = null)
         {
-            return new ConsumersRequest(language, shippingAddressRestrictedToCountryCodes, Operation.Initiate, msisdn, email, nationalIdentifier);
+            return new ConsumersRequest(language, shippingAddressRestrictedToCountryCodes, Operation.Initiate, msisdn,
+                email, nationalIdentifier);
         }
 
-        public virtual ReversalRequest GetReversalRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true) 
-        {
-            var currency = shipment.ParentOrderGroup.Currency;
-            var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
-            var amount = AmountHelper.GetAmount(payment.Amount);
-
-            var orderItems = GetOrderItems(market, shipment).ToList();
-            if (addShipmentInOrderItem)
-            {
-                vatAmount += _shippingCalculator.GetShippingTax(shipment, market, currency);
-                orderItems.Add(GetShippingOrderItem(shipment, market));
-            }
-
-            return new ReversalRequest(Amount.FromDecimal(amount), Amount.FromDecimal(vatAmount), orderItems, "Reversing payment.",
-                DateTime.Now.Ticks.ToString());
-           
-        }
-
-        public virtual CaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true) 
+        public virtual ReversalRequest GetReversalRequest(IPayment payment, IMarket market, IShipment shipment,
+            bool addShipmentInOrderItem = true)
         {
             var currency = shipment.ParentOrderGroup.Currency;
             var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
-            var amount = AmountHelper.GetAmount(payment.Amount);
-
-            var orderItems = GetOrderItems(market, shipment).ToList();
-            if (addShipmentInOrderItem)
-            {
-                vatAmount += _shippingCalculator.GetShippingTax(shipment, market, currency);
-                orderItems.Add(GetShippingOrderItem(shipment, market));
-            }
             
-            return new CaptureRequest(Amount.FromDecimal(amount), Amount.FromDecimal(vatAmount), orderItems, "Capturing payment.", DateTime.Now.Ticks.ToString());
+            var orderItems = GetOrderItems(market, shipment).ToList();
+            if (addShipmentInOrderItem)
+            {
+                vatAmount += _shippingCalculator.GetShippingTax(shipment, market, currency);
+                orderItems.Add(GetShippingOrderItem(shipment, market));
+            }
+
+            return new ReversalRequest(Amount.FromDecimal(payment.Amount), Amount.FromDecimal(vatAmount), orderItems,
+                "Reversing payment.",
+                DateTime.Now.Ticks.ToString());
+        }
+
+        public virtual CaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment,
+            bool addShipmentInOrderItem = true)
+        {
+            var currency = shipment.ParentOrderGroup.Currency;
+            var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
+            
+            var orderItems = GetOrderItems(market, shipment).ToList();
+            if (addShipmentInOrderItem)
+            {
+                vatAmount += _shippingCalculator.GetShippingTax(shipment, market, currency);
+                orderItems.Add(GetShippingOrderItem(shipment, market));
+            }
+
+            return new CaptureRequest(Amount.FromDecimal(payment.Amount), Amount.FromDecimal(vatAmount.Amount), orderItems,
+                "Capturing payment.", DateTime.Now.Ticks.ToString());
         }
 
         public virtual CancelRequest GetCancelRequest()
@@ -109,6 +103,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
         {
             return new AbortRequest();
         }
+
         public virtual UpdateRequest GetUpdateRequest(IOrderGroup orderGroup)
         {
             var totals = _orderGroupCalculator.GetOrderGroupTotals(orderGroup);
@@ -123,7 +118,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 var currency = shipment.ParentOrderGroup.Currency;
                 var extendedPrice = item.GetExtendedPrice(currency);
                 var salesTax = item.GetSalesTax(market, currency, shipment.ShippingAddress);
-                var vatPercent = (int)(salesTax / extendedPrice * 10000);
+                var vatPercent = (int) (salesTax / extendedPrice * 10000);
 
                 var amount = market.PricesIncludeTax ? extendedPrice : extendedPrice + salesTax;
 
@@ -133,21 +128,24 @@ namespace SwedbankPay.Episerver.Checkout.Common
             });
         }
 
-        private PaymentOrderRequest CreatePaymentOrderRequest(IOrderGroup orderGroup, IMarket market, string consumerProfileRef, List<OrderItem> orderItems)
+        private PaymentOrderRequest CreatePaymentOrderRequest(IOrderGroup orderGroup, IMarket market, string consumerProfileRef, List<OrderItem> orderItems, string description)
         {
             var configuration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
             var currencyCode = orderGroup.Currency.CurrencyCode;
             var totals = _orderGroupCalculator.GetOrderGroupTotals(orderGroup);
 
-            var payer = !string.IsNullOrEmpty(consumerProfileRef) ? new Payer
-            {
-                ConsumerProfileRef = consumerProfileRef
-            } : null; 
+            var payer = !string.IsNullOrEmpty(consumerProfileRef)
+                ? new Payer
+                {
+                    ConsumerProfileRef = consumerProfileRef
+                }
+                : null;
 
             return new PaymentOrderRequest(Operation.Purchase, new CurrencyCode(currencyCode),
-                Amount.FromDecimal(totals.Total), Amount.FromDecimal(totals.TaxTotal), "Description",
-                HttpContext.Current.Request.UserAgent, market.DefaultLanguage, false, 
-                GetMerchantUrls(orderGroup, market), new PayeeInfo(new Guid(configuration.MerchantId), 
+                Amount.FromDecimal(totals.Total), Amount.FromDecimal(totals.TaxTotal), description,
+                HttpContext.Current.Request.UserAgent, CultureInfo.CreateSpecificCulture(market.DefaultLanguage.Name),
+                false,
+                GetMerchantUrls(orderGroup, market), new PayeeInfo(new Guid(configuration.MerchantId),
                     DateTime.Now.Ticks.ToString()), orderItems: orderItems, payer: payer);
         }
 
@@ -159,7 +157,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
             var amount = market.PricesIncludeTax ? shippingAmount : shippingAmount + shippingVatAmount;
 
-            var vatPercent = (int)(shippingVatAmount.Amount / shippingAmount.Amount * 10000);
+            var vatPercent = (int) (shippingVatAmount.Amount / shippingAmount.Amount * 10000);
 
             return new OrderItem("SHIPPING", "SHIPPINGFEE", OrderItemType.ShippingFee, "NOTAPPLICABLE", 1, "PCS",
                 Amount.FromDecimal(shippingAmount.Amount), vatPercent, Amount.FromDecimal(amount.Amount),
@@ -168,28 +166,22 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
         private Urls GetMerchantUrls(IOrderGroup orderGroup, IMarket market)
         {
-            CheckoutConfiguration checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
+            var checkoutConfiguration =
+                _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
 
             Uri ToFullSiteUrl(Func<CheckoutConfiguration, Uri> fieldSelector)
             {
-                
-                if (fieldSelector(checkoutConfiguration) == null)
-                {
-                    return null;
-                }
+                if (fieldSelector(checkoutConfiguration) == null) return null;
 
                 var uriBuilder = new UriBuilder(fieldSelector(checkoutConfiguration));
                 var query = HttpUtility.ParseQueryString(uriBuilder.Query);
                 query["orderGroupId"] = orderGroup.OrderLink.OrderGroupId.ToString();
-                
+
                 uriBuilder.Query = query.ToString();
                 if (!uriBuilder.Uri.IsAbsoluteUri)
-                {
                     return new Uri(SiteDefinition.Current.SiteUrl, uriBuilder.Uri.PathAndQuery);
-                }
 
                 return uriBuilder.Uri;
-                
             }
 
             var cancelUrl = checkoutConfiguration.PaymentUrl != null ? ToFullSiteUrl(c => c.CancelUrl) : null;
@@ -197,8 +189,6 @@ namespace SwedbankPay.Episerver.Checkout.Common
             return new Urls(checkoutConfiguration.HostUrls, ToFullSiteUrl(c => c.CompleteUrl),
                 checkoutConfiguration.TermsOfServiceUrl, cancelUrl, ToFullSiteUrl(c => c.PaymentUrl),
                 ToFullSiteUrl(c => c.CallbackUrl), checkoutConfiguration.LogoUrl);
-            
         }
-
     }
 }

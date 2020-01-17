@@ -1,5 +1,4 @@
-﻿using System;
-using EPiServer.ServiceLocation;
+﻿using EPiServer.ServiceLocation;
 
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders.Dto;
@@ -9,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using SwedbankPay.Episerver.Checkout.Common.Extensions;
 using SwedbankPay.Sdk;
 
+using System;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http;
@@ -23,12 +23,8 @@ namespace SwedbankPay.Episerver.Checkout.Common
     public class SwedbankPayClientFactory : ISwedbankPayClientFactory
     {
         protected static readonly ConcurrentDictionary<string, HttpClient> HttpClientCache = new ConcurrentDictionary<string, HttpClient>();
-
-        
         private readonly ICheckoutConfigurationLoader _checkoutConfigurationLoader;
-        private readonly ILogger _logger;
-        private readonly HttpClient _httpClient;
-
+        
         public SwedbankPayClientFactory(ICheckoutConfigurationLoader checkoutConfigurationLoader)
         {
             _checkoutConfigurationLoader = checkoutConfigurationLoader;
@@ -37,8 +33,22 @@ namespace SwedbankPay.Episerver.Checkout.Common
         public virtual ISwedbankPayClient Create(IMarket market, ILogger logger = null)
         {
             CheckoutConfiguration checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
-            
-            var key = $"{checkoutConfiguration.ApiUrl}:{checkoutConfiguration.MerchantId}:{checkoutConfiguration.Token}";
+            return GetSwedbankPayClient(checkoutConfiguration, logger);
+        }
+
+        public virtual ISwedbankPayClient Create(PaymentMethodDto paymentMethodDto, MarketId marketMarketId, ILogger logger)
+        {
+            return Create(paymentMethodDto.GetConnectionConfiguration(marketMarketId), logger);
+        }
+
+        public virtual ISwedbankPayClient Create(ConnectionConfiguration connectionConfiguration, ILogger logger = null)
+        {
+            return GetSwedbankPayClient(connectionConfiguration, logger);
+        }
+
+        private static ISwedbankPayClient GetSwedbankPayClient(ConnectionConfiguration connectionConfiguration, ILogger logger)
+        {
+            var key = $"{connectionConfiguration.ApiUrl}:{connectionConfiguration.MerchantId}:{connectionConfiguration.Token}";
 
             HttpClientHandler handler = new HttpClientHandler()
             {
@@ -49,35 +59,17 @@ namespace SwedbankPay.Episerver.Checkout.Common
             {
                 var client = new HttpClient(handler)
                 {
-                    BaseAddress = checkoutConfiguration.ApiUrl,
-                    DefaultRequestHeaders = { { "Authorization", $"Bearer {checkoutConfiguration.Token}" } },
+                    BaseAddress = connectionConfiguration.ApiUrl,
+                    DefaultRequestHeaders = { { "Authorization", $"Bearer {connectionConfiguration.Token}" } },
                     Timeout = TimeSpan.FromMinutes(10)
-                    /* Other setup */
                 };
-                var sp = ServicePointManager.FindServicePoint(checkoutConfiguration.ApiUrl);
+
+                var sp = ServicePointManager.FindServicePoint(connectionConfiguration.ApiUrl);
                 sp.ConnectionLeaseTimeout = 60 * 1000; // 1 minute
                 return client;
             });
 
-            return new SwedbankPayClient(httpClient, null);
-        }
-
-        //public virtual ISwedbankPayClient Create(IPayment payment, IMarket market)
-        //{
-        //    return Create(PaymentManager.GetPaymentMethod(payment.PaymentMethodId), market.MarketId);
-        //}
-
-        public virtual ISwedbankPayClient Create(PaymentMethodDto paymentMethodDto, MarketId marketMarketId)
-        {
-            return Create(paymentMethodDto.GetConnectionConfiguration(marketMarketId));
-        }
-
-        public virtual ISwedbankPayClient Create(ConnectionConfiguration connectionConfiguration)
-        {
-            _httpClient.BaseAddress = connectionConfiguration.ApiUrl;
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {connectionConfiguration.Token}");
-
-            return new SwedbankPayClient(_httpClient);
+            return new SwedbankPayClient(httpClient, logger);
         }
     }
 }

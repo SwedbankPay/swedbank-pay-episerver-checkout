@@ -1,14 +1,16 @@
-﻿using System;
-using System.Linq;
-using EPiServer.Commerce.Order;
+﻿using EPiServer.Commerce.Order;
 using EPiServer.Logging;
 using EPiServer.ServiceLocation;
+
 using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders;
 using Mediachase.Commerce.Plugins.Payment;
+
 using SwedbankPay.Episerver.Checkout.Common;
-using SwedbankPay.Episerver.Checkout.OrderManagement;
 using SwedbankPay.Episerver.Checkout.OrderManagement.Steps;
+
+using System;
+using System.Linq;
 
 namespace SwedbankPay.Episerver.Checkout
 {
@@ -18,14 +20,13 @@ namespace SwedbankPay.Episerver.Checkout
 
         private IOrderForm _orderForm;    
         public IOrderGroup OrderGroup { get; set; }
-
-
+        
         internal Injected<SwedbankPayClientFactory> InjectedSwedbankPayClientFactory { get; set; }
         private SwedbankPayClientFactory SwedbankPayClientFactory => InjectedSwedbankPayClientFactory.Service;
-
+        
         internal Injected<IMarketService> InjectedMarketService { get; set; }
-
         private IMarketService MarketService => InjectedMarketService.Service;
+
         internal Injected<IRequestFactory> InjectedRequestFactory { get; set; }
         private IRequestFactory RequestFactory => InjectedRequestFactory.Service;
 

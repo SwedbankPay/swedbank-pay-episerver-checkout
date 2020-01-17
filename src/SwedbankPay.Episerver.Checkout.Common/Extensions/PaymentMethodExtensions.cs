@@ -4,9 +4,9 @@ using Mediachase.Commerce.Orders.Exceptions;
 
 namespace SwedbankPay.Episerver.Checkout.Common.Extensions
 {
-    public static class PaymentMethodsExtensions
+    internal static class PaymentMethodsExtensions
     {
-        public static string GetParameter(this PaymentMethodDto.PaymentMethodParameterRow row, string name, string defaultValue = null)
+        internal static string GetParameter(this PaymentMethodDto.PaymentMethodParameterRow row, string name, string defaultValue = null)
         {
             if (row == null || string.IsNullOrWhiteSpace(row.Value))
             {
@@ -21,14 +21,14 @@ namespace SwedbankPay.Episerver.Checkout.Common.Extensions
             return row.Value;
         }
 
-        public static string GetParameter(this PaymentMethodDto paymentMethod, string name, string defaultValue = null)
+        internal static string GetParameter(this PaymentMethodDto paymentMethod, string name, string defaultValue = null)
         {
             var row = GetParameterRow(paymentMethod, name);
 
             return row.GetParameter(name, defaultValue);
         }
 
-        public static void SetParameter(this PaymentMethodDto paymentMethod, string name, string value)
+        internal static void SetParameter(this PaymentMethodDto paymentMethod, string name, string value)
         {
             var row = GetParameterRow(paymentMethod, name);
             if (row != null)

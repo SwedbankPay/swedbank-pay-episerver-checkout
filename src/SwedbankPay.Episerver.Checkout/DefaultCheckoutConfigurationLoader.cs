@@ -1,12 +1,16 @@
-﻿using System;
-using EPiServer.Globalization;
+﻿using EPiServer.Globalization;
 using EPiServer.ServiceLocation;
+
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders.Dto;
 using Mediachase.Commerce.Orders.Managers;
+
 using Newtonsoft.Json;
+
 using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Episerver.Checkout.Extensions;
+
+using System;
 
 namespace SwedbankPay.Episerver.Checkout
 {

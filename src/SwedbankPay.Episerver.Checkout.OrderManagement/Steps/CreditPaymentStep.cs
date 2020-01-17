@@ -1,12 +1,15 @@
-﻿using System;
-using System.Linq;
-using EPiServer.Commerce.Order;
+﻿using EPiServer.Commerce.Order;
 using EPiServer.Logging;
+
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders;
 using Mediachase.MetaDataPlus;
+
 using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Sdk;
+
+using System;
+using System.Linq;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -74,12 +77,10 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                 }
                 catch (Exception ex)
                 {
-                    var exceptionMessage = GetExceptionMessage(ex);
-
                     payment.Status = PaymentStatus.Failed.ToString();
-                    message = exceptionMessage;
-                    AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {exceptionMessage}");
-                    Logger.Error(exceptionMessage, ex);
+                    message = ex.Message;
+                    AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {ex.Message}");
+                    Logger.Error(ex.Message, ex);
                     return false;
                 }
             }

@@ -1,15 +1,18 @@
-﻿using System;
-using System.Linq;
-using EPiServer.Globalization;
+﻿using EPiServer.Globalization;
+
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders.Dto;
+
 using Newtonsoft.Json;
+
+using System;
+using System.Linq;
 
 namespace SwedbankPay.Episerver.Checkout.Common.Extensions
 {
-    public static class PaymentMethodDtoExtensions
+    internal static class PaymentMethodDtoExtensions
     {
-        public static ConnectionConfiguration GetConnectionConfiguration(this PaymentMethodDto paymentMethodDto, MarketId marketId)
+        internal static ConnectionConfiguration GetConnectionConfiguration(this PaymentMethodDto paymentMethodDto, MarketId marketId)
         {
             var configuration = JsonConvert.DeserializeObject<ConnectionConfiguration>(paymentMethodDto.GetParameter($"{marketId.Value}_{Constants.SwedbankPaySerializedMarketOptions}", string.Empty));
 

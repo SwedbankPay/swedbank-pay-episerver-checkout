@@ -116,8 +116,31 @@ else
             culture: '@Culture',
             style: style,
             onConsumerIdentified: onIdentifiedConsumerHandler,
-            onShippingDetailsAvailable: onShippingDetailsAvailableHandler
+			onShippingDetailsAvailable: onShippingDetailsAvailableHandler,
+            onBillingDetailsAvailable: OnBillingDetailsAvailableHandler
         };
+
+        function OnBillingDetailsAvailableHandler(data) {
+	        console.log(data);
+	        var request = new XMLHttpRequest();
+
+	        request.addEventListener('load', function() {
+		        var response = JSON.parse(this.responseText);
+		        console.log(response);
+		        var billingAddress = response.billingAddress;
+		        $('#BillingAddress_Email').val(response.Email);
+		        $('#BillingAddress_FirstName').val(billingAddress.Addressee);
+		        $('#BillingAddress_LastName').val(billingAddress.Addressee);
+		        $('#BillingAddress_Line1').val(billingAddress.StreetAddress);
+		        $('#BillingAddress_PostalCode').val(billingAddress.ZipCode);
+		        $('#BillingAddress_City').val(billingAddress.City);
+		        $('#BillingAddress_CountryCode').val(billingAddress.CountryCode);
+
+	        });
+	        request.open('POST', '@Url.Action("GetSwedbankPayBillingDetails", "SwedbankPayCheckout", null)', true);
+	        request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+	        request.send(JSON.stringify(data));
+        }
 
         function onShippingDetailsAvailableHandler(data) {
             console.log(data);
@@ -126,7 +149,7 @@ else
             request.addEventListener('load', function() {
                 var response = JSON.parse(this.responseText);
                 console.log(response);
-                var shippingAddress = response.ShippingAddress;
+                var shippingAddress = response.shippingAddress;
                 $('#BillingAddress_Email').val(response.Email);
                 $('#BillingAddress_FirstName').val(shippingAddress.Addressee);
                 $('#BillingAddress_LastName').val(shippingAddress.Addressee);
@@ -158,7 +181,7 @@ else
                 script.onload = function() {
                     // When the 'view-paymentorder' script is loaded, we can initialize the payment
                     // menu inside our 'checkin' container.
-                    payex.hostedView.paymentMenu(config1).open(); //TODO Change to swedbankpay
+                    payex.hostedView.paymentMenu(config1).open();
                 };
                 var head = document.getElementsByTagName('head')[0];
                 head.appendChild(script);

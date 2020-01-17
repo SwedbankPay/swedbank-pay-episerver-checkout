@@ -1,16 +1,18 @@
-﻿using System;
+﻿using EPiServer.Personalization.Providers.MaxMind;
+using EPiServer.ServiceLocation;
+
+using ISO3166;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using EPiServer.Personalization.Providers.MaxMind;
-using EPiServer.ServiceLocation;
-using ISO3166;
 
 namespace SwedbankPay.Episerver.Checkout.Common.Helpers
 {
     public static class CountryCodeHelper
     {
-        private static Injected<GeolocationProvider> GeoLocationProvider { get; set; }
-        private static Injected<ICountryRegionProvider> CountryRegionProvider { get; set; }
+        private static Injected<GeolocationProvider> GeoLocationProvider;
+        private static Injected<ICountryRegionProvider> CountryRegionProvider;
 
         public static string GetTwoLetterCountryCode(string countryCode)
         {
@@ -24,12 +26,12 @@ namespace SwedbankPay.Episerver.Checkout.Common.Helpers
                 ?? Country.List.FirstOrDefault(x => x.ThreeLetterCode.Equals(countryCode, StringComparison.InvariantCultureIgnoreCase))?.ThreeLetterCode;
         }
 
-        public static IEnumerable<Country> GetCountryCodes()
+        internal static IEnumerable<Country> GetCountryCodes()
         {
             return Country.List;
         }
 
-        public static IEnumerable<string> GetTwoLetterCountryCodes(IEnumerable<string> threeLetterCodes)
+        internal static IEnumerable<string> GetTwoLetterCountryCodes(IEnumerable<string> threeLetterCodes)
         {
             var newList = new List<string>();
             foreach (var item in threeLetterCodes)
@@ -39,7 +41,7 @@ namespace SwedbankPay.Episerver.Checkout.Common.Helpers
             return newList;
         }
 
-        public static string GetContinentByCountry(string countryCode)
+        internal static string GetContinentByCountry(string countryCode)
         {
             if (string.IsNullOrEmpty(countryCode))
             {
@@ -62,11 +64,11 @@ namespace SwedbankPay.Episerver.Checkout.Common.Helpers
             return string.Empty;
         }
 
-        public static string GetStateName(string twoLetterCountryCode, string stateCode)
+        internal static string GetStateName(string twoLetterCountryCode, string stateCode)
         {
             return CountryRegionProvider.Service.GetStateName(twoLetterCountryCode, stateCode);
         }
-        public static string GetStateCode(string twoLetterCountryCode, string stateName)
+        internal static string GetStateCode(string twoLetterCountryCode, string stateName)
         {
             return CountryRegionProvider.Service.GetStateCode(twoLetterCountryCode, stateName);
         }

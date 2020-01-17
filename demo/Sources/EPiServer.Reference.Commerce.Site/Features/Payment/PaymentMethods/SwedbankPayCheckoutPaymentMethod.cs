@@ -83,7 +83,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
             var orderId = cart.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
             if (!string.IsNullOrWhiteSpace(orderId) || CheckoutConfiguration.UseAnonymousCheckout)
             {
-                GetCheckoutJavascriptSource(cart);
+                GetCheckoutJavascriptSource(cart, "description");
             }
             else
             {
@@ -93,9 +93,9 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
             _isInitalized = true;
         }
 
-        private void GetCheckoutJavascriptSource(ICart cart)
+        private void GetCheckoutJavascriptSource(ICart cart, string description)
         {
-            var orderData = _swedbankPayCheckoutService.CreateOrUpdateOrder(cart, HttpContext.Current.Request.UserAgent);
+            var orderData = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(cart, description);
             JavascriptSource = orderData.Operations.View?.Href;
             UseCheckoutSource = true;
         }

@@ -1,13 +1,14 @@
-﻿using System;
-using EPiServer.Commerce.Order;
+﻿using EPiServer.Commerce.Order;
 using EPiServer.Logging;
+
 using Mediachase.Commerce;
 using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders;
+
 using SwedbankPay.Episerver.Checkout.Common;
-using SwedbankPay.Episerver.Checkout.Common.Helpers;
 using SwedbankPay.Sdk;
-using SwedbankPay.Sdk.PaymentOrders;
+
+using System;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -27,7 +28,6 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
         {
             if (payment.TransactionType == TransactionType.Capture.ToString())
             {
-                var amount = AmountHelper.GetAmount((decimal) payment.Amount);
                 var orderId = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
                 if (!string.IsNullOrEmpty(orderId))
                 {
@@ -63,19 +63,18 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                     }
                     catch (Exception ex)
                     {
-                        var exceptionMessage = GetExceptionMessage(ex);
-
                         payment.Status = PaymentStatus.Failed.ToString();
-                        message = exceptionMessage;
-                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {exceptionMessage}");
-                        Logger.Error(exceptionMessage, ex);
+                        message = ex.Message;
+                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {ex.Message}");
+                        Logger.Error(ex.Message, ex);
                         return false;
                     }
                 }
                 return false;
 
             }
-            else if (Successor != null)
+
+            if (Successor != null)
             {
                 return Successor.Process(payment, orderForm, orderGroup, shipment, ref message);
             }

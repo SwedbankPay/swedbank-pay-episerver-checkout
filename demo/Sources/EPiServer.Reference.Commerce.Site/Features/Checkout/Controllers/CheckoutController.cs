@@ -257,7 +257,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
         [HttpPost]
         public JsonResult CreateSwedbankPayPurchase(string consumerProfileRef)
         {
-            var paymentOrderResponseObject = _swedbankPayCheckoutService.CreateOrUpdateOrder(Cart, Request.UserAgent, consumerProfileRef);
+            var paymentOrderResponseObject = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(Cart, "description", consumerProfileRef);
             return new JsonResult
             {
                 Data = paymentOrderResponseObject
@@ -273,7 +273,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
             {
                 var market = _marketService.GetMarket(cart.MarketId);
                 var orderRef = cart.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
-                var order = _swedbankPayCheckoutService.GetOrder(new Uri(orderRef), market);
+                var order = _swedbankPayCheckoutService.GetPaymentOrder(new Uri(orderRef), market);
                 if (order.PaymentOrderResponse.State.Equals( State.Ready))
                 {
                     var purchaseOrder = _checkoutService.CreatePurchaseOrderForSwedbankPay(orderRef, cart);

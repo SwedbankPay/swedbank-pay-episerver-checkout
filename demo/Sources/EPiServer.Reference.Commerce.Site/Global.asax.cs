@@ -32,8 +32,7 @@ namespace EPiServer.Reference.Commerce.Site
                 Path = "~/Scripts/jquery-1.11.1.js",
             });
 
-            ServicePointManager.DefaultConnectionLimit = int.MaxValue;
-            
+           ServicePointManager.DefaultConnectionLimit = int.MaxValue;
 
             BundleConfig.RegisterBundles(BundleTable.Bundles);
         }

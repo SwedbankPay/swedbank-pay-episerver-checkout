@@ -1,10 +1,12 @@
-﻿using System;
-using EPiServer.Commerce.Order;
+﻿using EPiServer.Commerce.Order;
 using EPiServer.Logging;
+
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders;
+
 using SwedbankPay.Episerver.Checkout.Common;
-using SwedbankPay.Sdk.Exceptions;
+
+using System;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -44,7 +46,6 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             }
 
             return false;
-
         }
     }
 }

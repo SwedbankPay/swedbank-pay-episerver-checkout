@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using EPiServer;
+﻿using EPiServer;
 using EPiServer.Commerce.Catalog.ContentTypes;
 using EPiServer.Commerce.Order;
 using EPiServer.Commerce.Order.Calculator;
 using EPiServer.Commerce.Order.Internal;
 using EPiServer.Framework;
+
 using Mediachase.Commerce;
 using Mediachase.Commerce.Catalog;
 using Mediachase.Commerce.Orders;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SwedbankPay.Episerver.Checkout.Common
 {

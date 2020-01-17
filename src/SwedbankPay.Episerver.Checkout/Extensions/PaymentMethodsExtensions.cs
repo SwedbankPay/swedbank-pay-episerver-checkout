@@ -1,6 +1,7 @@
-﻿using System;
-using Mediachase.Commerce.Orders.Dto;
+﻿using Mediachase.Commerce.Orders.Dto;
 using Mediachase.Commerce.Orders.Exceptions;
+
+using System;
 
 namespace SwedbankPay.Episerver.Checkout.Extensions
 {

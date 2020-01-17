@@ -217,9 +217,6 @@
     <Compile Include="Extensions\OrderGroupExtensions.cs" />
     <Compile Include="Extensions\PaymentMethodDtoExtensions.cs" />
     <Compile Include="Extensions\PaymentMethodExtensions.cs" />
-    <Compile Include="Extensions\RequestExtensions.cs" />
-    <Compile Include="Extensions\SwedBankPayConfigurationExtensions.cs" />
-    <Compile Include="Helpers\AmountHelper.cs" />
     <Compile Include="Helpers\CountryCodeHelper.cs" />
     <Compile Include="Helpers\CountryRegionProvider.cs" />
     <Compile Include="Helpers\ICountryRegionProvider.cs" />

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Net.Http;
+﻿using SwedbankPay.Sdk;
+
+using System;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using EPiServer.Personalization;
-using SwedbankPay.Episerver.Checkout.Common.Helpers;
-using SwedbankPay.Sdk;
 
 namespace SwedbankPay.Episerver.Checkout.Controllers
 {
@@ -26,6 +24,17 @@ namespace SwedbankPay.Episerver.Checkout.Controllers
             return new JsonResult
             {
                 Data = shippingDetails
+            };
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> GetSwedbankPayBillingDetails(Uri url)
+        {
+            var billingDetails = await _swedbankPayClient.Consumers.GetBillingDetails(url);
+
+            return new JsonResult
+            {
+                Data = billingDetails
             };
         }
     }
