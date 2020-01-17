@@ -1,5 +1,6 @@
 using EPiServer.Commerce.Marketing;
 using EPiServer.Commerce.Marketing.Promotions;
+using EPiServer.Commerce.Order;
 using EPiServer.Commerce.Routing;
 using EPiServer.Editor;
 using EPiServer.Framework;
@@ -7,6 +8,7 @@ using EPiServer.Framework.Initialization;
 using EPiServer.Framework.Web;
 using EPiServer.Globalization;
 using EPiServer.Personalization.Commerce;
+using EPiServer.Personalization.Commerce.Tracking;
 using EPiServer.Personalization.Commerce.Widgets;
 using EPiServer.Reference.Commerce.Site.Features.Market.Services;
 using EPiServer.Reference.Commerce.Site.Features.Recommendations.Services;
@@ -17,27 +19,27 @@ using EPiServer.ServiceLocation;
 using EPiServer.Tracking.Commerce;
 using EPiServer.Web;
 using EPiServer.Web.Routing;
+
 using Mediachase.Commerce;
 using Mediachase.Commerce.Core;
+
 using Newtonsoft.Json;
+
+using SwedbankPay.Episerver.Checkout.Common;
+
 using System;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
-using EPiServer.Personalization.Commerce.Tracking;
-using EPiServer.Commerce.Order;
-using SwedbankPay.Episerver.Checkout.Common;
-using SwedbankPay.Sdk;
 
 namespace EPiServer.Reference.Commerce.Site.Infrastructure
 {
     using Mediachase.Commerce.Catalog;
-  
+
 
     [ModuleDependency(typeof(EPiServer.Commerce.Initialization.InitializationModule))]
     public class SiteInitialization : IConfigurableModule
@@ -95,14 +97,13 @@ namespace EPiServer.Reference.Commerce.Site.Infrastructure
             services.Intercept<ITaxCalculator>((locator, calculator) =>
                 new SwedbankPayTaxCalculator(locator.GetInstance<IContentRepository>(),
                     locator.GetInstance<ReferenceConverter>()));
-
+            
             //services.Intercept<IRequestFactory>(
             //   (locator, defaultImplementation) =>
             //       new CustomRequestFactory(locator.GetInstance<ICheckoutConfigurationLoader>(),
             //           locator.GetInstance<IOrderGroupCalculator>(), locator.GetInstance<IShippingCalculator>()));
-           
-            services.AddSingleton<HttpClient>(locator => locator.GetInstance<IHttpClientFactory>().CreateClient());
 
+          
             services.AddTransient<IModelBinderProvider, ModelBinderProvider>();
             services.AddHttpContextOrThreadScoped<SiteContext, CustomCurrencySiteContext>();
             services.AddTransient<HttpContextBase>(locator => HttpContext.Current.ContextBaseOrNull());

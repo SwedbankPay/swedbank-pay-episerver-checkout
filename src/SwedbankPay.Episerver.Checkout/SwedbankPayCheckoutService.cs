@@ -25,7 +25,7 @@ namespace SwedbankPay.Episerver.Checkout
         private readonly ICheckoutConfigurationLoader _checkoutConfigurationLoader;
         private readonly IMarketService _marketService;
         private readonly IOrderRepository _orderRepository;
-        private readonly SwedbankPayClientFactory _swedbankPayClientFactory;
+        private readonly ISwedbankPayClientFactory _swedbankPayClientFactory;
         private readonly ILogger _logger = LogManager.GetLogger(typeof(SwedbankSwedbankPayCheckoutService));
         private PaymentMethodDto _paymentMethodDto;
         private readonly IRequestFactory _requestFactory;
@@ -37,12 +37,14 @@ namespace SwedbankPay.Episerver.Checkout
             ICheckoutConfigurationLoader checkoutConfigurationLoader,
             IMarketService marketService,
             IOrderRepository orderRepository,
-            SwedbankPayClientFactory swedbankPayClientFactory, IRequestFactory requestFactory)
+            ISwedbankPayClientFactory swedbankPayClientFactory,
+            IRequestFactory requestFactory)
         {
             _currentMarket = currentMarket;
             _checkoutConfigurationLoader = checkoutConfigurationLoader;
             _marketService = marketService;
             _orderRepository = orderRepository;
+            _swedbankPayClientFactory = swedbankPayClientFactory;
             _requestFactory = requestFactory;
         }
         

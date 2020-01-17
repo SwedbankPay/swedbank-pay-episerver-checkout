@@ -4,6 +4,7 @@ using EPiServer.Commerce.Order;
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders.Dto;
 using Mediachase.Commerce.Orders.Managers;
+using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Episerver.Checkout.Common.Extensions;
 using SwedbankPay.Sdk;
 
@@ -16,7 +17,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
         public ISwedbankPayClient SwedbankPayClient { get; }
         public MarketId MarketId { get; }
 
-        public PaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory)
+        public PaymentStep(IPayment payment, IMarket market, ISwedbankPayClientFactory swedbankPayClientFactory)
         {
             MarketId = market.MarketId;
             PaymentMethod = PaymentManager.GetPaymentMethod(payment.PaymentMethodId);

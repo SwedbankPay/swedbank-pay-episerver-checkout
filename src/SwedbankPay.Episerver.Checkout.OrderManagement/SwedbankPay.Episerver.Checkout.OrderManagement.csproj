@@ -218,7 +218,6 @@
     <Compile Include="Initalization\OrderInitalization.cs" />
     <Compile Include="ISwedbankPayOrderService.cs" />
     <Compile Include="OrderOperations.cs" />
-    <Compile Include="SwedbankPayClientFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Steps\AuthorizePaymentStep.cs" />
     <Compile Include="Steps\AuthorizePaymentStepBase.cs" />

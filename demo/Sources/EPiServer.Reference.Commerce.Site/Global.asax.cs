@@ -1,4 +1,5 @@
-﻿using EPiServer.Reference.Commerce.Site.Infrastructure;
+﻿using System.Net;
+using EPiServer.Reference.Commerce.Site.Infrastructure;
 using EPiServer.Reference.Commerce.Site.Infrastructure.Attributes;
 using System.Web.Mvc;
 using System.Web.Optimization;
@@ -30,6 +31,9 @@ namespace EPiServer.Reference.Commerce.Site
             {
                 Path = "~/Scripts/jquery-1.11.1.js",
             });
+
+            ServicePointManager.DefaultConnectionLimit = int.MaxValue;
+            
 
             BundleConfig.RegisterBundles(BundleTable.Bundles);
         }

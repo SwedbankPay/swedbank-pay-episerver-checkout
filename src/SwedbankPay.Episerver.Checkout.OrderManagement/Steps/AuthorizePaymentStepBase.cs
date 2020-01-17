@@ -1,12 +1,13 @@
 ﻿using EPiServer.Commerce.Order;
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders;
+using SwedbankPay.Episerver.Checkout.Common;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
     public abstract class AuthorizePaymentStepBase : PaymentStep
     {
-        public AuthorizePaymentStepBase(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory) : base(payment, market, swedbankPayClientFactory)
+        public AuthorizePaymentStepBase(IPayment payment, IMarket market, ISwedbankPayClientFactory swedbankPayClientFactory) : base(payment, market, swedbankPayClientFactory)
         {
         }
 
