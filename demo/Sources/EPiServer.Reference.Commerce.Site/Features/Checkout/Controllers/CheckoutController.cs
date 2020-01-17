@@ -1,5 +1,4 @@
-﻿using System;
-using EPiServer.Commerce.Order;
+﻿using EPiServer.Commerce.Order;
 using EPiServer.Core;
 using EPiServer.Reference.Commerce.Site.Features.Cart.Services;
 using EPiServer.Reference.Commerce.Site.Features.Checkout.Pages;
@@ -13,17 +12,22 @@ using EPiServer.Reference.Commerce.Site.Infrastructure.Attributes;
 using EPiServer.Web.Mvc;
 using EPiServer.Web.Mvc.Html;
 using EPiServer.Web.Routing;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web.Mvc;
+
 using SwedbankPay.Episerver.Checkout;
 using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Sdk;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using SwedbankPay.Sdk.PaymentOrders;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
 {
     using EPiServer.Reference.Commerce.Site.Features.AddressBook.Services;
     using EPiServer.Reference.Commerce.Site.Features.Start.Pages;
+
     using Mediachase.Commerce.Markets;
     using Mediachase.Commerce.Orders;
 
@@ -273,14 +277,22 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
             {
                 var market = _marketService.GetMarket(cart.MarketId);
                 var orderRef = cart.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
-                var order = _swedbankPayCheckoutService.GetPaymentOrder(new Uri(orderRef), market);
-                if (order.PaymentOrderResponse.State.Equals( State.Ready))
+                var order = _swedbankPayCheckoutService.GetPaymentOrder(new Uri(orderRef, UriKind.Relative), market, PaymentOrderExpand.All);
+
+                var paymentResponse = order.PaymentOrderResponse.CurrentPayment;
+                var transaction = paymentResponse.Payment.Transactions?.TransactionList?.FirstOrDefault(x =>
+                    x.State.Equals(State.Completed) &&
+                    x.Type.Equals("authorization", StringComparison.InvariantCultureIgnoreCase) ||
+                    x.Type.Equals("sale", StringComparison.InvariantCultureIgnoreCase));
+
+                if (transaction != null)
                 {
+                    UpdatePaymentsStatusAndTransactionType(cart, paymentResponse);
+
                     var purchaseOrder = _checkoutService.CreatePurchaseOrderForSwedbankPay(orderRef, cart);
                     if (purchaseOrder == null)
                     {
                         ModelState.AddModelError("", "Error occurred while creating a purchase order");
-
                         return RedirectToAction("Index");
                     }
 
@@ -291,7 +303,6 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
                     };
 
                     var confirmationSentSuccessfully = _checkoutService.SendConfirmation(checkoutViewModel, purchaseOrder);
-
                     return Redirect(_checkoutService.BuildRedirectionUrl(checkoutViewModel, purchaseOrder, confirmationSentSuccessfully));
                 }
                 else
@@ -300,6 +311,21 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
                 }
             }
             return HttpNotFound();
+        }
+
+        private static void UpdatePaymentsStatusAndTransactionType(ICart cart, CurrentPaymentResponse paymentResponse)
+        {
+            foreach (var payment in cart.Forms.SelectMany(x =>
+                x.Payments.Where(p => p.PaymentMethodName == Constants.SwedbankPayCheckoutSystemKeyword)))
+            {
+                payment.Status = paymentResponse.Payment.Instrument.Equals("swish", StringComparison.CurrentCultureIgnoreCase)
+                    ? PaymentStatus.Processed.ToString()
+                    : PaymentStatus.Pending.ToString();
+                payment.TransactionType =
+                    paymentResponse.Payment.Instrument.Equals("swish", StringComparison.CurrentCultureIgnoreCase)
+                        ? TransactionType.Sale.ToString()
+                        : TransactionType.Authorization.ToString();
+            }
         }
 
         protected override void OnException(ExceptionContext filterContext)

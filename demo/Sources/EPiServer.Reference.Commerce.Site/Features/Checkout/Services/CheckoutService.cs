@@ -1,33 +1,31 @@
-﻿
+﻿using EPiServer.Commerce.Order;
+using EPiServer.Core;
+using EPiServer.Framework.Localization;
+using EPiServer.Logging;
+using EPiServer.Reference.Commerce.Shared.Services;
+using EPiServer.Reference.Commerce.Site.Features.AddressBook.Services;
+using EPiServer.Reference.Commerce.Site.Features.Cart.Services;
+using EPiServer.Reference.Commerce.Site.Features.Cart.ViewModels;
+using EPiServer.Reference.Commerce.Site.Features.Checkout.Pages;
+using EPiServer.Reference.Commerce.Site.Features.Checkout.ViewModels;
+using EPiServer.Reference.Commerce.Site.Infrastructure.Facades;
+
+using Mediachase.Commerce.Orders;
+using Mediachase.Commerce.Orders.Exceptions;
+
+using SwedbankPay.Episerver.Checkout;
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Globalization;
+using System.Linq;
+using System.Web.Mvc;
+using EPiServer.Reference.Commerce.Site.Features.Start.Pages;
+using SwedbankPay.Episerver.Checkout.Common;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
 {
-    using SwedbankPay.Episerver.Checkout;
-    using SwedbankPay.Episerver.Checkout.Common;
-    using SwedbankPay.Sdk.PaymentOrders;
-    using EPiServer.Commerce.Order;
-    using Core;
-    using Framework.Localization;
-    using Logging;
-    using Commerce.Shared.Services;
-    using AddressBook.Services;
-    using Cart.Services;
-    using Cart.ViewModels;
-    using Pages;
-    using ViewModels;
-    using Start.Pages;
-    using Infrastructure.Facades;
-    using Mediachase.Commerce.Orders;
-    using Mediachase.Commerce.Orders.Exceptions;
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.Globalization;
-    using System.Linq;
-    using System.Web.Mvc;
-   
-
-
     public class CheckoutService
     {
         private readonly IAddressBookService _addressBookService;
@@ -253,7 +251,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
                 throw new InvalidOperationException("Wrong amount");
             }
 
-            var orderReference = _orderRepository.SaveAsPurchaseOrder(cart); 
+            var orderReference = _orderRepository.SaveAsPurchaseOrder(cart);
             var purchaseOrder = _orderRepository.Load<IPurchaseOrder>(orderReference.OrderGroupId);
             _orderRepository.Delete(cart.OrderLink);
 
