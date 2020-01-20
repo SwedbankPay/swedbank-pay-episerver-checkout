@@ -1,23 +1,27 @@
-﻿
+﻿using EPiServer.Commerce.Order;
+using EPiServer.Framework.Localization;
+using EPiServer.Reference.Commerce.Site.Features.Cart.Services;
+using EPiServer.Reference.Commerce.Site.Features.Market.Services;
+using EPiServer.Reference.Commerce.Site.Features.Payment.Services;
+using EPiServer.Reference.Commerce.Site.Infrastructure.Facades;
+using EPiServer.ServiceLocation;
+
+using Mediachase.Commerce.Markets;
+using Mediachase.Commerce.Orders;
+
+using SwedbankPay.Episerver.Checkout;
+using SwedbankPay.Episerver.Checkout.Common;
 
 using System;
+using System.ComponentModel;
+using System.Linq;
+using SwedbankPay.Sdk;
+using SwedbankPay.Sdk.PaymentOrders;
+using SwedbankPay.Sdk.Payments;
+using PaymentType = Mediachase.Commerce.Orders.PaymentType;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
 {
-    using SwedbankPay.Episerver.Checkout;
-    using SwedbankPay.Episerver.Checkout.Common;
-    using EPiServer.Commerce.Order;
-    using Framework.Localization;
-    using Cart.Services;
-    using Market.Services;
-    using Services;
-    using Infrastructure.Facades;
-    using ServiceLocation;
-    using Mediachase.Commerce.Markets;
-    using Mediachase.Commerce.Orders;
-    using System.ComponentModel;
-    using System.Linq;
-    using System.Web;
 
     [ServiceConfiguration(typeof(IPaymentMethod))]
     public class SwedbankPayCheckoutPaymentMethod : PaymentMethodBase, IDataErrorInfo
@@ -38,9 +42,9 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
                 ServiceLocator.Current.GetInstance<LanguageService>(),
                 ServiceLocator.Current.GetInstance<IPaymentManagerFacade>(),
                 ServiceLocator.Current.GetInstance<ICartService>(),
-                ServiceLocator.Current.GetInstance<IMarketService>()
-                , ServiceLocator.Current.GetInstance<ISwedbankPayCheckoutService>()
-                , ServiceLocator.Current.GetInstance<CustomerContextFacade>(), ServiceLocator.Current.GetInstance<IOrderRepository>()
+                ServiceLocator.Current.GetInstance<IMarketService>(), 
+                ServiceLocator.Current.GetInstance<ISwedbankPayCheckoutService>(),
+                ServiceLocator.Current.GetInstance<CustomerContextFacade>(), ServiceLocator.Current.GetInstance<IOrderRepository>()
         ){
         }
 
@@ -112,13 +116,17 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
 
         public override IPayment CreatePayment(decimal amount, IOrderGroup orderGroup)
         {
+            var paymentOrder = _swedbankPayCheckoutService.GetPaymentOrder(orderGroup, PaymentOrderExpand.All);
+            var currentPayment = paymentOrder.PaymentOrderResponse.CurrentPayment.Payment;
+            
             var payment = orderGroup.CreatePayment(_orderGroupFactory);
             payment.PaymentType = PaymentType.Other;
             payment.PaymentMethodId = PaymentMethodId;
             payment.PaymentMethodName = Constants.SwedbankPayCheckoutSystemKeyword;
             payment.Amount = amount;
-            payment.Status = PaymentStatus.Pending.ToString();
-            payment.TransactionType = TransactionType.Authorization.ToString();
+            var isSwishPayment = currentPayment.Instrument.Equals("Swish", StringComparison.InvariantCultureIgnoreCase);
+            payment.Status = isSwishPayment ?  PaymentStatus.Processed.ToString() :  PaymentStatus.Pending.ToString();
+            payment.TransactionType = isSwishPayment ? TransactionType.Sale.ToString() : TransactionType.Authorization.ToString();
             return payment;
         }
 

@@ -14,14 +14,14 @@ using EPiServer.Web.Mvc.Html;
 using EPiServer.Web.Routing;
 
 using SwedbankPay.Episerver.Checkout;
-using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Sdk;
+using SwedbankPay.Sdk.PaymentOrders;
+using SwedbankPay.Sdk.Payments;
 
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using SwedbankPay.Sdk.PaymentOrders;
 
 namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
 {
@@ -29,7 +29,6 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
     using EPiServer.Reference.Commerce.Site.Features.Start.Pages;
 
     using Mediachase.Commerce.Markets;
-    using Mediachase.Commerce.Orders;
 
     public class CheckoutController : PageController<CheckoutPage>
     {
@@ -223,7 +222,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
 
         [HttpPost]
         [AllowDBWrite]
-        public JsonResult AddPaymentAndAddressInformation(CheckoutViewModel viewModel, IPaymentMethod paymentMethod, string instrument)
+        public JsonResult AddPaymentAndAddressInformation(CheckoutViewModel viewModel, IPaymentMethod paymentMethod)
         {
             viewModel.IsAuthenticated = User.Identity.IsAuthenticated;
             _checkoutService.CheckoutAddressHandling.UpdateUserAddresses(viewModel);
@@ -235,18 +234,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
                 form.Payments.Clear();
             }
 
-            var payment = Cart.CreatePayment();
-
-            payment.PaymentType = PaymentType.Other;
-            payment.PaymentMethodId = paymentMethod.PaymentMethodId;
-            payment.PaymentMethodName = Constants.SwedbankPayCheckoutSystemKeyword;
-            payment.Amount = Cart.GetTotal().Amount;
-
-
-
-            payment.Status = PaymentStatus.Pending.ToString();
-            payment.TransactionType = instrument == "swish" ? TransactionType.Sale.ToString() : TransactionType.Authorization.ToString();
-
+            var payment = paymentMethod.CreatePayment(Cart.GetTotal().Amount, Cart);
             payment.BillingAddress = _addressBookService.ConvertToAddress(viewModel.BillingAddress, Cart);
 
             Cart.AddPayment(payment);
@@ -275,21 +263,17 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
             var cart = _orderRepository.Load<ICart>(orderGroupId);
             if (cart != null)
             {
-                var market = _marketService.GetMarket(cart.MarketId);
-                var orderRef = cart.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
-                var order = _swedbankPayCheckoutService.GetPaymentOrder(new Uri(orderRef, UriKind.Relative), market, PaymentOrderExpand.All);
-
+                var order = _swedbankPayCheckoutService.GetPaymentOrder(cart, PaymentOrderExpand.All);
+                
                 var paymentResponse = order.PaymentOrderResponse.CurrentPayment;
                 var transaction = paymentResponse.Payment.Transactions?.TransactionList?.FirstOrDefault(x =>
                     x.State.Equals(State.Completed) &&
-                    x.Type.Equals("authorization", StringComparison.InvariantCultureIgnoreCase) ||
-                    x.Type.Equals("sale", StringComparison.InvariantCultureIgnoreCase));
+                    x.Type.Equals( Intent.Authorization.ToString(), StringComparison.InvariantCultureIgnoreCase) ||
+                    x.Type.Equals(  Intent.Sale.ToString(), StringComparison.InvariantCultureIgnoreCase));
 
                 if (transaction != null)
                 {
-                    UpdatePaymentsStatusAndTransactionType(cart, paymentResponse);
-
-                    var purchaseOrder = _checkoutService.CreatePurchaseOrderForSwedbankPay(orderRef, cart);
+                    var purchaseOrder = _checkoutService.CreatePurchaseOrderForSwedbankPay(cart);
                     if (purchaseOrder == null)
                     {
                         ModelState.AddModelError("", "Error occurred while creating a purchase order");
@@ -303,6 +287,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
                     };
 
                     var confirmationSentSuccessfully = _checkoutService.SendConfirmation(checkoutViewModel, purchaseOrder);
+
                     return Redirect(_checkoutService.BuildRedirectionUrl(checkoutViewModel, purchaseOrder, confirmationSentSuccessfully));
                 }
                 else
@@ -311,21 +296,6 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Controllers
                 }
             }
             return HttpNotFound();
-        }
-
-        private static void UpdatePaymentsStatusAndTransactionType(ICart cart, CurrentPaymentResponse paymentResponse)
-        {
-            foreach (var payment in cart.Forms.SelectMany(x =>
-                x.Payments.Where(p => p.PaymentMethodName == Constants.SwedbankPayCheckoutSystemKeyword)))
-            {
-                payment.Status = paymentResponse.Payment.Instrument.Equals("swish", StringComparison.CurrentCultureIgnoreCase)
-                    ? PaymentStatus.Processed.ToString()
-                    : PaymentStatus.Pending.ToString();
-                payment.TransactionType =
-                    paymentResponse.Payment.Instrument.Equals("swish", StringComparison.CurrentCultureIgnoreCase)
-                        ? TransactionType.Sale.ToString()
-                        : TransactionType.Authorization.ToString();
-            }
         }
 
         protected override void OnException(ExceptionContext filterContext)

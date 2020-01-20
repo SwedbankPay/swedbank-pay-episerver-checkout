@@ -82,7 +82,6 @@
         console.log(paymentCreatedEvent);
         var form = $('.jsCheckoutForm');
         var data = form.serializeArray();
-        data.push({ name: "instrument", value: paymentCreatedEvent.instrument });
         $.ajax({
             async: false,
             type: "POST",

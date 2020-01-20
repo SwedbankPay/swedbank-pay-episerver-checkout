@@ -241,10 +241,10 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
             }
         }
 
-        public IPurchaseOrder CreatePurchaseOrderForSwedbankPay(string orderRef, ICart cart)
+        public IPurchaseOrder CreatePurchaseOrderForSwedbankPay(ICart cart)
         {
             cart.ProcessPayments(_paymentProcessor, _orderGroupCalculator);
-            
+            var checkoutOrderId = cart.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
             var totalProcessedAmount = cart.GetFirstForm().Payments.Where(x => x.Status.Equals(PaymentStatus.Processed.ToString())).Sum(x => x.Amount);
             if (totalProcessedAmount != cart.GetTotal(_orderGroupCalculator).Amount)
             {
@@ -263,7 +263,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Checkout.Services
             else
             {
                 _swedbankPayCheckoutService.Complete(purchaseOrder);
-                purchaseOrder.Properties[Constants.SwedbankPayOrderIdField] = orderRef;
+                purchaseOrder.Properties[Constants.SwedbankPayOrderIdField] = checkoutOrderId;
 
                 _orderRepository.Save(purchaseOrder);
                 return purchaseOrder;

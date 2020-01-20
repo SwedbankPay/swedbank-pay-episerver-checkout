@@ -15,6 +15,8 @@ namespace SwedbankPay.Episerver.Checkout
         Consumer InitiateConsumerSession(string email = null, string mobilePhone = null, string ssn = null);
         PaymentOrder CreateOrUpdatePaymentOrder(IOrderGroup orderGroup, string description, string consumerProfileRef = null);
         CheckoutConfiguration LoadCheckoutConfiguration(IMarket market);
+
+        PaymentOrder GetPaymentOrder(IOrderGroup orderGroup,PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None);
         PaymentOrder GetPaymentOrder(Uri id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None);
         void CancelOrder(IOrderGroup orderGroup);
         void Complete(IPurchaseOrder purchaseOrder);

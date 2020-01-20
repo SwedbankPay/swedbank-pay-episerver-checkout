@@ -28,28 +28,6 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                 try
                 {
                     var orderId = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
-                    //var previousPayment = orderForm.Payments.FirstOrDefault(x => x.IsSwedbankPayPayment());
-                    //if (previousPayment != null && previousPayment.TransactionType == TransactionType.Sale.ToString())
-                    //{
-                    //    var cancelRequest = _requestFactory.GetCancelRequest();
-                    //    var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId)));
-                    //    paymentOrder.Operations.Cancel
-                    //    var cancelResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Cancel(cancelRequest));
-                        
-                    //    if (reversalResponseObject == null)
-                    //    {
-                    //        payment.Status = PaymentStatus.Failed.ToString();
-                    //        message = "Reversal is not a valid operation";
-                    //        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {message}");
-                    //        Logger.Error($"Reversal is not a valid operation for {orderId}");
-                    //        return false;
-                    //    }
-
-                    //    payment.Status = PaymentStatus.Processed.ToString();
-
-                    //    AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
-                    //}
-
                     if (string.IsNullOrEmpty(orderId)) return false;
                     
                     var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId)));

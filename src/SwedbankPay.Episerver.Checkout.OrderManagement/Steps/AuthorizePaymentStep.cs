@@ -25,7 +25,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             {
                 try
                 {
-                    var result = SwedbankPayClient.PaymentOrder.Get(new Uri(orderId));
+                    var result = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId, UriKind.Relative)));
                     if (result != null)
                     {
                         return true;
