@@ -1,9 +1,12 @@
-﻿using System;
-using System.Linq;
+﻿using EPiServer.Commerce.Internal.Migration;
 using EPiServer.Framework;
 using EPiServer.Framework.Initialization;
+
 using Mediachase.Commerce.Catalog;
 using Mediachase.MetaDataPlus.Configurator;
+
+using System;
+using System.Linq;
 
 namespace SwedbankPay.Episerver.Checkout.Common
 {
@@ -11,6 +14,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
     using MetaField = Mediachase.MetaDataPlus.Configurator.MetaField;
 
     [InitializableModule]
+    [ModuleDependency(typeof(MigrationInitializationModule))]
     public class OrderSystemInitalizationModule : IInitializableModule
     {
         public void Initialize(InitializationEngine context)
@@ -27,11 +31,13 @@ namespace SwedbankPay.Episerver.Checkout.Common
         {
             var metaField = GetMetaField(propertyName, metaDataType, metaNamespace);
             var metaClass = MetaClass.Load(CatalogContext.MetaDataContext, metaClassName);
-
-            var currentFields = metaClass.GetUserMetaFields().ToList();
-            if (currentFields.All(x => x.Name != propertyName))
+            if (metaClass != null)
             {
-                metaClass.AddField(metaField);
+                var currentFields = metaClass.GetUserMetaFields().ToList();
+                if (currentFields.All(x => x.Name != propertyName))
+                {
+                    metaClass.AddField(metaField);
+                }
             }
         }
 
