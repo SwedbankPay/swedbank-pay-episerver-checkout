@@ -5,13 +5,11 @@ VisualStudioVersion = 16.0.29020.237
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Episerver.Checkout", "src\SwedbankPay.Episerver.Checkout\SwedbankPay.Episerver.Checkout.csproj", "{9588675B-3D10-4F5C-A0D3-5260734E821B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Checkout.Episerver.CommerceManager", "src\SwedbankPay.Checkout.Episerver.CommerceManager\SwedbankPay.Checkout.Episerver.CommerceManager.csproj", "{B70821A5-7EF6-44E8-A812-4E17254036A7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Episerver.Checkout.CommerceManager", "src\SwedbankPay.Episerver.Checkout.CommerceManager\SwedbankPay.Episerver.Checkout.CommerceManager.csproj", "{B70821A5-7EF6-44E8-A812-4E17254036A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Checkout.Episerver.Common", "src\SwedbankPay.Checkout.Episerver.Common\SwedbankPay.Checkout.Episerver.Common.csproj", "{D773B6A3-EE81-40AA-B585-4F0D164ADE97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Episerver.Checkout.Common", "src\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj", "{D773B6A3-EE81-40AA-B585-4F0D164ADE97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Checkout.Episerver.OrderManagement", "src\SwedbankPay.Checkout.Episerver.OrderManagement\SwedbankPay.Checkout.Episerver.OrderManagement.csproj", "{8E3481E0-8017-4202-9AEB-EE413C049655}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PayEx.Net.Api", "src\PayEx.Net.Api\PayEx.Net.Api.csproj", "{AEB23D71-4ECC-4BCC-9869-D171EADEC954}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwedbankPay.Episerver.Checkout.OrderManagement", "src\SwedbankPay.Episerver.Checkout.OrderManagement\SwedbankPay.Episerver.Checkout.OrderManagement.csproj", "{8E3481E0-8017-4202-9AEB-EE413C049655}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +33,6 @@ Global
 		{8E3481E0-8017-4202-9AEB-EE413C049655}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E3481E0-8017-4202-9AEB-EE413C049655}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E3481E0-8017-4202-9AEB-EE413C049655}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AEB23D71-4ECC-4BCC-9869-D171EADEC954}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AEB23D71-4ECC-4BCC-9869-D171EADEC954}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AEB23D71-4ECC-4BCC-9869-D171EADEC954}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AEB23D71-4ECC-4BCC-9869-D171EADEC954}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
