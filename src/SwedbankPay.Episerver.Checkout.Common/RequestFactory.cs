@@ -55,12 +55,10 @@ namespace SwedbankPay.Episerver.Checkout.Common
             IEnumerable<RegionInfo> shippingAddressRestrictedToCountryCodes, EmailAddress email = null,
             Msisdn msisdn = null, NationalIdentifier nationalIdentifier = null)
         {
-            return new ConsumersRequest(language, shippingAddressRestrictedToCountryCodes, Operation.Initiate, msisdn,
-                email, nationalIdentifier);
+            return new ConsumersRequest(language, shippingAddressRestrictedToCountryCodes, Operation.Initiate);
         }
 
-        public virtual ReversalRequest GetReversalRequest(IPayment payment, IMarket market, IShipment shipment,
-            bool addShipmentInOrderItem = true)
+        public virtual ReversalRequest GetReversalRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Reversing payment.")
         {
             var currency = shipment.ParentOrderGroup.Currency;
             var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
@@ -72,13 +70,10 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 orderItems.Add(GetShippingOrderItem(shipment, market));
             }
 
-            return new ReversalRequest(Amount.FromDecimal(payment.Amount), Amount.FromDecimal(vatAmount), orderItems,
-                "Reversing payment.",
-                DateTime.Now.Ticks.ToString());
+            return new ReversalRequest(Amount.FromDecimal(payment.Amount), Amount.FromDecimal(vatAmount), orderItems, description, DateTime.Now.Ticks.ToString());
         }
 
-        public virtual CaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment,
-            bool addShipmentInOrderItem = true)
+        public virtual CaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Capturing payment.")
         {
             var currency = shipment.ParentOrderGroup.Currency;
             var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
@@ -90,13 +85,12 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 orderItems.Add(GetShippingOrderItem(shipment, market));
             }
 
-            return new CaptureRequest(Amount.FromDecimal(payment.Amount), Amount.FromDecimal(vatAmount.Amount), orderItems,
-                "Capturing payment.", DateTime.Now.Ticks.ToString());
+            return new CaptureRequest(Amount.FromDecimal(payment.Amount), Amount.FromDecimal(vatAmount.Amount), orderItems, description, DateTime.Now.Ticks.ToString());
         }
 
-        public virtual CancelRequest GetCancelRequest()
+        public virtual CancelRequest GetCancelRequest(string description = "Cancelling purchase order.")
         {
-            return new CancelRequest(DateTime.Now.Ticks.ToString(), "Cancelling Paymentorder");
+            return new CancelRequest(DateTime.Now.Ticks.ToString(), description);
         }
 
         public virtual AbortRequest GetAbortRequest()

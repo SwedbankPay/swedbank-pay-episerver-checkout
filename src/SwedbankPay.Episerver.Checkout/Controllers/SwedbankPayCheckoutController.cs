@@ -1,41 +1,63 @@
-﻿using SwedbankPay.Sdk;
+﻿using SwedbankPay.Episerver.Checkout.Common;
 
 using System;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Mediachase.Commerce;
+using Newtonsoft.Json;
+using SwedbankPay.Sdk;
+using SwedbankPay.Sdk.JsonSerialization;
 
 namespace SwedbankPay.Episerver.Checkout.Controllers
 {
     public class SwedbankPayCheckoutController : Controller
     {
-        private readonly ISwedbankPayClient _swedbankPayClient;
+        private readonly ISwedbankPayClientFactory _swedbankPayClientFactory;
+        private readonly ICurrentMarket _currentMarket;
 
-        public SwedbankPayCheckoutController(ISwedbankPayClient swedbankPayClient)
+
+        public SwedbankPayCheckoutController(ISwedbankPayClientFactory swedbankPayClientFactory, ICurrentMarket currentMarket)
         {
-            _swedbankPayClient = swedbankPayClient;
+            _swedbankPayClientFactory = swedbankPayClientFactory;
+            _currentMarket = currentMarket;
         }
 
 
         [HttpPost]
-        public async Task<JsonResult> GetSwedbankPayShippingDetails(Uri url)
+        public async Task<string> GetSwedbankPayShippingDetails(Uri url)
         {
-            var shippingDetails = await _swedbankPayClient.Consumers.GetShippingDetails(url);
-            
-            return new JsonResult
+            var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket());
+
+            var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
+            var jsonSerializerSettings = new JsonSerializerSettings
             {
-                Data = shippingDetails
+                Converters = new System.Collections.Generic.List<JsonConverter>
+                {
+                    new CustomEmailAddressConverter(typeof(EmailAddress)),
+                    new CustomMsisdnConverter(typeof(Msisdn))
+                }
             };
+
+            return JsonConvert.SerializeObject(shippingDetails, jsonSerializerSettings);
+
         }
 
         [HttpPost]
-        public async Task<JsonResult> GetSwedbankPayBillingDetails(Uri url)
+        public async Task<string> GetSwedbankPayBillingDetails(Uri url)
         {
-            var billingDetails = await _swedbankPayClient.Consumers.GetBillingDetails(url);
+            var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket());
 
-            return new JsonResult
+            var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
+            var jsonSerializerSettings = new JsonSerializerSettings
             {
-                Data = billingDetails
+                Converters = new System.Collections.Generic.List<JsonConverter>
+                {
+                    new CustomEmailAddressConverter(typeof(EmailAddress)),
+                    new CustomMsisdnConverter(typeof(Msisdn))
+                }
             };
+
+            return JsonConvert.SerializeObject(billingDetails, jsonSerializerSettings);
         }
     }
 }

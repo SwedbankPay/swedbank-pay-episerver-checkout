@@ -17,9 +17,9 @@ namespace SwedbankPay.Episerver.Checkout.Common
         PaymentOrderRequest GetPaymentOrderRequest(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string description, string consumerProfileRef = null);
         ConsumersRequest GetConsumerResourceRequest(CultureInfo language, IEnumerable<RegionInfo> shippingAddressRestrictedToCountryCodes, EmailAddress email = null, Msisdn msisdn = null, NationalIdentifier nationalIdentifier = null);
         AbortRequest GetAbortRequest();
-        CancelRequest GetCancelRequest();
-        CaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true);
-        ReversalRequest GetReversalRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true);
+        CancelRequest GetCancelRequest(string description = "Cancelling purchase order.");
+        CaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Capturing payment.");
+        ReversalRequest GetReversalRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Reversing payment.");
         UpdateRequest GetUpdateRequest(IOrderGroup orderGroup);
     }
 }

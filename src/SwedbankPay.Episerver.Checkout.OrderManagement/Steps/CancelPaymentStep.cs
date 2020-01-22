@@ -5,19 +5,23 @@ using Mediachase.Commerce;
 using Mediachase.Commerce.Orders;
 
 using SwedbankPay.Episerver.Checkout.Common;
+using SwedbankPay.Episerver.Checkout.OrderManagement.Extensions;
 using SwedbankPay.Sdk;
 
 using System;
+using System.Linq;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
     public class CancelPaymentStep : PaymentStep
     {
+        private readonly IMarket _market;
         private readonly IRequestFactory _requestFactory;
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(CancelPaymentStep));
 
         public CancelPaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory, IRequestFactory requestFactory) : base(payment, market, swedbankPayClientFactory)
         {
+            _market = market;
             _requestFactory = requestFactory;
         }
 
@@ -28,22 +32,53 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                 try
                 {
                     var orderId = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
-                    if (string.IsNullOrEmpty(orderId)) return false;
+                    var previousPayment = orderForm.Payments.FirstOrDefault(x => x.IsSwedbankPayPayment());
                     
-                    var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId)));
-                    if (paymentOrder.Operations.Cancel == null)
+                    //If payed by swish, do a reversal
+                    if (previousPayment != null && previousPayment.TransactionType == TransactionType.Sale.ToString() && !string.IsNullOrWhiteSpace(orderId))
                     {
-                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Cancel is not possible on this order {orderId}");
-                        return false;
+                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId, UriKind.Relative)));
+                        if (paymentOrder.Operations.Reversal == null)
+                        {
+                            message = "Reversal is not a valid operation";
+                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"{message}");
+                        }
+                        else
+                        {
+                            var reversalRequest = _requestFactory.GetReversalRequest(payment, _market, shipment, description: "Cancelling purchase order");
+
+                            var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reversal(reversalRequest));
+                            if (reversalResponse.Reversal.Transaction.Type == TransactionTypes.Reversal)
+                            {
+                                payment.Status = PaymentStatus.Processed.ToString();
+                                AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
+                                return true;
+                            }
+                            else
+                            {
+                                message = "Error when executing reversal";
+                                AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {message}");
+                            }
+                        }
                     }
 
-                    var cancelRequest = _requestFactory.GetCancelRequest();
-                    var cancelResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Cancel(cancelRequest));
-                    if (cancelResponse.Cancellation.Transaction.Type == "Cancel" && cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
+                    else if (!string.IsNullOrWhiteSpace(orderId))
                     {
-                        payment.Status = PaymentStatus.Processed.ToString();
-                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order cancelled at SwedbankPay");
-                        return true;
+                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId, UriKind.Relative)));
+                        if (paymentOrder.Operations.Cancel == null)
+                        {
+                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Cancel is not possible on this order {orderId}");
+                            return false;
+                        }
+
+                        var cancelRequest = _requestFactory.GetCancelRequest();
+                        var cancelResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Cancel(cancelRequest));
+                        if (cancelResponse.Cancellation.Transaction.Type == TransactionTypes.Cancellation && cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
+                        {
+                            payment.Status = PaymentStatus.Processed.ToString();
+                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order cancelled at SwedbankPay");
+                            return true;
+                        }
                     }
 
                     return false;

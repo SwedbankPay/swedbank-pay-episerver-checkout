@@ -42,33 +42,29 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                             if (returnForm != null)
                             {
                                 var transactionDescription = string.IsNullOrWhiteSpace(returnForm.ReturnComment)
-                                        ? "credit"
+                                        ? "Reversing payment."
                                         : returnForm.ReturnComment;
-                                var reversalRequest =
-                                    _requestFactory.GetReversalRequest(payment, _market, shipment, true);
 
-                                var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId)));
+                                var reversalRequest = _requestFactory.GetReversalRequest(payment, _market, shipment, false, description: transactionDescription);
+                                var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId, UriKind.Relative)));
 
-                                if (paymentOrder.Operations.Reversal != null)
+                                if (paymentOrder.Operations.Reversal == null)
                                 {
-                                    var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reversal(reversalRequest));
-
-                                    if (reversalResponse.Reversal.Transaction.Type == "Reversal" && reversalResponse.Reversal.Transaction.State.Equals(State.Completed))
-                                    {
-                                        payment.Status = PaymentStatus.Processed.ToString();
-
-                                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
-                                        return true;
-                                    }
-                                    
+                                    payment.Status = PaymentStatus.Failed.ToString();
+                                    message = "Reversal is not a valid operation";
+                                    AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {message}");
+                                    Logger.Error($"Reversal is not a valid operation for {orderId}");
+                                    return false;
                                 }
 
-                                payment.Status = PaymentStatus.Failed.ToString();
-                                message = "Reversal is not a valid operation";
-                                AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {message}");
-                                Logger.Error($"Reversal is not a valid operation for {orderId}");
-                                return false;
-
+                                var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reversal(reversalRequest));
+                                if (reversalResponse.Reversal.Transaction.Type == TransactionTypes.Reversal && reversalResponse.Reversal.Transaction.State.Equals(State.Completed))
+                                {
+                                    payment.Status = PaymentStatus.Processed.ToString();
+                                    AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
+                                    
+                                    return true;
+                                }
                             }
                         }
                         

@@ -38,28 +38,24 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                             throw new InvalidOperationException("Can't find correct shipment");
                         }
                         
-                        var captureRequest = _requestFactory.GetCaptureRequest(payment, _market, shipment, addShipmentInOrderItem: true);
-                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId)));
-                        
-                        if (paymentOrder.Operations.Capture != null)
-                        {
-                            var captureResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Capture(captureRequest));
-
-                            if (captureResponse.Capture.Transaction.Type == "Capture" && captureResponse.Capture.Transaction.State.Equals(State.Completed))
-                            {
-                                payment.Status = PaymentStatus.Processed.ToString();
-                                AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order captured at SwedbankPay");
-                                return true;
-                            }
-                        }
-                        else
+                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId, UriKind.Relative)));
+                        if (paymentOrder.Operations.Capture == null)
                         {
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Capture is not possible on this order {orderId}");
                             return false;
                         }
 
+                        var captureRequest = _requestFactory.GetCaptureRequest(payment, _market, shipment);
+                        var captureResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Capture(captureRequest));
+
+                        if (captureResponse.Capture.Transaction.Type == TransactionTypes.Capture && captureResponse.Capture.Transaction.State.Equals(State.Completed))
+                        {
+                            payment.Status = PaymentStatus.Processed.ToString();
+                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order captured at SwedbankPay");
+                            return true;
+                        }
+
                         return false;
-                       
                     }
                     catch (Exception ex)
                     {
@@ -70,8 +66,8 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         return false;
                     }
                 }
-                return false;
 
+                return false;
             }
 
             if (Successor != null)

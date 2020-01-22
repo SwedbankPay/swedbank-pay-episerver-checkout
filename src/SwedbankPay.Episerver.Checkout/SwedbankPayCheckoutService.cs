@@ -78,7 +78,7 @@ namespace SwedbankPay.Episerver.Checkout
                         string.IsNullOrEmpty(mobilePhone) ? null : new Msisdn(mobilePhone),
                         string.IsNullOrEmpty(ssn)
                             ? null
-                            : new NationalIdentifier(new RegionInfo(market.DefaultLanguage.Name), ssn));
+                            : new NationalIdentifier(new RegionInfo(market.DefaultLanguage.TextInfo.CultureName), ssn));
 
                 return AsyncHelper.RunSync(() =>
                     swedbankPayClient.Consumers.InitiateSession(initiateConsumerSessionRequest));

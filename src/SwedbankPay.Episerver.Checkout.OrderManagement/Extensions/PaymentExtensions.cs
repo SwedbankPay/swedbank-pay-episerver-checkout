@@ -9,6 +9,5 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Extensions
         {
             return payment?.PaymentMethodName?.StartsWith(Constants.SwedbankPaySystemKeyword) ?? false;
         }
-
     }
 }
