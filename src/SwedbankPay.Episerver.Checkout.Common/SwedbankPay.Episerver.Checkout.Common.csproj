@@ -53,7 +53,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-    <None Include="SwedbankPay.Checkout.Episerver.Common.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="AjaxControlToolkit, Version=3.0.30930.28736, Culture=neutral, PublicKeyToken=28f01b0e84b6d53e, processorArchitecture=MSIL">
@@ -184,7 +183,7 @@
       <HintPath>..\..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="SwedbankPay.Sdk, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\SwedbankPay.Sdk.1.0.0-beta0005\lib\netstandard2.0\SwedbankPay.Sdk.dll</HintPath>
+      <HintPath>..\..\packages\SwedbankPay.Sdk.1.0.0-beta0008\lib\netstandard2.0\SwedbankPay.Sdk.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">

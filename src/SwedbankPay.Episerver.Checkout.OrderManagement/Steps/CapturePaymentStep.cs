@@ -9,6 +9,7 @@ using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Sdk;
 
 using System;
+using TransactionType = Mediachase.Commerce.Orders.TransactionType;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -48,7 +49,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         var captureRequest = _requestFactory.GetCaptureRequest(payment, _market, shipment);
                         var captureResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Capture(captureRequest));
 
-                        if (captureResponse.Capture.Transaction.Type == TransactionTypes.Capture && captureResponse.Capture.Transaction.State.Equals(State.Completed))
+                        if (captureResponse.Capture.Transaction.Type == Sdk.TransactionType.Capture && captureResponse.Capture.Transaction.State.Equals(State.Completed))
                         {
                             payment.Status = PaymentStatus.Processed.ToString();
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order captured at SwedbankPay");

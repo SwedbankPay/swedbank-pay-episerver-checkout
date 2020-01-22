@@ -51,7 +51,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
             return CreatePaymentOrderRequest(orderGroup, market, consumerProfileRef, orderItems, description);
         }
 
-        public virtual ConsumersRequest GetConsumerResourceRequest(CultureInfo language,
+        public virtual ConsumersRequest GetConsumerResourceRequest(Language language,
             IEnumerable<RegionInfo> shippingAddressRestrictedToCountryCodes, EmailAddress email = null,
             Msisdn msisdn = null, NationalIdentifier nationalIdentifier = null)
         {

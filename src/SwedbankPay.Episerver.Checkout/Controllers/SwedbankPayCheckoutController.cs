@@ -1,12 +1,13 @@
-﻿using SwedbankPay.Episerver.Checkout.Common;
+﻿using Mediachase.Commerce;
+
+using Newtonsoft.Json;
+
+using SwedbankPay.Episerver.Checkout.Common;
+using SwedbankPay.Sdk.JsonSerialization;
 
 using System;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Mediachase.Commerce;
-using Newtonsoft.Json;
-using SwedbankPay.Sdk;
-using SwedbankPay.Sdk.JsonSerialization;
 
 namespace SwedbankPay.Episerver.Checkout.Controllers
 {
@@ -27,18 +28,8 @@ namespace SwedbankPay.Episerver.Checkout.Controllers
         public async Task<string> GetSwedbankPayShippingDetails(Uri url)
         {
             var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket());
-
             var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
-            var jsonSerializerSettings = new JsonSerializerSettings
-            {
-                Converters = new System.Collections.Generic.List<JsonConverter>
-                {
-                    new CustomEmailAddressConverter(typeof(EmailAddress)),
-                    new CustomMsisdnConverter(typeof(Msisdn))
-                }
-            };
-
-            return JsonConvert.SerializeObject(shippingDetails, jsonSerializerSettings);
+            return JsonConvert.SerializeObject(shippingDetails, JsonSerialization.Settings);
 
         }
 
@@ -46,18 +37,8 @@ namespace SwedbankPay.Episerver.Checkout.Controllers
         public async Task<string> GetSwedbankPayBillingDetails(Uri url)
         {
             var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket());
-
             var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
-            var jsonSerializerSettings = new JsonSerializerSettings
-            {
-                Converters = new System.Collections.Generic.List<JsonConverter>
-                {
-                    new CustomEmailAddressConverter(typeof(EmailAddress)),
-                    new CustomMsisdnConverter(typeof(Msisdn))
-                }
-            };
-
-            return JsonConvert.SerializeObject(billingDetails, jsonSerializerSettings);
+            return JsonConvert.SerializeObject(billingDetails, JsonSerialization.Settings);
         }
     }
 }

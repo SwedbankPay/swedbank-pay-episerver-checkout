@@ -10,6 +10,7 @@ using SwedbankPay.Sdk;
 
 using System;
 using System.Linq;
+using TransactionType = Mediachase.Commerce.Orders.TransactionType;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -58,7 +59,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                                 }
 
                                 var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reversal(reversalRequest));
-                                if (reversalResponse.Reversal.Transaction.Type == TransactionTypes.Reversal && reversalResponse.Reversal.Transaction.State.Equals(State.Completed))
+                                if (reversalResponse.Reversal.Transaction.Type == Sdk.TransactionType.Reversal && reversalResponse.Reversal.Transaction.State.Equals(State.Completed))
                                 {
                                     payment.Status = PaymentStatus.Processed.ToString();
                                     AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");

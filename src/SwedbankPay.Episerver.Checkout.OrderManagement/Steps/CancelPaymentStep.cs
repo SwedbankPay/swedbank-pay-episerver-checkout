@@ -10,6 +10,7 @@ using SwedbankPay.Sdk;
 
 using System;
 using System.Linq;
+using TransactionType = Mediachase.Commerce.Orders.TransactionType;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -48,7 +49,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                             var reversalRequest = _requestFactory.GetReversalRequest(payment, _market, shipment, description: "Cancelling purchase order");
 
                             var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reversal(reversalRequest));
-                            if (reversalResponse.Reversal.Transaction.Type == TransactionTypes.Reversal)
+                            if (reversalResponse.Reversal.Transaction.Type == Sdk.TransactionType.Reversal)
                             {
                                 payment.Status = PaymentStatus.Processed.ToString();
                                 AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
@@ -73,7 +74,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 
                         var cancelRequest = _requestFactory.GetCancelRequest();
                         var cancelResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Cancel(cancelRequest));
-                        if (cancelResponse.Cancellation.Transaction.Type == TransactionTypes.Cancellation && cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
+                        if (cancelResponse.Cancellation.Transaction.Type == Sdk.TransactionType.Cancellation && cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
                         {
                             payment.Status = PaymentStatus.Processed.ToString();
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order cancelled at SwedbankPay");

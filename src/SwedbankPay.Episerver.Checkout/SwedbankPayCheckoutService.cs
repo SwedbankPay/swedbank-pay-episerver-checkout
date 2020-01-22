@@ -70,8 +70,7 @@ namespace SwedbankPay.Episerver.Checkout
             try
             {
                 var initiateConsumerSessionRequest =
-                    _requestFactory.GetConsumerResourceRequest(
-                        CultureInfo.CreateSpecificCulture(market.DefaultLanguage.Name),
+                    _requestFactory.GetConsumerResourceRequest(new Language(market.DefaultLanguage.TextInfo.CultureName),
                         config.ShippingAddressRestrictedToCountries.Select(x =>
                             new RegionInfo(CountryCodeHelper.GetTwoLetterCountryCode(x))),
                         string.IsNullOrEmpty(email) ? null : new EmailAddress(email),
@@ -137,7 +136,7 @@ namespace SwedbankPay.Episerver.Checkout
                     if (paymentOrder.Operations.Cancel != null)
                     {
                         var cancelResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Cancel(cancelRequest));
-                        if (cancelResponse.Cancellation.Transaction.Type == "Cancel" &&
+                        if (cancelResponse.Cancellation.Transaction.Type == TransactionType.Cancellation &&
                             cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
                         {
                             orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = null;
