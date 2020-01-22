@@ -1,0 +1,4 @@
+[submodule "demo/Quicksilver"]
+	path = demo/Quicksilver
+	url = https://github.com/authorityab/Quicksilver.SwedbankPay.Checkout.git
+	branch = feature/swedbankpay
