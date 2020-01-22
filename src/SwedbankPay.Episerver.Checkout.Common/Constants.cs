@@ -14,5 +14,6 @@
 
         // Purchase order meta fields
         public const string SwedbankPayOrderIdField = "SwedbankPayOrderId";
+        public const string SwedbankPayPaymentIdField = "SwedbankPayPaymentId";
     }
 }

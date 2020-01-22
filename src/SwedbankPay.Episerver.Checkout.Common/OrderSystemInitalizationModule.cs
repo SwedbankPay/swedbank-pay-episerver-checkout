@@ -20,6 +20,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
         public void Initialize(InitializationEngine context)
         {
             AddCustomProperty(Constants.SwedbankPayOrderIdField, "PurchaseOrder", "Mediachase.Commerce.Orders", MetaDataType.ShortString);
+            AddCustomProperty(Constants.SwedbankPayPaymentIdField, "PurchaseOrder", "Mediachase.Commerce.Orders", MetaDataType.ShortString);
         }
 
         public void Uninitialize(InitializationEngine context)
