@@ -38,7 +38,7 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
 
 
             var market = _marketService.GetMarket(markets.First().MarketId);
-            var checkoutConfiguration = GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
+            var checkoutConfiguration = GetConfiguration(market.MarketId, _paymentMethodDto.PaymentMethod.First().LanguageId);
             BindConfigurationData(checkoutConfiguration);
             BindMarketData(markets);
         }
@@ -46,8 +46,7 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
 
         protected void marketDropDownList_OnSelectedIndexChanged(object sender, EventArgs e)
         {
-            var market = _marketService.GetMarket(new MarketId(marketDropDownList.SelectedValue));
-            var checkoutConfiguration = GetConfiguration(new MarketId(marketDropDownList.SelectedValue), market.DefaultLanguage.Name);
+            var checkoutConfiguration = GetConfiguration(new MarketId(marketDropDownList.SelectedValue), _paymentMethodDto.PaymentMethod.First().LanguageId);
             BindConfigurationData(checkoutConfiguration);
             ConfigureUpdatePanelContentPanel.Update();
         }

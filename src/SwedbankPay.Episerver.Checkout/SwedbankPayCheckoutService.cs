@@ -59,8 +59,7 @@ namespace SwedbankPay.Episerver.Checkout
                 CreatePaymentOrder(orderGroup, description, consumerProfileRef); //TODO Change to UpdateOrder when SwedbankPay Api supports updating of orderitems
         }
 
-        public virtual Consumer InitiateConsumerSession(string email = null, string mobilePhone = null,
-            string ssn = null)
+        public virtual Consumer InitiateConsumerSession(CultureInfo currentLanguage, string email = null, string mobilePhone = null, string ssn = null)
         {
             var market = _currentMarket.GetCurrentMarket();
             var swedbankPayClient = _swedbankPayClientFactory.Create(market);
@@ -70,14 +69,14 @@ namespace SwedbankPay.Episerver.Checkout
             try
             {
                 var initiateConsumerSessionRequest =
-                    _requestFactory.GetConsumerResourceRequest(new Language(market.DefaultLanguage.TextInfo.CultureName),
+                    _requestFactory.GetConsumerResourceRequest(new Language(currentLanguage.TextInfo.CultureName),
                         config.ShippingAddressRestrictedToCountries.Select(x =>
                             new RegionInfo(CountryCodeHelper.GetTwoLetterCountryCode(x))),
                         string.IsNullOrEmpty(email) ? null : new EmailAddress(email),
                         string.IsNullOrEmpty(mobilePhone) ? null : new Msisdn(mobilePhone),
                         string.IsNullOrEmpty(ssn)
                             ? null
-                            : new NationalIdentifier(new RegionInfo(market.DefaultLanguage.TextInfo.CultureName), ssn));
+                            : new NationalIdentifier(new RegionInfo(currentLanguage.TextInfo.CultureName), ssn));
 
                 return AsyncHelper.RunSync(() =>
                     swedbankPayClient.Consumers.InitiateSession(initiateConsumerSessionRequest));
@@ -103,8 +102,7 @@ namespace SwedbankPay.Episerver.Checkout
             return null;
         }
 
-        public virtual PaymentOrder GetPaymentOrder(Uri id, IMarket market,
-            PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
+        public virtual PaymentOrder GetPaymentOrder(Uri id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
         {
             var config = LoadCheckoutConfiguration(market);
             var swedbankPayClient = _swedbankPayClientFactory.Create(config);
@@ -162,7 +160,7 @@ namespace SwedbankPay.Episerver.Checkout
 
         public CheckoutConfiguration LoadCheckoutConfiguration(IMarket market)
         {
-            return _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
+            return _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
         }
 
         private PaymentOrder CreatePaymentOrder(IOrderGroup orderGroup, string description, string consumerProfileRef = null)

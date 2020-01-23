@@ -11,6 +11,7 @@ using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Episerver.Checkout.Extensions;
 
 using System;
+using System.Linq;
 
 namespace SwedbankPay.Episerver.Checkout
 {
@@ -35,13 +36,15 @@ namespace SwedbankPay.Episerver.Checkout
         public void SetConfiguration(CheckoutConfiguration configuration, PaymentMethodDto paymentMethod, string currentMarket)
         {
             var serialized = JsonConvert.SerializeObject(configuration);
-            paymentMethod.SetParameter($"{currentMarket}_{Constants.SwedbankPaySerializedMarketOptions}", serialized);
+            var languageId = paymentMethod.PaymentMethod.First().LanguageId;
+            paymentMethod.SetParameter($"{currentMarket}_{languageId}_{Constants.SwedbankPaySerializedMarketOptions}", serialized);
         }
 
 
         private static CheckoutConfiguration GetSwedbankPayCheckoutConfiguration(PaymentMethodDto paymentMethodDto, MarketId marketId)
         {
-            var parameter = paymentMethodDto.GetParameter($"{marketId.Value}_{Constants.SwedbankPaySerializedMarketOptions}", string.Empty);
+            var languageId = paymentMethodDto.PaymentMethod.First().LanguageId;
+            var parameter = paymentMethodDto.GetParameter($"{marketId.Value}_{languageId}_{Constants.SwedbankPaySerializedMarketOptions}", string.Empty);
 
             var configuration = JsonConvert.DeserializeObject<CheckoutConfiguration>(parameter);
 

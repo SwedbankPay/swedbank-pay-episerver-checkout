@@ -32,7 +32,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
         public virtual ISwedbankPayClient Create(IMarket market, ILogger logger = null)
         {
-            CheckoutConfiguration checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
+            CheckoutConfiguration checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
             return GetSwedbankPayClient(checkoutConfiguration, logger);
         }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using EPiServer.Business.Commerce.Exception;
 using EPiServer.Commerce.Order;
+using EPiServer.Globalization;
 using EPiServer.ServiceLocation;
 using EPiServer.Web;
 using Mediachase.Commerce;
@@ -137,7 +138,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
             return new PaymentOrderRequest(Operation.Purchase, new CurrencyCode(currencyCode),
                 Amount.FromDecimal(totals.Total), Amount.FromDecimal(totals.TaxTotal), description,
-                HttpContext.Current.Request.UserAgent, CultureInfo.CreateSpecificCulture(market.DefaultLanguage.Name),
+                HttpContext.Current.Request.UserAgent, CultureInfo.CreateSpecificCulture(ContentLanguage.PreferredCulture.Name),
                 false,
                 GetMerchantUrls(orderGroup, market), new PayeeInfo(new Guid(configuration.MerchantId),
                     DateTime.Now.Ticks.ToString()), orderItems: orderItems, payer: payer);
@@ -160,8 +161,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
         private Urls GetMerchantUrls(IOrderGroup orderGroup, IMarket market)
         {
-            var checkoutConfiguration =
-                _checkoutConfigurationLoader.GetConfiguration(market.MarketId, market.DefaultLanguage.Name);
+            var checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
 
             Uri ToFullSiteUrl(Func<CheckoutConfiguration, Uri> fieldSelector)
             {

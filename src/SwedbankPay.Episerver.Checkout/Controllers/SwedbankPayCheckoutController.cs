@@ -15,7 +15,7 @@ namespace SwedbankPay.Episerver.Checkout.Controllers
     {
         private readonly ISwedbankPayClientFactory _swedbankPayClientFactory;
         private readonly ICurrentMarket _currentMarket;
-
+        
 
         public SwedbankPayCheckoutController(ISwedbankPayClientFactory swedbankPayClientFactory, ICurrentMarket currentMarket)
         {
@@ -27,10 +27,10 @@ namespace SwedbankPay.Episerver.Checkout.Controllers
         [HttpPost]
         public async Task<string> GetSwedbankPayShippingDetails(Uri url)
         {
+
             var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket());
             var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
             return JsonConvert.SerializeObject(shippingDetails, JsonSerialization.Settings);
-
         }
 
         [HttpPost]
