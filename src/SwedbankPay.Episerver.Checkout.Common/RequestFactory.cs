@@ -38,8 +38,10 @@ namespace SwedbankPay.Episerver.Checkout.Common
         public virtual PaymentOrderRequest GetPaymentOrderRequest(
             IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string description, string consumerProfileRef = null)
         {
-            if (orderGroup == null) throw new ArgumentNullException(nameof(orderGroup));
-            if (market == null) throw new ArgumentNullException(nameof(market));
+            if (orderGroup == null)
+                throw new ArgumentNullException(nameof(orderGroup));
+            if (market == null)
+                throw new ArgumentNullException(nameof(market));
 
             var marketCountry = CountryCodeHelper.GetTwoLetterCountryCode(market.Countries.FirstOrDefault());
             if (string.IsNullOrWhiteSpace(marketCountry))
@@ -63,7 +65,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
         {
             var currency = shipment.ParentOrderGroup.Currency;
             var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
-            
+
             var orderItems = GetOrderItems(market, shipment).ToList();
             if (addShipmentInOrderItem)
             {
@@ -78,7 +80,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
         {
             var currency = shipment.ParentOrderGroup.Currency;
             var vatAmount = _shippingCalculator.GetSalesTax(shipment, market, currency);
-            
+
             var orderItems = GetOrderItems(market, shipment).ToList();
             if (addShipmentInOrderItem)
             {
@@ -113,7 +115,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 var currency = shipment.ParentOrderGroup.Currency;
                 var extendedPrice = item.GetExtendedPrice(currency);
                 var salesTax = item.GetSalesTax(market, currency, shipment.ShippingAddress);
-                var vatPercent = (int) (salesTax / extendedPrice * 10000);
+                var vatPercent = extendedPrice.Amount > 0 ? (int)(salesTax / extendedPrice * 10000) : 0;
 
                 var amount = market.PricesIncludeTax ? extendedPrice : extendedPrice + salesTax;
 
@@ -152,7 +154,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
             var amount = market.PricesIncludeTax ? shippingAmount : shippingAmount + shippingVatAmount;
 
-            var vatPercent = (int) (shippingVatAmount.Amount / shippingAmount.Amount * 10000);
+            var vatPercent = shippingAmount.Amount > 0 ? (int)(shippingVatAmount.Amount / shippingAmount.Amount * 10000) : 0;
 
             return new OrderItem("SHIPPING", "SHIPPINGFEE", OrderItemType.ShippingFee, "NOTAPPLICABLE", 1, "PCS",
                 Amount.FromDecimal(shippingAmount.Amount), vatPercent, Amount.FromDecimal(amount.Amount),
@@ -165,7 +167,8 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
             Uri ToFullSiteUrl(Func<CheckoutConfiguration, Uri> fieldSelector)
             {
-                if (fieldSelector(checkoutConfiguration) == null) return null;
+                if (fieldSelector(checkoutConfiguration) == null)
+                    return null;
 
                 var uriBuilder = new UriBuilder(fieldSelector(checkoutConfiguration));
                 var query = HttpUtility.ParseQueryString(uriBuilder.Query);
