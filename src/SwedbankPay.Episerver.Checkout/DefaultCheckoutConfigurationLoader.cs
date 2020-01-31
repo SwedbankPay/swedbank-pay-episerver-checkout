@@ -30,7 +30,16 @@ namespace SwedbankPay.Episerver.Checkout
             {
                 throw new Exception($"PaymentMethod {Constants.SwedbankPayCheckoutSystemKeyword} is not configured for market {marketId} and language {ContentLanguage.PreferredCulture.Name}");
             }
-            return GetSwedbankPayCheckoutConfiguration(paymentMethod, marketId);
+            return GetConfiguration(paymentMethod, marketId);
+        }
+        public CheckoutConfiguration GetConfiguration(PaymentMethodDto paymentMethodDto, MarketId marketId)
+        {
+            var languageId = paymentMethodDto.PaymentMethod.FirstOrDefault()?.LanguageId;
+            var parameter = paymentMethodDto.GetParameter($"{marketId.Value}_{languageId}_{Constants.SwedbankPaySerializedMarketOptions}", string.Empty);
+
+            var configuration = JsonConvert.DeserializeObject<CheckoutConfiguration>(parameter);
+
+            return configuration ?? new CheckoutConfiguration();
         }
 
         public void SetConfiguration(CheckoutConfiguration configuration, PaymentMethodDto paymentMethod, string currentMarket)
@@ -38,17 +47,6 @@ namespace SwedbankPay.Episerver.Checkout
             var serialized = JsonConvert.SerializeObject(configuration);
             var languageId = paymentMethod.PaymentMethod.First().LanguageId;
             paymentMethod.SetParameter($"{currentMarket}_{languageId}_{Constants.SwedbankPaySerializedMarketOptions}", serialized);
-        }
-
-
-        private static CheckoutConfiguration GetSwedbankPayCheckoutConfiguration(PaymentMethodDto paymentMethodDto, MarketId marketId)
-        {
-            var languageId = paymentMethodDto.PaymentMethod.First().LanguageId;
-            var parameter = paymentMethodDto.GetParameter($"{marketId.Value}_{languageId}_{Constants.SwedbankPaySerializedMarketOptions}", string.Empty);
-
-            var configuration = JsonConvert.DeserializeObject<CheckoutConfiguration>(parameter);
-
-            return configuration ?? new CheckoutConfiguration();
         }
     }
 }
