@@ -116,6 +116,32 @@ namespace SwedbankPay.Episerver.Checkout.Common
             return GetTaxValues(GetTaxCategoryName(lineItem), market.DefaultLanguage.Name, shippingAddress);
         }
 
+        public decimal GetTaxPercentage(ILineItem lineItem, IMarket market, IOrderAddress shippingAddress, TaxType taxType)
+        {
+            var taxValues = GetTaxValues(lineItem, market, shippingAddress).ToList();
+
+            if (!taxValues.Any())
+            {
+                return 0;
+            }
+
+            var taxValue = taxValues.FirstOrDefault(x => x.TaxType  == taxType);
+            return taxValue != null ? (decimal) taxValue.Percentage : 0;
+        }
+
+        public decimal GetTaxPercentage(IMarket market, IOrderAddress shippingAddress, TaxType taxType)
+        {
+            var taxValues = base.GetTaxValues("General Sales",market.DefaultLanguage.Name, shippingAddress).ToList();
+
+            if (!taxValues.Any())
+            {
+                return 0;
+            }
+
+            var taxValue = taxValues.FirstOrDefault(x => x.TaxType == taxType);
+            return taxValue != null ? (decimal)taxValue.Percentage : 0;
+        }
+
         private int GetTaxCategoryId(ILineItem lineItem)
         {
             if (!lineItem.TaxCategoryId.HasValue)
