@@ -9,6 +9,9 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
         CheckoutConfiguration GetConfiguration(MarketId marketId, string languageId);
 
+        CheckoutConfiguration GetConfiguration(PaymentMethodDto paymentMethodDto, MarketId marketId);
+
         void SetConfiguration(CheckoutConfiguration configuration, PaymentMethodDto paymentMethod, string currentMarket);
+
     }
 }
