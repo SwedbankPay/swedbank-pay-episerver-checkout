@@ -19,7 +19,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
         private readonly IMarket _market;
         private readonly IRequestFactory _requestFactory;
 
-        public CapturePaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory, IMarketService marketService, IRequestFactory requestFactory) : base(payment, market, swedbankPayClientFactory)
+        public CapturePaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory, IRequestFactory requestFactory) : base(payment, market, swedbankPayClientFactory)
         {
             _market = market;
             _requestFactory = requestFactory;
