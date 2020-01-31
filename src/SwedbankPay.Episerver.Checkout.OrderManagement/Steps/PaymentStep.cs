@@ -26,7 +26,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             
             if(PaymentMethod != null)
             {
-                SwedbankPayClient = swedbankPayClientFactory.Create(market);
+                SwedbankPayClient = swedbankPayClientFactory.Create(PaymentMethod, market.MarketId);
             }
         }
 
