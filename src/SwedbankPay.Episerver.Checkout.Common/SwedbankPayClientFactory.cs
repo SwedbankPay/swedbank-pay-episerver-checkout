@@ -38,7 +38,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
         public virtual ISwedbankPayClient Create(PaymentMethodDto paymentMethodDto, MarketId marketMarketId, ILogger logger)
         {
-            return Create(paymentMethodDto.GetConnectionConfiguration(marketMarketId), logger);
+            return Create(_checkoutConfigurationLoader.GetConfiguration(paymentMethodDto, marketMarketId));
         }
 
         public virtual ISwedbankPayClient Create(ConnectionConfiguration connectionConfiguration, ILogger logger = null)
