@@ -61,7 +61,7 @@ namespace SwedbankPay.Episerver.Checkout
 
                 var market = MarketService.GetMarket(OrderGroup.MarketId);
                 var authorizePaymentStep = new AuthorizePaymentStep(payment, market, SwedbankPayClientFactory);
-                var capturePaymentStep = new CapturePaymentStep(payment, market, SwedbankPayClientFactory, MarketService, RequestFactory);
+                var capturePaymentStep = new CapturePaymentStep(payment, market, SwedbankPayClientFactory, RequestFactory);
                 var creditPaymentStep = new CreditPaymentStep(payment, market, SwedbankPayClientFactory, RequestFactory);
                 var cancelPaymentStep = new CancelPaymentStep(payment, market, SwedbankPayClientFactory, RequestFactory);
 
