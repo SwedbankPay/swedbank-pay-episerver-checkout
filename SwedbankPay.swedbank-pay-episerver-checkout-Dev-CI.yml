@@ -51,11 +51,13 @@ steps:
 - task: NuGetAuthenticate@0
   inputs:
     nuGetServiceConnections: 'NugetSwedbankPayDev'
+
 - task: NuGetCommand@2
   inputs:
-    command: push
-    nuGetFeedType: external
-    versioningScheme: 'off'
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: '839c5cac-f0d2-4099-90f3-efa993938d92/554e0ba1-b384-4632-912b-760988c6d6a5'
 
 #- task: VSTest@2
 #  inputs:
