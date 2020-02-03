@@ -48,6 +48,14 @@ steps:
     ArtifactName: 'drop'
     publishLocation: 'Container'
 
+- task: NuGetAuthenticate@0
+  inputs:
+    nuGetServiceConnections: 'NugetSwedbankPayDev'
+- task: NuGetCommand@2
+  inputs:
+    command: push
+    nuGetFeedType: external
+    versioningScheme: 'off'
 
 #- task: VSTest@2
 #  inputs:
