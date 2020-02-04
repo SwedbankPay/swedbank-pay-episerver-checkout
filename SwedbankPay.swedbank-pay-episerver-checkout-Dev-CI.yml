@@ -32,6 +32,14 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'    
 
+- task: NuGetCommand@2
+  inputs:
+    command: 'pack'
+    packagesToPack: '**/SwedbankPay.Episerver.Checkout.csproj;**/SwedbankPay.Episerver.Checkout.CommerceManager.csproj'
+    packDestination: '$(Build.ArtifactStagingDirectory)/packages'    
+    versioningScheme: 'off'
+    buildProperties: 'PackageVersion=$(GitVersion.NuGetVersionV2)'
+
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
