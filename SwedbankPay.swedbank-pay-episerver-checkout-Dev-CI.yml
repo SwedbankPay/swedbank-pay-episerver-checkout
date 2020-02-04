@@ -1,5 +1,5 @@
 trigger:
-- feature/swedbankpay
+- develop
 
 pool:
   vmImage: 'windows-latest'
@@ -28,40 +28,10 @@ steps:
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:Version=$(GitVersion.NuGetVersionV2) /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
+    msbuildArgs: '/p:DeployOnBuild=false /p:PackageAsSingleFile=true /p:Version=$(GitVersion.NuGetVersionV2) /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: NuGetCommand@2
-  inputs:
-    command: 'pack'
-    packagesToPack: '**/*.csproj'
-    packDestination: '$(Build.ArtifactStagingDirectory)/packages'
-    nobuild: true
-    versioningScheme: 'off'
-    buildProperties: 'PackageVersion=$(GitVersion.NuGetVersionV2)'
-    
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish build artifacts'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
-
-#- task: NuGetAuthenticate@0
-#  inputs:
-#    nuGetServiceConnections: 'NugetSwedbankPayDev'
-#    Apikey: j@jfL8S@ufMadpU    
 
 
-- task: NuGetCommand@2
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-    nuGetFeedType: 'internal'
-    publishVstsFeed: 'eddfa259-de0e-4414-978d-3d1f429869ad'
 
-#- task: VSTest@2
-#  inputs:
-#    platform: '$(buildPlatform)'
-#    configuration: '$(buildConfiguration)'
