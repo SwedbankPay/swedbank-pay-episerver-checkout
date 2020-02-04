@@ -28,7 +28,7 @@ steps:
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
-    msbuildArgs: '/p:Version=$(GitVersion.NuGetVersionV2)'
+    msbuildArgs: '/p:Version=$(GitVersion.NuGetVersionV2) /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation=“$(build.artifactstagingdirectory)\\”'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'    
 
