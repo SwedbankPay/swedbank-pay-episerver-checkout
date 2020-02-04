@@ -24,6 +24,20 @@ steps:
     useConfigFile: true
     configFilePath: GitVersion.yml
 
+
+- task: Assembly-Info-NetFramework@2
+  inputs:
+    Path: '$(Build.SourcesDirectory)'
+    FileNames: '**\AssemblyInfo.cs'
+    InsertAttributes: false
+    FileEncoding: 'auto'
+    WriteBOM: false
+    VersionNumber: '$(GitVersion.AssemblySemVer)'
+    FileVersionNumber: '$(GitVersion.AssemblySemVer)'
+    LogLevel: 'verbose'
+    FailOnWarning: false
+
+
 - task: NuGetToolInstaller@1
 
 - task: NuGetCommand@2
