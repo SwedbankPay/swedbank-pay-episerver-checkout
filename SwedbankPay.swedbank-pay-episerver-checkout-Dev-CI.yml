@@ -30,14 +30,16 @@ steps:
     solution: '$(solution)'
     msbuildArgs: '/p:Version=$(GitVersion.NuGetVersionV2) /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation=“$(build.artifactstagingdirectory)\\”'
     platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'    
+    configuration: '$(buildConfiguration)'
+        
 
 - task: NuGetCommand@2
   inputs:
     command: 'pack'
     packagesToPack: '**/SwedbankPay.Episerver.Checkout.csproj;**/SwedbankPay.Episerver.Checkout.CommerceManager.csproj'
     packDestination: '$(Build.ArtifactStagingDirectory)/packages'    
-    versioningScheme: 'off'
+    versioningScheme: byEnvVar
+    versionEnvVar: 'GitVersion.SemVer'
     buildProperties: 'version=$(GitVersion.NuGetVersionV2)'
 
 - task: PublishBuildArtifacts@1
