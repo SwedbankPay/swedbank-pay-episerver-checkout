@@ -53,13 +53,13 @@ steps:
 #    nuGetServiceConnections: 'NugetSwedbankPayDev'
 #    Apikey: j@jfL8S@ufMadpU    
 
+
 - task: NuGetCommand@2
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
     nuGetFeedType: 'internal'
-    publishVstsFeed: '839c5cac-f0d2-4099-90f3-efa993938d92/554e0ba1-b384-4632-912b-760988c6d6a5'
-    arguments: -ApiKey j@jfL8S@ufMadpU     
+    publishVstsFeed: 'eddfa259-de0e-4414-978d-3d1f429869ad'
 
 #- task: VSTest@2
 #  inputs:
