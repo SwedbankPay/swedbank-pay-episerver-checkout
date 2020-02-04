@@ -28,10 +28,22 @@ steps:
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=false /p:PackageAsSingleFile=true /p:Version=$(GitVersion.NuGetVersionV2) /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
+    msbuildArgs: '/p:DeployOnBuild=false /p:GeneratePackageOnBuild /p:PackageAsSingleFile=true /p:Version=$(GitVersion.NuGetVersionV2) /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'pack'
+    packagesToPack: '**/SwedbankPay.Episerver.Checkout.csproj'
+    versioningScheme: 'byBuildNumber'  
 
 
 
