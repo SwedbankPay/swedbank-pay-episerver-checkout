@@ -1,5 +1,5 @@
 trigger:
-- feature/swedbankpay
+- develop
 
 pool:
   vmImage: 'windows-latest'
