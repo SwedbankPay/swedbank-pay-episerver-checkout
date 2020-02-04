@@ -28,7 +28,7 @@ steps:
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=false /p:GeneratePackageOnBuild /p:PackageAsSingleFile=true /p:Version=$(GitVersion.NuGetVersionV2) /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
+    msbuildArgs: '/p:DeployOnBuild=false /p:PackageAsSingleFile=true /p:Version=$(GitVersion.NuGetVersionV2) /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
