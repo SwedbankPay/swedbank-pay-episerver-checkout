@@ -39,8 +39,7 @@ steps:
     packagesToPack: '**/SwedbankPay.Episerver.Checkout.csproj;**/SwedbankPay.Episerver.Checkout.CommerceManager.csproj'
     packDestination: '$(Build.ArtifactStagingDirectory)/packages'    
     versioningScheme: byEnvVar
-    versionEnvVar: 'GitVersion.NuGetVersionV2'
-    buildProperties: 'version=$(GitVersion.NuGetVersionV2)'
+    versionEnvVar: 'GitVersion.NuGetVersionV2'    
 
 - task: PublishBuildArtifacts@1
   inputs:
