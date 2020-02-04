@@ -2,7 +2,7 @@ trigger:
 - develop
 
 pr:
-- master
+- develop
 
 pool:
   vmImage: 'windows-latest'
