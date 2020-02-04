@@ -1,5 +1,12 @@
 trigger:
-- feature/swedbankpay
+- hotfix/*
+- release/*
+- master
+- refs/tags/*
+
+pr:
+- master
+
 
 pool:
   vmImage: 'windows-latest'
