@@ -40,18 +40,9 @@ branches:
   hotfix:
     regex: ^hotfix(es)?[/-]
     mode: ContinuousDelivery
-    tag: beta
-    increment: Patch
-    prevent-increment-of-merged-branch-version: false
-    track-merge-target: false
-    tracks-release-branches: false
-    is-release-branch: false
-  support:
-    regex: ^support[/-]
-    mode: ContinuousDelivery
     tag: ''
     increment: Patch
-    prevent-increment-of-merged-branch-version: true
+    prevent-increment-of-merged-branch-version: false
     track-merge-target: false
     tracks-release-branches: false
     is-release-branch: false
