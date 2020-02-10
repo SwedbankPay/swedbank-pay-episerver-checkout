@@ -5,7 +5,6 @@ using EPiServer.ServiceLocation;
 using EPiServer.Web;
 
 using Mediachase.Commerce;
-using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders;
 using Mediachase.Commerce.Orders.Dto;
 
@@ -15,7 +14,6 @@ using SwedbankPay.Sdk.Consumers;
 using SwedbankPay.Sdk.PaymentOrders;
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -163,13 +161,11 @@ namespace SwedbankPay.Episerver.Checkout.Common
             
             var amount = market.PricesIncludeTax ? shippingAmount :  shippingAmount + shippingVatAmount;
             
-            int vatPercent;
-
-            if (market.PricesIncludeTax)
-            {
-                vatPercent = (int)((shippingVatAmount / (shippingAmount - shippingVatAmount)).Round() * 10000);
-            }
-            else vatPercent = (int)((shippingVatAmount / (shippingAmount)).Round() * 10000);
+            var vatPercent = shippingAmount > 0
+                ? market.PricesIncludeTax
+                    ? (int) ((shippingVatAmount / (shippingAmount - shippingVatAmount)).Round() * 10000)
+                    : (int) ((shippingVatAmount / (shippingAmount)).Round() * 10000)
+                : 0;
             
             return new OrderItem("SHIPPING", "SHIPPINGFEE", OrderItemType.ShippingFee, "NOTAPPLICABLE", 1, "PCS",
                 Amount.FromDecimal(shippingAmount.Amount), vatPercent, Amount.FromDecimal(amount.Amount),
