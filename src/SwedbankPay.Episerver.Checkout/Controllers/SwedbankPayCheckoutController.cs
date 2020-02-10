@@ -11,7 +11,7 @@ using System.Web.Mvc;
 
 namespace SwedbankPay.Episerver.Checkout.Controllers
 {
-    public partial class SwedbankPayCheckoutController : Controller
+    public class SwedbankPayCheckoutController : Controller
     {
         private readonly ISwedbankPayClientFactory _swedbankPayClientFactory;
         private readonly ICurrentMarket _currentMarket;
