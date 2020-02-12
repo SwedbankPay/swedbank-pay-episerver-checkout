@@ -20,6 +20,7 @@ branches:
     pre-release-weight: 1000
   feature-swedbankpay:
     regex: ^feature/swedbankpay	
+    source-branches: ['develop', 'release', 'hotfix', 'feature']
     mode: ContinuousDeployment
     tag: alpha.{BranchName}
     increment: Patch
