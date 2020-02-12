@@ -1,4 +1,4 @@
-﻿using EPiServer.Commerce.Order;
+using EPiServer.Commerce.Order;
 using EPiServer.Logging;
 
 using Mediachase.Commerce;
@@ -62,6 +62,8 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                                 if (reversalResponse.Reversal.Transaction.Type == Sdk.TransactionType.Reversal && reversalResponse.Reversal.Transaction.State.Equals(State.Completed))
                                 {
                                     payment.Status = PaymentStatus.Processed.ToString();
+                                    payment.TransactionID = reversalResponse.Reversal.Transaction.Number;
+                                    payment.ProviderTransactionID = reversalResponse.Reversal.Transaction.Id.ToString();
                                     AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
                                     
                                     return true;

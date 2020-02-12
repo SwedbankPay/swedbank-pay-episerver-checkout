@@ -1,4 +1,4 @@
-﻿using EPiServer.Commerce.Order;
+using EPiServer.Commerce.Order;
 using EPiServer.Logging;
 
 using Mediachase.Commerce;
@@ -76,6 +76,8 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         if (cancelResponse.Cancellation.Transaction.Type == Sdk.TransactionType.Cancellation && cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
                         {
                             payment.Status = PaymentStatus.Processed.ToString();
+                            payment.TransactionID = cancelResponse.Cancellation.Transaction.Number;
+                            payment.ProviderTransactionID = cancelResponse.Cancellation.Transaction.Id.ToString();
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order cancelled at SwedbankPay");
                             return true;
                         }

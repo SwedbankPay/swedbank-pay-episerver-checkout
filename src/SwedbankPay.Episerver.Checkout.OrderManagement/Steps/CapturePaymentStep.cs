@@ -1,4 +1,4 @@
-﻿using EPiServer.Commerce.Order;
+using EPiServer.Commerce.Order;
 using EPiServer.Logging;
 
 using Mediachase.Commerce;
@@ -52,7 +52,9 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         if (captureResponse.Capture.Transaction.Type == Sdk.TransactionType.Capture && captureResponse.Capture.Transaction.State.Equals(State.Completed))
                         {
                             payment.Status = PaymentStatus.Processed.ToString();
-                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order captured at SwedbankPay");
+                            payment.TransactionID =  captureResponse.Capture.Transaction.Number;
+                            payment.ProviderTransactionID = captureResponse.Capture.Transaction.Id.ToString();
+                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Order captured at SwedbankPay, Transaction number: {captureResponse.Capture.Transaction.Number}");
                             return true;
                         }
 
