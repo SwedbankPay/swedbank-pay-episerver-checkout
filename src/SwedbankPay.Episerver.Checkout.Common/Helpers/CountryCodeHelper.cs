@@ -1,17 +1,17 @@
-﻿using EPiServer.Personalization.Providers.MaxMind;
-using EPiServer.ServiceLocation;
+﻿using EPiServer.ServiceLocation;
 
 using ISO3166;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using EPiServer.Personalization;
 
 namespace SwedbankPay.Episerver.Checkout.Common.Helpers
 {
     public static class CountryCodeHelper
     {
-        private static Injected<GeolocationProvider> GeoLocationProvider;
+        private static Injected<IGeolocationProvider> GeoLocationProvider;
         private static Injected<ICountryRegionProvider> CountryRegionProvider;
 
         public static string GetTwoLetterCountryCode(string countryCode)

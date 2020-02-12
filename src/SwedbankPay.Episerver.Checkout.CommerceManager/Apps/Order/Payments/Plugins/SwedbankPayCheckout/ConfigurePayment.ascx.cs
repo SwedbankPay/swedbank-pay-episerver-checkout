@@ -104,7 +104,7 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
                 configuration.PaymentUrl =
                     !string.IsNullOrWhiteSpace(txtPaymentUrl.Text) ? new Uri(txtPaymentUrl.Text) : null;
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
             }
