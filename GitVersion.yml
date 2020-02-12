@@ -23,11 +23,11 @@ branches:
     source-branches: ['develop', 'release', 'hotfix', 'feature']
     mode: ContinuousDeployment
     tag: alpha.{BranchName}
-    increment: Patch
-    prevent-increment-of-merged-branch-version: true
+    increment: Inherit
+    prevent-increment-of-merged-branch-version: false
     track-merge-target: false
     tracks-release-branches: false
-    is-release-branch: true
+    is-release-branch: false
     pre-release-weight: 1000
   feature:
     regex: ^feature?[/-]
