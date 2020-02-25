@@ -69,7 +69,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 return client;
             });
 
-            return new SwedbankPayClient(httpClient, logger);
+            return new SwedbankPayClient(httpClient);
         }
     }
 }

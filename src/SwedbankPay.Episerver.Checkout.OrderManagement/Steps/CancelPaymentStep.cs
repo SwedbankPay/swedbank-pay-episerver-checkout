@@ -38,8 +38,8 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                     //If payed by swish, do a reversal
                     if (previousPayment != null && previousPayment.TransactionType == TransactionType.Sale.ToString() && !string.IsNullOrWhiteSpace(orderId))
                     {
-                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId, UriKind.Relative)));
-                        if (paymentOrder.Operations.Reversal == null)
+                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
+                        if (paymentOrder.Operations.Reverse == null)
                         {
                             message = "Reversal is not a valid operation";
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"{message}");
@@ -47,7 +47,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         else
                         {
                             var reversalRequest = _requestFactory.GetReversalRequest(orderForm.GetAllLineItems(), _market, shipment, description: "Cancelling purchase order");
-                            var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reversal(reversalRequest));
+                            var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reverse(reversalRequest));
                             if (reversalResponse.Reversal.Transaction.Type == Sdk.TransactionType.Reversal)
                             {
                                 payment.Status = PaymentStatus.Processed.ToString();
@@ -64,7 +64,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 
                     else if (!string.IsNullOrWhiteSpace(orderId))
                     {
-                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId, UriKind.Relative)));
+                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
                         if (paymentOrder.Operations.Cancel == null)
                         {
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Cancel is not possible on this order {orderId}");

@@ -47,9 +47,9 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                                         : returnForm.ReturnComment;
 
                                 var reversalRequest = _requestFactory.GetReversalRequest(returnForm.GetAllReturnLineItems(), _market, returnForm.Shipments.FirstOrDefault(), false, description: transactionDescription);
-                                var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId, UriKind.Relative)));
+                                var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
 
-                                if (paymentOrder.Operations.Reversal == null)
+                                if (paymentOrder.Operations.Reverse == null)
                                 {
                                     payment.Status = PaymentStatus.Failed.ToString();
                                     message = "Reversal is not a valid operation";
@@ -58,7 +58,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                                     return false;
                                 }
 
-                                var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reversal(reversalRequest));
+                                var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reverse(reversalRequest));
                                 if (reversalResponse.Reversal.Transaction.Type == Sdk.TransactionType.Reversal && reversalResponse.Reversal.Transaction.State.Equals(State.Completed))
                                 {
                                     payment.Status = PaymentStatus.Processed.ToString();

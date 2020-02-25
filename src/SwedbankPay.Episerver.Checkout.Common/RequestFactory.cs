@@ -70,7 +70,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
             return new ConsumersRequest(language, shippingAddressRestrictedToCountryCodes, Operation.Initiate);
         }
 
-        public virtual ReversalRequest GetReversalRequest(IEnumerable<ILineItem> lineItems, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Reversing payment.")
+        public virtual PaymentOrderReversalRequest GetReversalRequest(IEnumerable<ILineItem> lineItems, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Reversing payment.")
         {
             var orderItems = GetOrderItems(market, shipment.ParentOrderGroup.Currency, shipment.ShippingAddress, lineItems).ToList();
             if (addShipmentInOrderItem)
@@ -78,10 +78,10 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 orderItems.Add(GetShippingOrderItem(shipment, market));
             }
 
-            return new ReversalRequest(Amount.FromDecimal(GetTotalAmountIncludingVatAsDecimal(orderItems)), Amount.FromDecimal(GetTotalVatAmountAsDecimal(orderItems)), orderItems, description, DateTime.Now.Ticks.ToString());
+            return new PaymentOrderReversalRequest(Amount.FromDecimal(GetTotalAmountIncludingVatAsDecimal(orderItems)), Amount.FromDecimal(GetTotalVatAmountAsDecimal(orderItems)), orderItems, description, DateTime.Now.Ticks.ToString());
         }
 
-        public virtual CaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Capturing payment.")
+        public virtual PaymentOrderCaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Capturing payment.")
         {
             var orderItems = GetOrderItems(market, shipment.ParentOrderGroup.Currency, shipment.ShippingAddress, shipment.LineItems).ToList();
             if (addShipmentInOrderItem)
@@ -89,23 +89,23 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 orderItems.Add(GetShippingOrderItem(shipment, market));
             }
 
-            return new CaptureRequest(Amount.FromDecimal(GetTotalAmountIncludingVatAsDecimal(orderItems)), Amount.FromDecimal(GetTotalVatAmountAsDecimal(orderItems)), orderItems, description, DateTime.Now.Ticks.ToString());
+            return new PaymentOrderCaptureRequest(Amount.FromDecimal(GetTotalAmountIncludingVatAsDecimal(orderItems)), Amount.FromDecimal(GetTotalVatAmountAsDecimal(orderItems)), orderItems, description, DateTime.Now.Ticks.ToString());
         }
 
-        public virtual CancelRequest GetCancelRequest(string description = "Cancelling purchase order.")
+        public virtual PaymentOrderCancelRequest GetCancelRequest(string description = "Cancelling purchase order.")
         {
-            return new CancelRequest(DateTime.Now.Ticks.ToString(), description);
+            return new PaymentOrderCancelRequest(DateTime.Now.Ticks.ToString(), description);
         }
 
-        public virtual AbortRequest GetAbortRequest()
+        public virtual PaymentOrderAbortRequest GetAbortRequest()
         {
-            return new AbortRequest();
+            return new PaymentOrderAbortRequest();
         }
 
-        public virtual UpdateRequest GetUpdateRequest(IOrderGroup orderGroup)
+        public virtual PaymentOrderUpdateRequest GetUpdateRequest(IOrderGroup orderGroup)
         {
             var totals = _orderGroupCalculator.GetOrderGroupTotals(orderGroup);
-            return new UpdateRequest(Amount.FromDecimal(totals.Total.Amount), Amount.FromDecimal(totals.TaxTotal));
+            return new PaymentOrderUpdateRequest(Amount.FromDecimal(totals.Total.Amount), Amount.FromDecimal(totals.TaxTotal));
         }
 
         private IEnumerable<OrderItem> GetOrderItems(IMarket market, Currency currency, IOrderAddress shippingAddress, IEnumerable<ILineItem> lineItems)

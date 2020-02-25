@@ -109,7 +109,7 @@ namespace SwedbankPay.Episerver.Checkout
 
             try
             {
-                return AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrder.Get(id, paymentOrderExpand));
+                return AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Get(id, paymentOrderExpand));
             }
             catch (Exception ex)
             {
@@ -129,7 +129,7 @@ namespace SwedbankPay.Episerver.Checkout
                 try
                 {
                     var cancelRequest = _requestFactory.GetCancelRequest();
-                    var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrder.Get(new Uri(orderId)));
+                    var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Get(new Uri(orderId)));
 
                     if (paymentOrder.Operations.Cancel != null)
                     {
@@ -171,7 +171,7 @@ namespace SwedbankPay.Episerver.Checkout
             try
             {
                 var paymentOrderRequest = _requestFactory.GetPaymentOrderRequest(orderGroup, market, PaymentMethodDto, description, consumerProfileRef);
-                var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrder.Create(paymentOrderRequest));
+                var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Create(paymentOrderRequest));
 
                 orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = paymentOrder.PaymentOrderResponse.Id;
                 _orderRepository.Save(orderGroup);
@@ -191,7 +191,7 @@ namespace SwedbankPay.Episerver.Checkout
             var total = orderGroup.GetTotal();
 
             var updateOrderRequest = _requestFactory.GetUpdateRequest(orderGroup);
-            var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrder.Get(orderId));
+            var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Get(orderId));
 
             if (paymentOrder?.Operations?.Update != null)
             {

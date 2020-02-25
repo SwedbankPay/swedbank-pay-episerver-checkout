@@ -39,7 +39,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                             throw new InvalidOperationException("Can't find correct shipment");
                         }
                         
-                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrder.Get(new Uri(orderId, UriKind.Relative)));
+                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
                         if (paymentOrder.Operations.Capture == null)
                         {
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Capture is not possible on this order {orderId}");
