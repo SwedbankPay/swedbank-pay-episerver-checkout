@@ -1,4 +1,4 @@
-using EPiServer.Commerce.Order;
+﻿using EPiServer.Commerce.Order;
 using EPiServer.Logging;
 
 using Mediachase.Commerce;
@@ -25,7 +25,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             {
                 try
                 {
-                    var result = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative), PaymentOrderExpand.All));
+                    var result = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
                     if (result != null)
                     {
                         return true;
