@@ -1,0 +1,23 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>SwedbankPay.Episerver.Checkout.CommerceManager</id>
+    <version>$version$</version>
+    <title>SwedbankPay Episerver Checkout CommerceManager</title>
+    <authors>SwedbankPay</authors>
+    <owners>SwedbankPay</owners>
+    <icon>images\icon.png</icon>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Library for SwedbankPay Checkout integration with Episerver Commerce</description>
+    <tags>EPiServerModulePackage ThirdPartyAddOn PaymentProvider Episerver Commerce 13</tags>
+    <projectUrl>https://github.com/SwedbankPay/swedbank-pay-episerver-checkout</projectUrl>
+    <dependencies>
+      <dependency id="EPiServer.CMS.Core" version="[11.13.0, 12.0)" />
+      <dependency id="EPiServer.Commerce.Core" version="[13.7.1, 14.0)" />
+      <dependency id="SwedbankPay.Episerver.Checkout" version="[0.1.0, 1.0)" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\..\icon.png" target="images\"/>
+  </files>
+</package>
