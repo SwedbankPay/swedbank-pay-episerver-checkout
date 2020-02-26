@@ -30,8 +30,10 @@ steps:
     WriteBOM: false
     VersionNumber: '$(GitVersion.AssemblySemVer)'
     FileVersionNumber: '$(GitVersion.AssemblySemVer)'
+    InformationalVersion: '$(GitVersion.NuGetVersionV2)'
     LogLevel: 'verbose'
     FailOnWarning: false
+    DisableTelemetry: false
 
 - task: NuGetToolInstaller@1
 
