@@ -14,17 +14,14 @@ integration with Swedbank Pay Checkout, allowing your customers to pay swiftly a
 securely with Credit Card, Invoice (Norway and Sweden), Vipps (Norway) and
 Swish (Sweden). Credit Card Payments are available world-wide.
 
-[opengraph-image]: https://repository-images.githubusercontent.com/171851967/01256480-53e7-11ea-9c0f-da3e3b5811b3
-
-
 
 # The installation assumes that you have Quicksilver installed
-https://github.com/episerver/Quicksilver
+[Quicksilver](https://github.com/episerver/Quicksilver)
 
 # OBS ngrok for callbacks https://ngrok.com/
 
 # Test cards 
-https://developer.swedbankpay.com/resources/test-data.html#callback-test-data
+[Test data](https://developer.swedbankpay.com/resources/test-data.html)
 
 # How to get started
 ## Install following NuGet packages
@@ -606,3 +603,5 @@ You could go ahead and add just null.**
 ```Javascript
 .on('change', '.jsChangeShipment', Checkout.refreshView) 
 ```
+
+[opengraph-image]: https://repository-images.githubusercontent.com/171851967/01256480-53e7-11ea-9c0f-da3e3b5811b3
