@@ -70,15 +70,39 @@ namespace SwedbankPay.Episerver.Checkout.Common
             return new ConsumersRequest(language, shippingAddressRestrictedToCountryCodes, Operation.Initiate);
         }
 
-        public virtual PaymentOrderReversalRequest GetReversalRequest(IEnumerable<ILineItem> lineItems, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Reversing payment.")
+        public virtual PaymentOrderReversalRequest GetReversalRequest(IPayment payment, IEnumerable<ILineItem> lineItems, IMarket market, IShipment shipment, string description = "Reversing payment.")
         {
-            var orderItems = GetOrderItems(market, shipment.ParentOrderGroup.Currency, shipment.ShippingAddress, lineItems).ToList();
-            if (addShipmentInOrderItem)
+            var lineItemsList = lineItems.ToList();
+            var orderItems = GetOrderItems(market, shipment.ParentOrderGroup.Currency, shipment.ShippingAddress, lineItemsList).ToList();
+            
+            var totalAmountIncludingVatAsDecimal = GetTotalAmountIncludingVatAsDecimal(orderItems);
+
+            var salesTaxPercentage = _swedbankPayTaxCalculator.GetTaxPercentage(lineItemsList.FirstOrDefault(), market, shipment.ShippingAddress,
+                TaxType.SalesTax);
+
+            var salesTax = payment.Amount * (salesTaxPercentage / 100);
+
+            var additionalCostsForReversal = payment.Amount - totalAmountIncludingVatAsDecimal;
+            
+            if (additionalCostsForReversal < 0)
             {
-                orderItems.Add(GetShippingOrderItem(shipment, market));
+                var aggregatedOrderItem = new OrderItem("Returns", "Returns", OrderItemType.Other, "NOTAPPLICABLE", 1, //TODO Vat is not included in this special case with "negative" costs 
+                    "pcs", Amount.FromDecimal(payment.Amount), 0, amount: Amount.FromDecimal(payment.Amount),
+                    Amount.FromDecimal(0));
+                return new PaymentOrderReversalRequest(Amount.FromDecimal(payment.Amount), Amount.FromDecimal(0), new List<OrderItem>{aggregatedOrderItem}, description, DateTime.Now.Ticks.ToString());
             }
 
-            return new PaymentOrderReversalRequest(Amount.FromDecimal(GetTotalAmountIncludingVatAsDecimal(orderItems)), Amount.FromDecimal(GetTotalVatAmountAsDecimal(orderItems)), orderItems, description, DateTime.Now.Ticks.ToString());
+            var shippingTaxPercentage = _swedbankPayTaxCalculator.GetTaxPercentage(lineItemsList.FirstOrDefault(), market, shipment.ShippingAddress,
+                TaxType.ShippingTax);
+
+            var shippingVatAmount = additionalCostsForReversal * (shippingTaxPercentage / 100) / (1 + shippingTaxPercentage / 100);
+
+            orderItems.Add(new OrderItem("Shipping", "Shipping", OrderItemType.ShippingFee, "NOTAPPLICABLE", 1, "pcs",
+                Amount.FromDecimal(additionalCostsForReversal), (int)(shippingTaxPercentage * 100), amount: Amount.FromDecimal(additionalCostsForReversal),
+                Amount.FromDecimal(shippingVatAmount)));
+
+            var totalVatAmountAsDecimal = GetTotalVatAmountAsDecimal(orderItems);
+            return new PaymentOrderReversalRequest(Amount.FromDecimal(GetTotalAmountIncludingVatAsDecimal(orderItems)), Amount.FromDecimal(totalVatAmountAsDecimal), orderItems, description, DateTime.Now.Ticks.ToString());
         }
 
         public virtual PaymentOrderCaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Capturing payment.")

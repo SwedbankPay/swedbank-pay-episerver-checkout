@@ -46,7 +46,8 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         }
                         else
                         {
-                            var reversalRequest = _requestFactory.GetReversalRequest(orderForm.GetAllLineItems(), _market, shipment, description: "Cancelling purchase order");
+                            //var reversalRequest = _requestFactory.GetReversalRequest(orderForm.GetAllLineItems(), _market, shipment, description: "Cancelling purchase order");
+                            var reversalRequest = _requestFactory.GetReversalRequest(payment, orderForm.GetAllLineItems(), _market, shipment, description: "Cancelling purchase order");
                             var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reverse(reversalRequest));
                             if (reversalResponse.Reversal.Transaction.Type == Sdk.TransactionType.Reversal)
                             {

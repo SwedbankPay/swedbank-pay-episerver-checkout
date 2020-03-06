@@ -225,7 +225,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Apps\Order\Payments\Plugins\SwedbankPayCheckout\ConfigurePayment.ascx" />
+    <Content Include="Apps\Order\Payments\Plugins\SwedbankPayCheckout\ConfigurePayment.ascx">
+      <SubType>ASPXCodeBehind</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj">

@@ -46,7 +46,8 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                                         ? "Reversing payment."
                                         : returnForm.ReturnComment;
 
-                                var reversalRequest = _requestFactory.GetReversalRequest(returnForm.GetAllReturnLineItems(), _market, returnForm.Shipments.FirstOrDefault(), false, description: transactionDescription);
+                               
+                                var reversalRequest = _requestFactory.GetReversalRequest(payment, returnForm.GetAllReturnLineItems(), _market, returnForm.Shipments.FirstOrDefault(), description: transactionDescription);
                                 var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
 
                                 if (paymentOrder.Operations.Reverse == null)

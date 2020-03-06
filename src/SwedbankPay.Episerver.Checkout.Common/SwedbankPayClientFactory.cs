@@ -3,8 +3,6 @@
 using Mediachase.Commerce;
 using Mediachase.Commerce.Orders.Dto;
 
-using Microsoft.Extensions.Logging;
-
 using SwedbankPay.Episerver.Checkout.Common.Extensions;
 using SwedbankPay.Sdk;
 
@@ -30,23 +28,23 @@ namespace SwedbankPay.Episerver.Checkout.Common
             _checkoutConfigurationLoader = checkoutConfigurationLoader;
         }
 
-        public virtual ISwedbankPayClient Create(IMarket market, ILogger logger = null)
+        public virtual ISwedbankPayClient Create(IMarket market)
         {
             CheckoutConfiguration checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
-            return GetSwedbankPayClient(checkoutConfiguration, logger);
+            return GetSwedbankPayClient(checkoutConfiguration);
         }
 
-        public virtual ISwedbankPayClient Create(PaymentMethodDto paymentMethodDto, MarketId marketMarketId, ILogger logger)
+        public virtual ISwedbankPayClient Create(PaymentMethodDto paymentMethodDto, MarketId marketMarketId)
         {
             return Create(_checkoutConfigurationLoader.GetConfiguration(paymentMethodDto, marketMarketId));
         }
 
-        public virtual ISwedbankPayClient Create(ConnectionConfiguration connectionConfiguration, ILogger logger = null)
+        public virtual ISwedbankPayClient Create(ConnectionConfiguration connectionConfiguration)
         {
-            return GetSwedbankPayClient(connectionConfiguration, logger);
+            return GetSwedbankPayClient(connectionConfiguration);
         }
 
-        private static ISwedbankPayClient GetSwedbankPayClient(ConnectionConfiguration connectionConfiguration, ILogger logger)
+        private static ISwedbankPayClient GetSwedbankPayClient(ConnectionConfiguration connectionConfiguration)
         {
             var key = $"{connectionConfiguration.ApiUrl}:{connectionConfiguration.MerchantId}:{connectionConfiguration.Token}";
 
