@@ -65,3 +65,9 @@ steps:
     publishLocation: 'Container'
 
 
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: '839c5cac-f0d2-4099-90f3-efa993938d92/0bf3f093-8bec-44b0-bcb4-8598403b0175'
