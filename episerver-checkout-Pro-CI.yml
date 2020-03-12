@@ -1,0 +1,76 @@
+trigger:
+- hotfix/*
+- release/*
+- master
+
+pr:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  GitVersion.SemVer: ''
+
+steps:
+
+- task: GitVersion@5 
+  displayName: GitVersion
+  inputs:
+    useConfigFile: true
+    configFilePath: GitVersion.yml
+
+
+- task: Assembly-Info-NetFramework@2
+  inputs:
+    Path: '$(Build.SourcesDirectory)'
+    FileNames: '**\AssemblyInfo.cs'
+    InsertAttributes: false
+    FileEncoding: 'auto'
+    WriteBOM: false
+    VersionNumber: '$(GitVersion.AssemblySemVer)'
+    FileVersionNumber: '$(GitVersion.AssemblySemVer)'
+    LogLevel: 'verbose'
+    FailOnWarning: false
+
+
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'
+    feedsToUse: config
+
+- task: VSBuild@1
+  inputs:
+    solution: '$(solution)'
+    msbuildArgs: '/p:Version=$(GitVersion.NuGetVersionV2) /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation=“$(build.artifactstagingdirectory)\\”'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+        
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'pack'
+    packagesToPack: '**/SwedbankPay.Episerver.Checkout.csproj;**/SwedbankPay.Episerver.Checkout.CommerceManager.csproj'
+    packDestination: '$(Build.ArtifactStagingDirectory)/packages'    
+    versioningScheme: byEnvVar
+    versionEnvVar: 'GitVersion.NuGetVersionV2'    
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+
+- task: NuGetCommand@2
+  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI'))
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: '839c5cac-f0d2-4099-90f3-efa993938d92/0bf3f093-8bec-44b0-bcb4-8598403b0175'
