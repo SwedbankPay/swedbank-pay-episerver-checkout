@@ -5,15 +5,17 @@ using Mediachase.Commerce;
 using Mediachase.Commerce.Orders;
 
 using SwedbankPay.Episerver.Checkout.Common;
+using SwedbankPay.Episerver.Checkout.OrderManagement.Steps;
 
 using System;
+using System.Linq;
 
-namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
+namespace SwedbankPay.Episerver.Checkout.Steps
 {
     public class AuthorizePaymentStep : AuthorizePaymentStepBase
     {
         private static readonly ILogger Logger = LogManager.GetLogger(typeof(AuthorizePaymentStep));
-        
+
         public AuthorizePaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory) : base(payment, market, swedbankPayClientFactory)
         {
         }
@@ -25,13 +27,14 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             {
                 try
                 {
-                    var result = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
-                    if (result != null)
+                    var result = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative), Sdk.PaymentOrders.PaymentOrderExpand.All));
+                    var transaction = result.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList?.FirstOrDefault();
+                    if (transaction != null)
                     {
+                        payment.ProviderTransactionID = transaction.Number;
+                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Authorize completed at SwedbankPay, Transaction number: {transaction.Number}");
                         return true;
                     }
-
-                    AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Authorize completed");
                 }
                 catch (Exception ex)
                 {
