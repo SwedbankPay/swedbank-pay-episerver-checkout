@@ -32,7 +32,7 @@ namespace SwedbankPay.Episerver.Checkout.Steps
                     if (transaction != null)
                     {
                         payment.ProviderTransactionID = transaction.Number;
-                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Authorize completed at SwedbankPay, Transaction number: {transaction.Number}");
+                        AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Authorize completed at SwedbankPay, Transaction number: {transaction.Number}");
                         return true;
                     }
                 }
