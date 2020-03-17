@@ -8,6 +8,7 @@ using Mediachase.Commerce.Plugins.Payment;
 
 using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Episerver.Checkout.OrderManagement.Steps;
+using SwedbankPay.Episerver.Checkout.Steps;
 
 using System;
 using System.Linq;

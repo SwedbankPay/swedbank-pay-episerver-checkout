@@ -238,6 +238,7 @@
     <Compile Include="DefaultCheckoutConfigurationLoader.cs" />
     <Compile Include="Extensions\PaymentMethodsExtensions.cs" />
     <Compile Include="ISwedbankPayCheckoutService.cs" />
+    <Compile Include="Steps\AuthorizePaymentStep.cs" />
     <Compile Include="SwedbankPayCheckoutGateway.cs" />
     <Compile Include="SwedbankPayCheckoutService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
