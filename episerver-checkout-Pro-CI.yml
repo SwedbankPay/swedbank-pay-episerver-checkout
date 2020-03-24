@@ -1,7 +1,7 @@
 trigger:
 - hotfix/*
 - release/*
-- master
+- refs/tags/*
 
 pr:
 - master
