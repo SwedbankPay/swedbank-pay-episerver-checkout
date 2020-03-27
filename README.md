@@ -1,4 +1,4 @@
-# PayEx.Episerver.Checkout
+# SwedbankPay.Episerver.Checkout
 
 ![Swedbank Pay Episerver Checkout][opengraph-image]
 
@@ -51,21 +51,19 @@ In Markets tab select market for which this payment will be available.
 
 **Press OK to save and then configure the newly added payment. Parameters won't be visible before it has been saved.** 
 
-![image-b78eff3f-9a7d-480f-a940-12e2aee48bb5](https://user-images.githubusercontent.com/1358504/75348200-a25a6200-58a2-11ea-8f9c-fd0487ee3911.png)
-
-
+![image](https://user-images.githubusercontent.com/31844860/77743660-b4056580-7018-11ea-975e-e35e81714e96.png)(https://user-images.githubusercontent.com/1358504/75348200-a25a6200-58a2-11ea-8f9c-fd0487ee3911.png)
 
 ```
 Token: {Your token}
 ApiUrl: https://api.externalintegration.payex.com
 MerchantId: {Your merchant id}
 
-Host URLs: https://swedbankpay.ngrok.io;
-CompleteUrl URL: https://swedbankpay.ngrok.io/sv/checkout-sv/SwedbankPayCheckoutConfirmation/?orderGroupId={orderGroupId} 
-Cancel URL: https://swedbankpay.ngrok.io/payment-canceled?orderGroupId={orderGroupId}
-Callback URL: https://swedbankpay.ngrok.io/payment-callback?orderGroupId={orderGroupId}
-Terms of Service URL: https://swedbankpay.ngrok.io/payment-completed.pdf
-Payment URL: https://swedbankpay.ngrok.io/sv/checkout-sv/
+Host URLs: {Your domain 1}; {Your domain 2}; {Your domain 3}
+CompleteUrl URL: {Your domain}/sv/checkout-sv/SwedbankPayCheckoutConfirmation/?orderGroupId={orderGroupId} 
+Cancel URL: {Your domain}/payment-canceled?orderGroupId={orderGroupId}
+Callback URL: {Your domain}/payment-callback?orderGroupId={orderGroupId}
+Terms of Service URL: {Your domain}/payment-completed.pdf
+Payment URL: 
 ```
 The host in the URL's should be updated to your host.
 
