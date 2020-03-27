@@ -51,7 +51,7 @@ In Markets tab select market for which this payment will be available.
 
 **Press OK to save and then configure the newly added payment. Parameters won't be visible before it has been saved.** 
 
-![image](https://user-images.githubusercontent.com/31844860/77746824-d51c8500-701d-11ea-894c-acc7a38c1c68.png)(https://user-images.githubusercontent.com/31844860/77746824-d51c8500-701d-11ea-894c-acc7a38c1c68.png)
+![image](https://user-images.githubusercontent.com/31844860/77746824-d51c8500-701d-11ea-894c-acc7a38c1c68.png)
 
 ```
 Token: {Your token}
