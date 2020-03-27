@@ -51,7 +51,7 @@ In Markets tab select market for which this payment will be available.
 
 **Press OK to save and then configure the newly added payment. Parameters won't be visible before it has been saved.** 
 
-![image](https://user-images.githubusercontent.com/31844860/77743660-b4056580-7018-11ea-975e-e35e81714e96.png)(https://user-images.githubusercontent.com/1358504/75348200-a25a6200-58a2-11ea-8f9c-fd0487ee3911.png)
+![image](https://user-images.githubusercontent.com/31844860/77746453-3e4fc880-701d-11ea-9460-381d1df884db.png)(https://user-images.githubusercontent.com/31844860/77746453-3e4fc880-701d-11ea-9460-381d1df884db.png)
 
 ```
 Token: {Your token}
@@ -60,12 +60,12 @@ MerchantId: {Your merchant id}
 
 Host URLs: {Your domain 1}; {Your domain 2}; {Your domain 3}
 CompleteUrl URL: {Your domain}/sv/checkout-sv/SwedbankPayCheckoutConfirmation/?orderGroupId={orderGroupId} 
-Cancel URL: {Your domain}/payment-canceled?orderGroupId={orderGroupId}
+Cancel URL: {Your domain}/payment-canceled?orderGroupId={orderGroupId} (Not to be filled out if Payment URL is used)
 Callback URL: {Your domain}/payment-callback?orderGroupId={orderGroupId}
 Terms of Service URL: {Your domain}/payment-completed.pdf
-Payment URL: 
+Payment URL: {Your domain}/sv/checkout-sv/
 ```
-The host in the URL's should be updated to your host.
+{Your domain} in the URL's should be updated to your host. The Payment URL is the URI that Swedbank Pay will redirect back to when the view-operation needs to be loaded, to inspect and act on the current status of the payment. Only used in Seamless Views. If both cancelUrl and paymentUrl is sent, the paymentUrl will used.
 
 # Setup
 ## Payment Method
