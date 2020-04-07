@@ -1,7 +1,9 @@
 using EPiServer.Commerce.Order;
 using EPiServer.Logging;
+using EPiServer.ServiceLocation;
 
 using Mediachase.Commerce;
+using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Orders;
 
 using SwedbankPay.Episerver.Checkout.Common;
@@ -10,6 +12,8 @@ using SwedbankPay.Sdk;
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+
 using TransactionType = Mediachase.Commerce.Orders.TransactionType;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
@@ -22,12 +26,13 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 
         public CancelPaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory, IRequestFactory requestFactory) : base(payment, market, swedbankPayClientFactory)
         {
-            _market = market;
             _requestFactory = requestFactory;
         }
 
-        public override bool Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment, ref string message)
+        public override async Task<PaymentStepResult> Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment)
         {
+            var paymentStepResult = new PaymentStepResult();
+
             if (payment.TransactionType == TransactionType.Void.ToString())
             {
                 try
@@ -38,70 +43,69 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                     //If payed by swish, do a reversal
                     if (previousPayment != null && previousPayment.TransactionType == TransactionType.Sale.ToString() && !string.IsNullOrWhiteSpace(orderId))
                     {
-                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
+                        var paymentOrder = await SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)).ConfigureAwait(false);
                         if (paymentOrder.Operations.Reverse == null)
                         {
-                            message = "Reversal is not a valid operation";
-                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"{message}");
+                            paymentStepResult.Message = "Reversal is not a valid operation";
+                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"{paymentStepResult.Message}");
                         }
                         else
                         {
-                            //var reversalRequest = _requestFactory.GetReversalRequest(orderForm.GetAllLineItems(), _market, shipment, description: "Cancelling purchase order");
                             var reversalRequest = _requestFactory.GetReversalRequest(payment, orderForm.GetAllLineItems(), _market, shipment, description: "Cancelling purchase order");
-                            var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reverse(reversalRequest));
+                            var reversalResponse = await paymentOrder.Operations.Reverse(reversalRequest).ConfigureAwait(false);
                             if (reversalResponse.Reversal.Transaction.Type == Sdk.TransactionType.Reversal)
                             {
                                 payment.Status = PaymentStatus.Processed.ToString();
                                 AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
-                                return true;
+                                paymentStepResult.Status = true;
+                                return paymentStepResult;
                             }
                             else
                             {
-                                message = "Error when executing reversal";
-                                AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {message}");
+                                paymentStepResult.Message = "Error when executing reversal";
+                                AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {paymentStepResult.Message}");
                             }
                         }
                     }
 
                     else if (!string.IsNullOrWhiteSpace(orderId))
                     {
-                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
+                        var paymentOrder = await SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)).ConfigureAwait(false);
                         if (paymentOrder.Operations.Cancel == null)
                         {
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Cancel is not possible on this order {orderId}");
-                            return false;
+                            return paymentStepResult;
                         }
 
                         var cancelRequest = _requestFactory.GetCancelRequest();
-                        var cancelResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Cancel(cancelRequest));
+                        var cancelResponse = await paymentOrder.Operations.Cancel(cancelRequest).ConfigureAwait(false);
                         if (cancelResponse.Cancellation.Transaction.Type == Sdk.TransactionType.Cancellation && cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
                         {
                             payment.Status = PaymentStatus.Processed.ToString();
                             payment.TransactionID = cancelResponse.Cancellation.Transaction.Number;
                             payment.ProviderTransactionID = cancelResponse.Cancellation.Transaction.Id.ToString();
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order cancelled at SwedbankPay");
-                            return true;
+                            return paymentStepResult;
                         }
                     }
 
-                    return false;
+                    return paymentStepResult;
                 }
                 catch (Exception ex)
                 {
                     payment.Status = PaymentStatus.Failed.ToString();
-                    message = ex.Message;
+                    paymentStepResult.Message = ex.Message;
                     AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {ex.Message}");
                     Logger.Error(ex.Message, ex);
-                    return false;
                 }
             }
 
             if (Successor != null)
             {
-                return Successor.Process(payment, orderForm, orderGroup, shipment, ref message);
+                return await Successor.Process(payment, orderForm, orderGroup, shipment).ConfigureAwait(false);
             }
 
-            return false;
+            return paymentStepResult;
         }
     }
 }

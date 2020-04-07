@@ -5,24 +5,34 @@ using Mediachase.Commerce.Orders;
 
 using SwedbankPay.Episerver.Checkout.Common;
 
+using System.Threading.Tasks;
+
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
     public abstract class AuthorizePaymentStepBase : PaymentStep
     {
-        public AuthorizePaymentStepBase(IPayment payment, IMarket market, ISwedbankPayClientFactory swedbankPayClientFactory) : base(payment, market, swedbankPayClientFactory)
+        protected AuthorizePaymentStepBase(IPayment payment, IMarket market, ISwedbankPayClientFactory swedbankPayClientFactory) : base(payment, market, swedbankPayClientFactory)
         {
         }
 
-        public override bool Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment, ref string message)
+        public override async Task<PaymentStepResult> Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment)
         {
             if (payment.TransactionType != TransactionType.Authorization.ToString())
             {
-                return Successor != null && Successor.Process(payment, orderForm, orderGroup, shipment, ref message);
+                var paymentStepResult = new PaymentStepResult();
+                if (Successor != null)
+                {
+                    paymentStepResult = await Successor.Process(payment, orderForm, orderGroup, shipment).ConfigureAwait(false);
+                    paymentStepResult.Status = paymentStepResult.Status;
+                    paymentStepResult.Status = Successor != null && paymentStepResult.Status;
+                }
+
+                return paymentStepResult;
             }
 
-            return ProcessAuthorization(payment, orderGroup, ref message);
+            return await ProcessAuthorization(payment, orderGroup).ConfigureAwait(false);
         }
 
-        public abstract bool ProcessAuthorization(IPayment payment, IOrderGroup orderGroup, ref string message);
+        public abstract Task<PaymentStepResult> ProcessAuthorization(IPayment payment, IOrderGroup orderGroup);
     }
 }

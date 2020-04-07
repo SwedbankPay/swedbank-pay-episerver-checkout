@@ -9,6 +9,7 @@ using SwedbankPay.Episerver.Checkout.OrderManagement.Steps;
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SwedbankPay.Episerver.Checkout.Steps
 {
@@ -20,35 +21,36 @@ namespace SwedbankPay.Episerver.Checkout.Steps
         {
         }
 
-        public override bool ProcessAuthorization(IPayment payment, IOrderGroup orderGroup, ref string message)
+        public override async Task<PaymentStepResult> ProcessAuthorization(IPayment payment, IOrderGroup orderGroup)
         {
+            var paymentStepResult = new PaymentStepResult();
+
             var orderId = orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
             if (!string.IsNullOrEmpty(orderId))
             {
                 try
                 {
-                    var result = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative), Sdk.PaymentOrders.PaymentOrderExpand.All));
+                    var result = await SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative), Sdk.PaymentOrders.PaymentOrderExpand.All).ConfigureAwait(false);
                     var transaction = result.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList?.FirstOrDefault();
                     if (transaction != null)
                     {
                         payment.ProviderTransactionID = transaction.Number;
                         AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Authorize completed at SwedbankPay, Transaction number: {transaction.Number}");
-                        return true;
+                        paymentStepResult.Status = true;
                     }
                 }
                 catch (Exception ex)
                 {
                     payment.Status = PaymentStatus.Failed.ToString();
+                    paymentStepResult.Message = ex.Message;
                     AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Error occurred {ex.Message}");
                     Logger.Error(ex.Message, ex);
-
-                    return false;
                 }
 
-                return true;
+                return paymentStepResult;
             }
 
-            return false;
+            return paymentStepResult;
         }
     }
 }
