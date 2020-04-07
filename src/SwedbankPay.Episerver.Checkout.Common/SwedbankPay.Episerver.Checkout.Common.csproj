@@ -45,6 +45,7 @@
     <Compile Include="IRequestFactory.cs" />
     <Compile Include="ISwedbankPayClientFactory.cs" />
     <Compile Include="OrderSystemInitalizationModule.cs" />
+    <Compile Include="PaymentStepResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestFactory.cs" />
     <Compile Include="SwedbankPayClientFactory.cs" />
