@@ -56,9 +56,16 @@ namespace SwedbankPay.Episerver.Checkout.Common
             if (string.IsNullOrWhiteSpace(marketCountry))
                 throw new ConfigurationException($"Please select a country in Commerce Manager for market {orderGroup.MarketId}");
 
-            var firstShipment = orderGroup.GetFirstShipment();
-            var orderItems = GetOrderItems(market, orderGroup.Currency, firstShipment.ShippingAddress, firstShipment.LineItems).ToList();
-            orderItems.Add(GetShippingOrderItem(firstShipment, market));
+
+            List<OrderItem> orderItems = new List<OrderItem>();
+            foreach (var orderGroupForm in orderGroup.Forms)
+            {
+                foreach (var shipment in orderGroupForm.Shipments)
+                {
+                    orderItems.AddRange(GetOrderItems(market, orderGroup.Currency, shipment.ShippingAddress, shipment.LineItems));
+                    orderItems.Add(GetShippingOrderItem(shipment, market));
+                }
+            }
 
             return CreatePaymentOrderRequest(orderGroup, market, consumerProfileRef, orderItems, description);
         }
@@ -74,22 +81,17 @@ namespace SwedbankPay.Episerver.Checkout.Common
         {
             var lineItemsList = lineItems.ToList();
             var orderItems = GetOrderItems(market, shipment.ParentOrderGroup.Currency, shipment.ShippingAddress, lineItemsList).ToList();
-            
+
             var totalAmountIncludingVatAsDecimal = GetTotalAmountIncludingVatAsDecimal(orderItems);
 
-            var salesTaxPercentage = _swedbankPayTaxCalculator.GetTaxPercentage(lineItemsList.FirstOrDefault(), market, shipment.ShippingAddress,
-                TaxType.SalesTax);
-
-            var salesTax = payment.Amount * (salesTaxPercentage / 100);
-
             var additionalCostsForReversal = payment.Amount - totalAmountIncludingVatAsDecimal;
-            
+
             if (additionalCostsForReversal < 0)
             {
                 var aggregatedOrderItem = new OrderItem("Returns", "Returns", OrderItemType.Other, "NOTAPPLICABLE", 1, //TODO Vat is not included in this special case with "negative" costs 
                     "pcs", Amount.FromDecimal(payment.Amount), 0, amount: Amount.FromDecimal(payment.Amount),
                     Amount.FromDecimal(0));
-                return new PaymentOrderReversalRequest(Amount.FromDecimal(payment.Amount), Amount.FromDecimal(0), new List<OrderItem>{aggregatedOrderItem}, description, DateTime.Now.Ticks.ToString());
+                return new PaymentOrderReversalRequest(Amount.FromDecimal(payment.Amount), Amount.FromDecimal(0), new List<OrderItem> { aggregatedOrderItem }, description, DateTime.Now.Ticks.ToString());
             }
 
             var shippingTaxPercentage = _swedbankPayTaxCalculator.GetTaxPercentage(lineItemsList.FirstOrDefault(), market, shipment.ShippingAddress,
@@ -107,11 +109,11 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
         public virtual PaymentOrderCaptureRequest GetCaptureRequest(IPayment payment, IMarket market, IShipment shipment, bool addShipmentInOrderItem = true, string description = "Capturing payment.")
         {
-            var orderItems = GetOrderItems(market, shipment.ParentOrderGroup.Currency, shipment.ShippingAddress, shipment.LineItems).ToList();
-            if (addShipmentInOrderItem)
+            List<OrderItem> orderItems = new List<OrderItem>
             {
-                orderItems.Add(GetShippingOrderItem(shipment, market));
-            }
+                new OrderItem("Capture", "Capture", OrderItemType.Other, "Capture", 1, "pcs",
+                    Amount.FromDecimal(payment.Amount), 0, Amount.FromDecimal(payment.Amount), Amount.FromInt(0))
+            };
 
             return new PaymentOrderCaptureRequest(Amount.FromDecimal(GetTotalAmountIncludingVatAsDecimal(orderItems)), Amount.FromDecimal(GetTotalVatAmountAsDecimal(orderItems)), orderItems, description, DateTime.Now.Ticks.ToString());
         }
@@ -144,7 +146,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 var amount = market.PricesIncludeTax ? extendedPrice : extendedPrice + salesTax;
 
                 return new OrderItem(item.LineItemId.ToString(), item.DisplayName, OrderItemType.Product, "FASHION",
-                    item.ReturnQuantity > 0 ? item.ReturnQuantity : item.Quantity , "PCS", Amount.FromDecimal(unitPrice), vatPercent, Amount.FromDecimal(amount),
+                    item.ReturnQuantity > 0 ? item.ReturnQuantity : item.Quantity, "PCS", Amount.FromDecimal(unitPrice), vatPercent, Amount.FromDecimal(amount),
                     Amount.FromDecimal(salesTax));
             });
         }
@@ -169,7 +171,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
                     ConsumerProfileRef = consumerProfileRef
                 }
                 : null;
-            
+
             return new PaymentOrderRequest(Operation.Purchase, new CurrencyCode(currencyCode), Amount.FromDecimal(GetTotalAmountIncludingVatAsDecimal(orderItems)), Amount.FromDecimal(GetTotalVatAmountAsDecimal(orderItems)), description,
                 HttpContext.Current.Request.UserAgent, CultureInfo.CreateSpecificCulture(ContentLanguage.PreferredCulture.Name),
                 false, GetMerchantUrls(orderGroup, market), new PayeeInfo(new Guid(configuration.MerchantId),
@@ -182,15 +184,15 @@ namespace SwedbankPay.Episerver.Checkout.Common
             var shippingVatAmount = _shippingCalculator.GetShippingTax(shipment, market, currency).Round();
 
             var shippingAmount = _shippingCalculator.GetShippingCost(shipment, market, currency);
-            
-            var amount = market.PricesIncludeTax ? shippingAmount :  shippingAmount + shippingVatAmount;
-            
+
+            var amount = market.PricesIncludeTax ? shippingAmount : shippingAmount + shippingVatAmount;
+
             var vatPercent = shippingAmount > 0
                 ? market.PricesIncludeTax
-                    ? (int) ((shippingVatAmount / (shippingAmount - shippingVatAmount)).Round() * 10000)
-                    : (int) ((shippingVatAmount / (shippingAmount)).Round() * 10000)
+                    ? (int)((shippingVatAmount / (shippingAmount - shippingVatAmount)).Round() * 10000)
+                    : (int)((shippingVatAmount / (shippingAmount)).Round() * 10000)
                 : 0;
-            
+
             return new OrderItem("SHIPPING", "SHIPPINGFEE", OrderItemType.ShippingFee, "NOTAPPLICABLE", 1, "PCS",
                 Amount.FromDecimal(shippingAmount.Amount), vatPercent, Amount.FromDecimal(amount.Amount),
                 Amount.FromDecimal(shippingVatAmount.Amount));
