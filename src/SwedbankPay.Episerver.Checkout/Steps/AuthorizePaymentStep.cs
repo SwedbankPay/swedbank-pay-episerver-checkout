@@ -25,7 +25,7 @@ namespace SwedbankPay.Episerver.Checkout.Steps
         {
             var paymentStepResult = new PaymentStepResult();
 
-            var orderId = orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
+            var orderId = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
             if (!string.IsNullOrEmpty(orderId))
             {
                 try
