@@ -11,7 +11,7 @@ using System.Globalization;
 
 namespace SwedbankPay.Episerver.Checkout
 {
-    public interface ISwedbankPayCheckoutService
+    public interface ISwedbankPayCheckoutService : ISwedbankPayService
     {
         Consumer InitiateConsumerSession(CultureInfo currentLanguage, string email = null, string mobilePhone = null, string ssn = null);
         PaymentOrder CreateOrUpdatePaymentOrder(IOrderGroup orderGroup, string description, string consumerProfileRef = null);

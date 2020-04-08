@@ -234,6 +234,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Callback\CallbackNumber.cs" />
+    <Compile Include="Callback\CallbackObjectDtoBase.cs" />
+    <Compile Include="Callback\CallbackString.cs" />
+    <Compile Include="Callback\PaymentCallbackDto.cs" />
     <Compile Include="Controllers\SwedbankPayCheckoutController.cs" />
     <Compile Include="DefaultCheckoutConfigurationLoader.cs" />
     <Compile Include="Extensions\PaymentMethodsExtensions.cs" />

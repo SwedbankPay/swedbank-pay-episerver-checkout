@@ -14,11 +14,12 @@ using SwedbankPay.Episerver.Checkout.Common.Helpers;
 using SwedbankPay.Sdk;
 using SwedbankPay.Sdk.Consumers;
 using SwedbankPay.Sdk.PaymentOrders;
+using SwedbankPay.Sdk.Payments;
 
 namespace SwedbankPay.Episerver.Checkout
 {
     [ServiceConfiguration(typeof(ISwedbankPayCheckoutService))]
-    public class SwedbankPayCheckoutService : ISwedbankPayCheckoutService
+    public class SwedbankPayCheckoutService : SwedbankPayService, ISwedbankPayCheckoutService
     {
         private readonly ICheckoutConfigurationLoader _checkoutConfigurationLoader;
         private readonly ICurrentMarket _currentMarket;
@@ -35,7 +36,7 @@ namespace SwedbankPay.Episerver.Checkout
             IMarketService marketService,
             IOrderRepository orderRepository,
             ISwedbankPayClientFactory swedbankPayClientFactory,
-            IRequestFactory requestFactory)
+            IRequestFactory requestFactory) : base(orderRepository)
         {
             _currentMarket = currentMarket;
             _checkoutConfigurationLoader = checkoutConfigurationLoader;
@@ -53,7 +54,6 @@ namespace SwedbankPay.Episerver.Checkout
         public virtual PaymentOrder CreateOrUpdatePaymentOrder(IOrderGroup orderGroup, string description,
             string consumerProfileRef = null)
         {
-            var orderId = orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
             //return string.IsNullOrWhiteSpace(orderId) ? CreateOrder(orderGroup, userAgent, consumerProfileRef) :  UpdateOrder(orderId, orderGroup, userAgent);
             return
                 CreatePaymentOrder(orderGroup, description, consumerProfileRef); //TODO Change to UpdateOrder when SwedbankPay Api supports updating of orderitems
@@ -91,7 +91,7 @@ namespace SwedbankPay.Episerver.Checkout
 
         public PaymentOrder GetPaymentOrder(IOrderGroup orderGroup, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
         {
-            var swedbankPayCheckoutOrderId = orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
+            var swedbankPayCheckoutOrderId = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
             if (!string.IsNullOrWhiteSpace(swedbankPayCheckoutOrderId))
             {
                 var market = _marketService.GetMarket(orderGroup.MarketId);
@@ -101,6 +101,7 @@ namespace SwedbankPay.Episerver.Checkout
 
             return null;
         }
+
 
         public virtual PaymentOrder GetPaymentOrder(Uri id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
         {
@@ -124,7 +125,7 @@ namespace SwedbankPay.Episerver.Checkout
             var market = _marketService.GetMarket(orderGroup.MarketId);
             var swedbankPayClient = _swedbankPayClientFactory.Create(market);
 
-            var orderId = orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField]?.ToString();
+            var orderId = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
             if (!string.IsNullOrWhiteSpace(orderId))
                 try
                 {
@@ -137,7 +138,7 @@ namespace SwedbankPay.Episerver.Checkout
                         if (cancelResponse.Cancellation.Transaction.Type == TransactionType.Cancellation &&
                             cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
                         {
-                            orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = null;
+                            orderGroup.Properties[Constants.SwedbankPayOrderIdField] = null;
                             _orderRepository.Save(orderGroup);
                         }
                     }
@@ -173,7 +174,8 @@ namespace SwedbankPay.Episerver.Checkout
                 var paymentOrderRequest = _requestFactory.GetPaymentOrderRequest(orderGroup, market, PaymentMethodDto, description, consumerProfileRef);
                 var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Create(paymentOrderRequest));
 
-                orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] = paymentOrder.PaymentOrderResponse.Id;
+                orderGroup.Properties[Constants.SwedbankPayOrderIdField] = paymentOrder.PaymentOrderResponse.Id.OriginalString;
+                orderGroup.Properties[Constants.SwedbankPayPayeeReference] = paymentOrderRequest.PaymentOrder.PayeeInfo.PayeeReference;
                 _orderRepository.Save(orderGroup);
                 return paymentOrder;
             }
@@ -198,8 +200,7 @@ namespace SwedbankPay.Episerver.Checkout
                 var response = AsyncHelper.RunSync(() => paymentOrder.Operations.Update(updateOrderRequest));
             }
 
-            orderGroup.Properties[Constants.SwedbankPayCheckoutOrderIdCartField] =
-                paymentOrder?.PaymentOrderResponse.Id;
+            orderGroup.Properties[Constants.SwedbankPayOrderIdField] = paymentOrder?.PaymentOrderResponse.Id.OriginalString;
             _orderRepository.Save(orderGroup);
 
             return paymentOrder;
