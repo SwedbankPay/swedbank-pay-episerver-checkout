@@ -159,7 +159,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
         {
             return (decimal)orderItems.Sum(x => x.VatAmount.Value) / 100;
         }
-
+    
         private PaymentOrderRequest CreatePaymentOrderRequest(IOrderGroup orderGroup, IMarket market, string consumerProfileRef, List<OrderItem> orderItems, string description)
         {
             var configuration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);

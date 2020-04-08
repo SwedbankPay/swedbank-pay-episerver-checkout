@@ -14,11 +14,12 @@ using SwedbankPay.Episerver.Checkout.Common.Helpers;
 using SwedbankPay.Sdk;
 using SwedbankPay.Sdk.Consumers;
 using SwedbankPay.Sdk.PaymentOrders;
+using SwedbankPay.Sdk.Payments;
 
 namespace SwedbankPay.Episerver.Checkout
 {
     [ServiceConfiguration(typeof(ISwedbankPayCheckoutService))]
-    public class SwedbankPayCheckoutService : ISwedbankPayCheckoutService
+    public class SwedbankPayCheckoutService : SwedbankPayService, ISwedbankPayCheckoutService
     {
         private readonly ICheckoutConfigurationLoader _checkoutConfigurationLoader;
         private readonly ICurrentMarket _currentMarket;
@@ -35,7 +36,7 @@ namespace SwedbankPay.Episerver.Checkout
             IMarketService marketService,
             IOrderRepository orderRepository,
             ISwedbankPayClientFactory swedbankPayClientFactory,
-            IRequestFactory requestFactory)
+            IRequestFactory requestFactory) : base(orderRepository)
         {
             _currentMarket = currentMarket;
             _checkoutConfigurationLoader = checkoutConfigurationLoader;
@@ -101,6 +102,7 @@ namespace SwedbankPay.Episerver.Checkout
 
             return null;
         }
+
 
         public virtual PaymentOrder GetPaymentOrder(Uri id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
         {
