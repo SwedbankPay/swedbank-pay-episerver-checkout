@@ -17,13 +17,15 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
     {
         protected PaymentStep Successor;
 
-        public PaymentStep(IPayment payment, IMarket market, ISwedbankPayClientFactory swedbankPayClientFactory)
+        protected PaymentStep(IPayment payment, IMarket market, ISwedbankPayClientFactory swedbankPayClientFactory)
         {
             MarketId = market.MarketId;
             PaymentMethod = PaymentManager.GetPaymentMethod(payment.PaymentMethodId);
 
             if (PaymentMethod != null)
+            {
                 SwedbankPayClient = swedbankPayClientFactory.Create(PaymentMethod, market.MarketId);
+            }
         }
 
         protected PaymentMethodDto PaymentMethod { get; set; }

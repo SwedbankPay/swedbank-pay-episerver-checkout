@@ -23,7 +23,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                 if (Successor != null)
                 {
                     paymentStepResult = await Successor.Process(payment, orderForm, orderGroup, shipment).ConfigureAwait(false);
-                    paymentStepResult.Status = paymentStepResult.Status;
+                    paymentStepResult.Status = true;
                     paymentStepResult.Status = Successor != null && paymentStepResult.Status;
                 }
 

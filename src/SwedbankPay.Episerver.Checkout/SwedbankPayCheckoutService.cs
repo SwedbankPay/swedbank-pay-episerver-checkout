@@ -54,7 +54,6 @@ namespace SwedbankPay.Episerver.Checkout
         public virtual PaymentOrder CreateOrUpdatePaymentOrder(IOrderGroup orderGroup, string description,
             string consumerProfileRef = null)
         {
-            var orderId = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
             //return string.IsNullOrWhiteSpace(orderId) ? CreateOrder(orderGroup, userAgent, consumerProfileRef) :  UpdateOrder(orderId, orderGroup, userAgent);
             return
                 CreatePaymentOrder(orderGroup, description, consumerProfileRef); //TODO Change to UpdateOrder when SwedbankPay Api supports updating of orderitems
