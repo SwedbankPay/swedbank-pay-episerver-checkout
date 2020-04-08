@@ -2,18 +2,16 @@
 {
     public static class Constants
     {
-        public const string SwedbankPaySystemKeyword = "SwedbankPay";
+        public static readonly string SwedbankPaySystemKeyword = "SwedbankPay";
 
-        public const string SwedbankPayCheckoutSystemKeyword = SwedbankPaySystemKeyword + "Checkout";
-
-        // Cart property fields
-        public const string SwedbankPayCheckoutOrderIdCartField = "SwedbankPayCheckoutOrderIdCart";
+        public static readonly string SwedbankPayCheckoutSystemKeyword = SwedbankPaySystemKeyword + "Checkout";
 
         // Payment method property fields
-        public const string SwedbankPaySerializedMarketOptions = "SwedbankPaySerializedMarketOptions";
+        public static readonly string SwedbankPaySerializedMarketOptions = "SwedbankPaySerializedMarketOptions";
 
         // Purchase order meta fields
-        public const string SwedbankPayOrderIdField = "SwedbankPayOrderId";
-        public const string SwedbankPayPaymentIdField = "SwedbankPayPaymentId";
+        public static readonly string SwedbankPayOrderIdField = "SwedbankPayOrderId";
+        public static readonly string SwedbankPayPaymentIdField = "SwedbankPayPaymentId";
+        public static readonly string SwedbankPayPayeeReference = "SwedbankPayPayeeReference";
     }
 }
