@@ -8,10 +8,11 @@
 
         // Payment method property fields
         public static readonly string SwedbankPaySerializedMarketOptions = "SwedbankPaySerializedMarketOptions";
-
+        
         // Purchase order meta fields
         public static readonly string SwedbankPayOrderIdField = "SwedbankPayOrderId";
         public static readonly string SwedbankPayPaymentIdField = "SwedbankPayPaymentId";
         public static readonly string SwedbankPayPayeeReference = "SwedbankPayPayeeReference";
+        public static readonly string Culture = "Culture";
     }
 }

@@ -27,6 +27,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
         public CancelPaymentStep(IPayment payment, IMarket market, SwedbankPayClientFactory swedbankPayClientFactory, IRequestFactory requestFactory) : base(payment, market, swedbankPayClientFactory)
         {
             _requestFactory = requestFactory;
+            _market = market;
         }
 
         public override async Task<PaymentStepResult> Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment)

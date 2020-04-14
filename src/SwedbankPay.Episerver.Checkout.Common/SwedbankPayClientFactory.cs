@@ -17,7 +17,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
     /// Factory methods to create an instance of SwedbankPayClient
     /// Initializes it for a specific payment method and a specific market (since the API settings might vary)
     /// </summary>
-    [ServiceConfiguration(typeof(ISwedbankPayClientFactory))]
+    [ServiceConfiguration(typeof(ISwedbankPayClientFactory), Lifecycle = ServiceInstanceScope.Singleton)]
     public class SwedbankPayClientFactory : ISwedbankPayClientFactory
     {
         protected static readonly ConcurrentDictionary<string, HttpClient> HttpClientCache = new ConcurrentDictionary<string, HttpClient>();
