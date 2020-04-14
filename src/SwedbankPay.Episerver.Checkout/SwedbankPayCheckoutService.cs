@@ -174,6 +174,7 @@ namespace SwedbankPay.Episerver.Checkout
                 var paymentOrderRequest = _requestFactory.GetPaymentOrderRequest(orderGroup, market, PaymentMethodDto, description, consumerProfileRef);
                 var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Create(paymentOrderRequest));
 
+                orderGroup.Properties[Constants.Culture] = ContentLanguage.PreferredCulture.TwoLetterISOLanguageName;
                 orderGroup.Properties[Constants.SwedbankPayOrderIdField] = paymentOrder.PaymentOrderResponse.Id.OriginalString;
                 orderGroup.Properties[Constants.SwedbankPayPayeeReference] = paymentOrderRequest.PaymentOrder.PayeeInfo.PayeeReference;
                 _orderRepository.Save(orderGroup);
