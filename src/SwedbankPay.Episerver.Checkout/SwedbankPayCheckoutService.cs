@@ -96,16 +96,16 @@ namespace SwedbankPay.Episerver.Checkout
             {
                 var market = _marketService.GetMarket(orderGroup.MarketId);
                 var uri = new Uri(swedbankPayCheckoutOrderId, UriKind.Relative);
-                return GetPaymentOrder(uri, market, paymentOrderExpand);
+                return GetPaymentOrder(uri, market, orderGroup.Properties[Constants.Culture]?.ToString(), paymentOrderExpand);
             }
 
             return null;
         }
 
 
-        public virtual PaymentOrder GetPaymentOrder(Uri id, IMarket market, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
+        public virtual PaymentOrder GetPaymentOrder(Uri id, IMarket market, string languageId, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None)
         {
-            var config = LoadCheckoutConfiguration(market);
+            var config = LoadCheckoutConfiguration(market, languageId);
             var swedbankPayClient = _swedbankPayClientFactory.Create(config);
 
             try
@@ -159,9 +159,9 @@ namespace SwedbankPay.Episerver.Checkout
             if (payment == null) return;
         }
 
-        public CheckoutConfiguration LoadCheckoutConfiguration(IMarket market)
+        public CheckoutConfiguration LoadCheckoutConfiguration(IMarket market, string languageId)
         {
-            return _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
+            return _checkoutConfigurationLoader.GetConfiguration(market.MarketId, languageId);
         }
 
         private PaymentOrder CreatePaymentOrder(IOrderGroup orderGroup, string description, string consumerProfileRef = null)
@@ -174,6 +174,7 @@ namespace SwedbankPay.Episerver.Checkout
                 var paymentOrderRequest = _requestFactory.GetPaymentOrderRequest(orderGroup, market, PaymentMethodDto, description, consumerProfileRef);
                 var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Create(paymentOrderRequest));
 
+                orderGroup.Properties[Constants.Culture] = ContentLanguage.PreferredCulture.TwoLetterISOLanguageName;
                 orderGroup.Properties[Constants.SwedbankPayOrderIdField] = paymentOrder.PaymentOrderResponse.Id.OriginalString;
                 orderGroup.Properties[Constants.SwedbankPayPayeeReference] = paymentOrderRequest.PaymentOrder.PayeeInfo.PayeeReference;
                 _orderRepository.Save(orderGroup);
@@ -199,7 +200,7 @@ namespace SwedbankPay.Episerver.Checkout
             {
                 var response = AsyncHelper.RunSync(() => paymentOrder.Operations.Update(updateOrderRequest));
             }
-
+            
             orderGroup.Properties[Constants.SwedbankPayOrderIdField] = paymentOrder?.PaymentOrderResponse.Id.OriginalString;
             _orderRepository.Save(orderGroup);
 

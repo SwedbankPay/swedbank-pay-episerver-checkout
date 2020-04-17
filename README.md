@@ -152,8 +152,9 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
             var cart = _cartService.LoadCart(cartName);
             var market = _marketService.GetMarket(cart.MarketId);
 
-            CheckoutConfiguration = _swedbankPayCheckoutService.LoadCheckoutConfiguration(market);
-            Culture = _languageService.GetCurrentLanguage().TextInfo.CultureName;
+            var currentLanguage = _languageService.GetCurrentLanguage();
+            Culture = currentLanguage.TextInfo.CultureName;
+            CheckoutConfiguration = _swedbankPayCheckoutService.LoadCheckoutConfiguration(market, currentLanguage.TwoLetterISOLanguageName);
 
             var orderId = cart.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
             if (!string.IsNullOrWhiteSpace(orderId) || CheckoutConfiguration.UseAnonymousCheckout)
@@ -245,7 +246,13 @@ To be able to use this code you need to constructor inject ISwedbankPayCheckoutS
             var orderReference = _orderRepository.SaveAsPurchaseOrder(cart);
             var purchaseOrder = _orderRepository.Load<IPurchaseOrder>(orderReference.OrderGroupId);
             _orderRepository.Delete(cart.OrderLink);
+	    var validationIssues = _cartService.RequestInventory(cart);
 
+            if (purchaseOrder == null || validationIssues != null && validationIssues.Any())
+            {
+                _swedbankPayCheckoutService.CancelOrder(cart);
+                return null;
+            }
             if (purchaseOrder == null)
             {
                 _swedbankPayCheckoutService.CancelOrder(cart);
