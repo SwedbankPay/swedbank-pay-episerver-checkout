@@ -4,16 +4,15 @@
 
 ## About
 
-**IMPORTANT**: This extension is at an early stage and not yet used in production.
-We do not offer support for this version, but will release supported versions
-in the future. Feel free to play around, but for full functionality and support,
-please wait for the supported, stable release.
+**UNSUPPORTED**: This extension is at an early stage of development and is not
+supported as of yet by Swedbank Pay. It is provided as a convenience to speed
+up your development, so please feel free to play around. However, if you need
+support, please wait for a future, stable release.
 
 The Official Swedbank Pay Checkout Extension for Episerver provides seamless
 integration with Swedbank Pay Checkout, allowing your customers to pay swiftly and
 securely with Credit Card, Invoice (Norway and Sweden), Vipps (Norway) and
 Swish (Sweden). Credit Card Payments are available world-wide.
-
 
 # The installation assumes that you have Quicksilver installed
 [Quicksilver](https://github.com/episerver/Quicksilver)
