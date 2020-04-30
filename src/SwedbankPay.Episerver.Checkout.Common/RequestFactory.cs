@@ -183,7 +183,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
             var currency = shipment.ParentOrderGroup.Currency;
             var shippingVatAmount = _shippingCalculator.GetShippingTax(shipment, market, currency).Round();
 
-            var shippingAmount = _shippingCalculator.GetShippingCost(shipment, market, currency);
+            var shippingAmount = _shippingCalculator.GetDiscountedShippingAmount(shipment, market, currency);
 
             var amount = market.PricesIncludeTax ? shippingAmount : shippingAmount + shippingVatAmount;
 
