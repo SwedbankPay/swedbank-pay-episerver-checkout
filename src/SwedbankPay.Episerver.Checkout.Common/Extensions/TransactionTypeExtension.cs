@@ -9,6 +9,7 @@
             switch (transactionType)
             {
                 case TransactionType.Authorization:
+                case TransactionType.Initialization:
                     return Mediachase.Commerce.Orders.TransactionType.Authorization;
                 case TransactionType.Cancellation:
                     return Mediachase.Commerce.Orders.TransactionType.Void;
@@ -18,8 +19,6 @@
                     return Mediachase.Commerce.Orders.TransactionType.Credit;
                 case TransactionType.Sale:
                     return Mediachase.Commerce.Orders.TransactionType.Sale;
-                case TransactionType.Initialization:
-                    return Mediachase.Commerce.Orders.TransactionType.Authorization;
                 default:
                     return Mediachase.Commerce.Orders.TransactionType.Other;
             }
