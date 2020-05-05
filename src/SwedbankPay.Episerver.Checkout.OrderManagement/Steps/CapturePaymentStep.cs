@@ -8,7 +8,6 @@ using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Sdk;
 
 using System;
-using System.Threading.Tasks;
 
 using TransactionType = Mediachase.Commerce.Orders.TransactionType;
 
@@ -26,7 +25,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             _requestFactory = requestFactory;
         }
 
-        public override async Task<PaymentStepResult> Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment)
+        public override PaymentStepResult Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment)
         {
             var paymentStepResult = new PaymentStepResult();
 
@@ -42,8 +41,8 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         {
                             throw new InvalidOperationException("Can't find correct shipment");
                         }
-                        
-                        var paymentOrder = await SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)).ConfigureAwait(false);
+
+                        var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
                         if (paymentOrder.Operations.Capture == null)
                         {
                             remainingCaptureAmount = paymentOrder.PaymentOrderResponse.RemainingCaptureAmount?.Value;
@@ -59,7 +58,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         }
 
                         var captureRequest = _requestFactory.GetCaptureRequest(payment, _market, shipment);
-                        var captureResponse = await paymentOrder.Operations.Capture(captureRequest).ConfigureAwait(false);
+                        var captureResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Capture(captureRequest));
 
                         if (captureResponse.Capture.Transaction.Type == Sdk.TransactionType.Capture && captureResponse.Capture.Transaction.State.Equals(State.Completed))
                         {
@@ -84,7 +83,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 
             if (Successor != null)
             {
-                return await Successor.Process(payment, orderForm, orderGroup, shipment).ConfigureAwait(false);
+                return Successor.Process(payment, orderForm, orderGroup, shipment);
             }
 
             return paymentStepResult;

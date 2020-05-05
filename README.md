@@ -4,16 +4,15 @@
 
 ## About
 
-**IMPORTANT**: This extension is at an early stage and not yet used in production.
-We do not offer support for this version, but will release supported versions
-in the future. Feel free to play around, but for full functionality and support,
-please wait for the supported, stable release.
+**UNSUPPORTED**: This extension is at an early stage of development and is not
+supported as of yet by Swedbank Pay. It is provided as a convenience to speed
+up your development, so please feel free to play around. However, if you need
+support, please wait for a future, stable release.
 
 The Official Swedbank Pay Checkout Extension for Episerver provides seamless
 integration with Swedbank Pay Checkout, allowing your customers to pay swiftly and
 securely with Credit Card, Invoice (Norway and Sweden), Vipps (Norway) and
 Swish (Sweden). Credit Card Payments are available world-wide.
-
 
 # The installation assumes that you have Quicksilver installed
 [Quicksilver](https://github.com/episerver/Quicksilver)
@@ -59,7 +58,7 @@ ApiUrl: https://api.externalintegration.payex.com
 MerchantId: {Your merchant id}
 
 Host URLs: {Your domain 1}; {Your domain 2}; {Your domain 3}
-CompleteUrl URL: {Your domain}/sv/checkout-sv/order-confirmation-sv/?orderNumber={orderGroupId} 
+CompleteUrl URL: {Your domain}/sv/checkout-sv/order-confirmation-sv/?orderNumber={orderGroupId}&payeeReference={payeeReference} 
 Cancel URL: {Your domain}/payment-canceled?orderGroupId={orderGroupId} (Not to be filled out if Payment URL is used)
 Callback URL: {Your domain}/swedbankpay/cart/{orderGroupId}/callback
 Terms of Service URL: {Your domain}/payment-completed.pdf
@@ -234,7 +233,45 @@ Add following method for creating Purchase Order in e.g. Features/Checkout/Servi
 To be able to use this code you need to constructor inject ISwedbankPayCheckoutService.
 
 ```Csharp
-       public IPurchaseOrder CreatePurchaseOrderForSwedbankPay(ICart cart)
+          public IPurchaseOrder GetOrCreatePurchaseOrder(int orderGroupId, string swedbankPayOrderId)
+        {
+            // Check if the order has been created already
+            var purchaseOrder = _swedbankPayCheckoutService.GetPurchaseOrderBySwedbankPayOrderId(swedbankPayOrderId);
+            if (purchaseOrder != null)
+            {
+                return purchaseOrder;
+            }
+
+            // Check if we still have a cart and can create an order
+            var cart = _orderRepository.Load<ICart>(orderGroupId);
+            var cartSwedbankPayId = cart?.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
+            if (cartSwedbankPayId == null || !cartSwedbankPayId.Equals(swedbankPayOrderId))
+            {
+                return null;
+            }
+
+            var order = _swedbankPayCheckoutService.GetPaymentOrder(cart, PaymentOrderExpand.All);
+
+            var paymentResponse = order.PaymentOrderResponse.CurrentPayment;
+            var transaction = paymentResponse.Payment.Transactions?.TransactionList?.FirstOrDefault(x =>
+                x.State.Equals(State.Completed) &&
+                x.Type.Equals(SwedbankPay.Sdk.TransactionType.Authorization) ||
+                x.Type.Equals(SwedbankPay.Sdk.TransactionType.Sale));
+
+            if (transaction != null)
+            {
+                var finalPurchaseOrderCheck = _swedbankPayCheckoutService.GetPurchaseOrderBySwedbankPayOrderId(swedbankPayOrderId);
+                purchaseOrder = finalPurchaseOrderCheck ?? CreatePurchaseOrderForSwedbankPay(cart);
+                
+                return purchaseOrder;
+            }
+
+            // Won't create order, SwedbankPay checkout not complete
+            return null;
+        }
+
+
+        private IPurchaseOrder CreatePurchaseOrderForSwedbankPay(ICart cart)
         {
             cart.ProcessPayments(_paymentProcessor, _orderGroupCalculator);
             var totalProcessedAmount = cart.GetFirstForm().Payments.Where(x => x.Status.Equals(PaymentStatus.Processed.ToString())).Sum(x => x.Amount);
@@ -242,18 +279,14 @@ To be able to use this code you need to constructor inject ISwedbankPayCheckoutS
             {
                 throw new InvalidOperationException("Wrong amount");
             }
-
+            
             var orderReference = _orderRepository.SaveAsPurchaseOrder(cart);
             var purchaseOrder = _orderRepository.Load<IPurchaseOrder>(orderReference.OrderGroupId);
+            
             _orderRepository.Delete(cart.OrderLink);
-	    var validationIssues = _cartService.RequestInventory(cart);
+            var validationIssues = _cartService.RequestInventory(cart);
 
             if (purchaseOrder == null || validationIssues != null && validationIssues.Any())
-            {
-                _swedbankPayCheckoutService.CancelOrder(cart);
-                return null;
-            }
-            if (purchaseOrder == null)
             {
                 _swedbankPayCheckoutService.CancelOrder(cart);
                 return null;
@@ -261,7 +294,8 @@ To be able to use this code you need to constructor inject ISwedbankPayCheckoutS
             else
             {
                 _swedbankPayCheckoutService.Complete(purchaseOrder);
-                
+            
+
                 _orderRepository.Save(purchaseOrder);
                 return purchaseOrder;
             }
@@ -360,7 +394,7 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.Controllers
         {
             if (!string.IsNullOrWhiteSpace(callback?.PaymentOrder?.Id?.ToString()))
             {
-                var purchaseOrder = GetOrCreatePurchaseOrder(orderGroupId, callback.PaymentOrder.Id.OriginalString);
+                var purchaseOrder = _checkoutService.GetOrCreatePurchaseOrder(orderGroupId, callback.PaymentOrder.Id.OriginalString);
                 if (purchaseOrder == null)
                 {
                     return new StatusCodeResult(HttpStatusCode.NotFound, this);
@@ -378,7 +412,16 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.Controllers
                     var swedbankPayCheckoutPaymentMethodDto = _paymentManager.GetPaymentMethodBySystemName(Constants.SwedbankPayCheckoutSystemKeyword, paymentOrder.PaymentOrderResponse.Language.TwoLetterISOLanguageName);
                     var paymentMethod = swedbankPayCheckoutPaymentMethodDto?.PaymentMethod?.FirstOrDefault();
                     if (paymentMethod != null && transaction != null)
+
+
                     {
+                        if (paymentOrder.PaymentOrderResponse.CurrentPayment.Payment.Instrument == PaymentInstrument.Invoice
+                            && transaction.Type == TransactionType.Authorization)
+                        {
+                            //Already added a authorization transaction for Invoice when creating payment.
+                            return Ok();
+                        }
+
                         var payment = purchaseOrder.CreatePayment(_orderGroupFactory);
                         payment.PaymentType = PaymentType.Other;
                         payment.PaymentMethodId = paymentMethod.PaymentMethodId;
@@ -397,46 +440,8 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.Controllers
 
             return new StatusCodeResult(HttpStatusCode.Accepted, this);
         }
-
-       
-
-        private IPurchaseOrder GetOrCreatePurchaseOrder(int orderGroupId, string swedbankPayOrderId)
-        {
-            // Check if the order has been created already
-            var purchaseOrder = _swedbankPayCheckoutService.GetPurchaseOrderBySwedbankPayOrderId(swedbankPayOrderId);
-            if (purchaseOrder != null)
-            {
-                return purchaseOrder;
-            }
-
-            // Check if we still have a cart and can create an order
-            var cart = _orderRepository.Load<ICart>(orderGroupId);
-            var cartSwedbankPayId = cart?.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
-            if (cartSwedbankPayId == null || !cartSwedbankPayId.Equals(swedbankPayOrderId))
-            {
-                return null;
-            }
-
-            var order = _swedbankPayCheckoutService.GetPaymentOrder(cart, PaymentOrderExpand.All);
-
-            var paymentResponse = order.PaymentOrderResponse.CurrentPayment;
-            var transaction = paymentResponse.Payment.Transactions?.TransactionList?.FirstOrDefault(x =>
-                x.State.Equals(State.Completed) &&
-                x.Type.Equals(TransactionType.Authorization) ||
-                x.Type.Equals(TransactionType.Sale));
-
-            if (transaction != null)
-            {
-                purchaseOrder = _checkoutService.CreatePurchaseOrderForSwedbankPay(cart);
-                return purchaseOrder;
-            }
-
-            // Won't create order, SwedbankPay checkout not complete
-            return null;
-        }
     }
 }
-
 ```
 
 
@@ -485,6 +490,86 @@ IAddressBookService addressBookService
         }
 
 ```
+
+
+
+Update OrderConfirmationController to load purchase order payed by swedbank pay
+```Csharp
+    public class OrderConfirmationController : OrderConfirmationControllerBase<OrderConfirmationPage>
+    {
+        private readonly CheckoutService _checkoutService;
+        private readonly ICartService _cartService;
+        private readonly IOrderRepository _orderRepository;
+        private readonly IRecommendationService _recommendationService;
+        private readonly ISwedbankPayCheckoutService _swedbankPayCheckoutService;
+
+        public OrderConfirmationController(
+            ConfirmationService confirmationService,
+            AddressBookService addressBookService,
+            CustomerContextFacade customerContextFacade,
+            CheckoutService checkoutService,
+            ICartService cartService,
+            IOrderGroupCalculator orderGroupCalculator,
+            IOrderRepository orderRepository,
+            IMarketService marketService,
+            IRecommendationService recommendationService,
+            ISwedbankPayCheckoutService swedbankPayCheckoutService)
+            : base(confirmationService, addressBookService, customerContextFacade, orderGroupCalculator, marketService)
+        {
+            _checkoutService = checkoutService;
+            _cartService = cartService;
+            _orderRepository = orderRepository;
+            _recommendationService = recommendationService;
+            _swedbankPayCheckoutService = swedbankPayCheckoutService;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> Index(OrderConfirmationPage currentPage, string notificationMessage, int? orderNumber, string payeeReference)
+        {
+            IPurchaseOrder order = null;
+            if (PageEditing.PageIsInEditMode)
+            {
+                order = ConfirmationService.CreateFakePurchaseOrder();
+            }
+            else if (orderNumber.HasValue)
+            {
+                order = ConfirmationService.GetOrder(orderNumber.Value);
+
+                if (order != null)
+                {
+                    await _recommendationService.TrackOrderAsync(HttpContext, order);
+                }
+            }
+
+            if (order == null && orderNumber.HasValue)
+            {
+                var cart = _orderRepository.Load<ICart>(orderNumber.Value);
+                if (cart != null)
+                {
+                    var swedbankPayOrderId = cart.Properties[Constants.SwedbankPayOrderIdField];
+                    order = _checkoutService.GetOrCreatePurchaseOrder(orderNumber.Value, swedbankPayOrderId.ToString());
+                }
+                else
+                {
+                    order = _swedbankPayCheckoutService.GetByPayeeReference(payeeReference);
+                }
+            }
+
+            if (order != null && order.CustomerId == CustomerContext.CurrentContactId)
+            {
+                var viewModel = CreateViewModel(currentPage, order);
+                viewModel.NotificationMessage = notificationMessage;
+
+                return View(viewModel);
+            }
+
+
+            return Redirect(Url.ContentUrl(ContentReference.StartPage));
+        }
+    }
+
+```
+
 # Frontend
 
 In Views\Checkout\SingleShipmentCheckout.cshtml on .jsCheckoutForm add data attribute **data-addpaymentinfourl**
@@ -698,6 +783,17 @@ else
 	</script>
 }
 ```
+
+Add view Views\Shared\_SwedbankPayCheckoutConfirmation.cshtml
+```Html
+<div class="quicksilver-well">
+	<h4>@Html.Translate("/OrderConfirmation/PaymentDetails")</h4>
+	<p>
+		SwedbankPay
+	</p>
+</div>
+```
+
 
 **Note: If QuickSilvers test project is used, you need to add a parameter in CheckoutServiceTests where _subject is created since an extra parameter is added to CheckoutService.cs.
 You could go ahead and add just null.**

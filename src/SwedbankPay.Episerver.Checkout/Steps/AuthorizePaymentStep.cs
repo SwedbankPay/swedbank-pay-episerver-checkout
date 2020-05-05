@@ -9,7 +9,6 @@ using SwedbankPay.Episerver.Checkout.OrderManagement.Steps;
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace SwedbankPay.Episerver.Checkout.Steps
 {
@@ -21,7 +20,7 @@ namespace SwedbankPay.Episerver.Checkout.Steps
         {
         }
 
-        public override async Task<PaymentStepResult> ProcessAuthorization(IPayment payment, IOrderGroup orderGroup)
+        public override PaymentStepResult ProcessAuthorization(IPayment payment, IOrderGroup orderGroup)
         {
             var paymentStepResult = new PaymentStepResult();
 
@@ -30,7 +29,7 @@ namespace SwedbankPay.Episerver.Checkout.Steps
             {
                 try
                 {
-                    var result = await SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative), Sdk.PaymentOrders.PaymentOrderExpand.All).ConfigureAwait(false);
+                    var result =  AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative), Sdk.PaymentOrders.PaymentOrderExpand.All));
                     var transaction = result.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList?.FirstOrDefault();
                     if (transaction != null)
                     {

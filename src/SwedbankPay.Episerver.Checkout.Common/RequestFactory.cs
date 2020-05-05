@@ -172,10 +172,11 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 }
                 : null;
 
+            var payeeReference = DateTime.Now.Ticks.ToString();
             return new PaymentOrderRequest(Operation.Purchase, new CurrencyCode(currencyCode), Amount.FromDecimal(GetTotalAmountIncludingVatAsDecimal(orderItems)), Amount.FromDecimal(GetTotalVatAmountAsDecimal(orderItems)), description,
                 HttpContext.Current.Request.UserAgent, CultureInfo.CreateSpecificCulture(ContentLanguage.PreferredCulture.Name),
-                false, GetMerchantUrls(orderGroup, market), new PayeeInfo(new Guid(configuration.MerchantId),
-                    DateTime.Now.Ticks.ToString()), orderItems: orderItems, payer: payer);
+                false, GetMerchantUrls(orderGroup, market, payeeReference), new PayeeInfo(new Guid(configuration.MerchantId),
+                    payeeReference), orderItems: orderItems, payer: payer);
         }
 
         private OrderItem GetShippingOrderItem(IShipment shipment, IMarket market)
@@ -183,7 +184,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
             var currency = shipment.ParentOrderGroup.Currency;
             var shippingVatAmount = _shippingCalculator.GetShippingTax(shipment, market, currency).Round();
 
-            var shippingAmount = _shippingCalculator.GetShippingCost(shipment, market, currency);
+            var shippingAmount = _shippingCalculator.GetDiscountedShippingAmount(shipment, market, currency);
 
             var amount = market.PricesIncludeTax ? shippingAmount : shippingAmount + shippingVatAmount;
 
@@ -198,20 +199,19 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 Amount.FromDecimal(shippingVatAmount.Amount));
         }
 
-        private Urls GetMerchantUrls(IOrderGroup orderGroup, IMarket market)
+        private Urls GetMerchantUrls(IOrderGroup orderGroup, IMarket market, string payeeReference)
         {
             var checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
-
+            
             Uri ToFullSiteUrl(Func<CheckoutConfiguration, Uri> fieldSelector)
             {
                 if (fieldSelector(checkoutConfiguration) == null)
                     return null;
+                var url = fieldSelector(checkoutConfiguration).OriginalString
+                    .Replace("{orderGroupId}", orderGroup.OrderLink.OrderGroupId.ToString())
+                    .Replace("{payeeReference}", payeeReference);
 
-                var uriBuilder = new UriBuilder(fieldSelector(checkoutConfiguration));
-                var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-                query["orderGroupId"] = orderGroup.OrderLink.OrderGroupId.ToString();
-
-                uriBuilder.Query = query.ToString();
+                var uriBuilder = new UriBuilder(url);
                 if (!uriBuilder.Uri.IsAbsoluteUri)
                     return new Uri(SiteDefinition.Current.SiteUrl, uriBuilder.Uri.PathAndQuery);
 

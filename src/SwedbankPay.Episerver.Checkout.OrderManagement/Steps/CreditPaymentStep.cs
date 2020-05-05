@@ -10,7 +10,6 @@ using SwedbankPay.Sdk;
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 
 using TransactionType = Mediachase.Commerce.Orders.TransactionType;
 
@@ -29,7 +28,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             _market = market;
         }
 
-        public override async Task<PaymentStepResult> Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment)
+        public override PaymentStepResult Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment)
         {
             var paymentStepResult = new PaymentStepResult();
 
@@ -52,7 +51,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 
 
                                 var reversalRequest = _requestFactory.GetReversalRequest(payment, returnForm.GetAllReturnLineItems(), _market, returnForm.Shipments.FirstOrDefault(), description: transactionDescription);
-                                var paymentOrder = await SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)).ConfigureAwait(false);
+                                var paymentOrder = AsyncHelper.RunSync(() =>SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
 
                                 if (paymentOrder.Operations.Reverse == null)
                                 {
@@ -63,7 +62,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                                     return paymentStepResult;
                                 }
 
-                                var reversalResponse = await paymentOrder.Operations.Reverse(reversalRequest).ConfigureAwait(false);
+                                var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reverse(reversalRequest));
                                 if (reversalResponse.Reversal.Transaction.Type == Sdk.TransactionType.Reversal && reversalResponse.Reversal.Transaction.State.Equals(State.Completed))
                                 {
                                     payment.Status = PaymentStatus.Processed.ToString();
@@ -89,7 +88,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             }
             else if (Successor != null)
             {
-                return await Successor.Process(payment, orderForm, orderGroup, shipment).ConfigureAwait(false);
+                return Successor.Process(payment, orderForm, orderGroup, shipment);
             }
 
             return paymentStepResult;

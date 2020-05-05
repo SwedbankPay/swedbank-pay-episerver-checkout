@@ -79,7 +79,7 @@ namespace SwedbankPay.Episerver.Checkout
 
             _shipment = _orderForm.Shipments.FirstOrDefault();
 
-            var result = AsyncHelper.RunSync(() => ProcessPayment(payment, _shipment));
+            var result = ProcessPayment(payment, _shipment);
             message = result.Message;
 
             return result.Status;
@@ -93,7 +93,7 @@ namespace SwedbankPay.Episerver.Checkout
         /// <returns>True if process successful, otherwise false</returns>
         public bool ProcessPayment(Payment payment, Shipment shipment, ref string message)
         {
-            var result = AsyncHelper.RunSync(() => ProcessPayment(payment as IPayment, shipment));
+            var result = ProcessPayment(payment as IPayment, shipment);
             message = result.Message;
             return result.Status;
         }
@@ -107,14 +107,14 @@ namespace SwedbankPay.Episerver.Checkout
         {
             OrderGroup = orderGroup;
             _orderForm = orderGroup.GetFirstForm();
-            var result = AsyncHelper.RunSync(() => ProcessPayment(payment, shipment));
+            var result = ProcessPayment(payment, shipment);
             var message = result.Message;
             return result.Status
                 ? PaymentProcessingResult.CreateSuccessfulResult(message)
                 : PaymentProcessingResult.CreateUnsuccessfulResult(message);
         }
 
-        public async Task<PaymentStepResult> ProcessPayment(IPayment payment, IShipment shipment)
+        public PaymentStepResult ProcessPayment(IPayment payment, IShipment shipment)
         {
             var paymentStepResult = new PaymentStepResult();
             _shipment = shipment;
@@ -153,7 +153,7 @@ namespace SwedbankPay.Episerver.Checkout
                 capturePaymentStep.SetSuccessor(creditPaymentStep);
                 creditPaymentStep.SetSuccessor(cancelPaymentStep);
 
-                return await authorizePaymentStep.Process(payment, _orderForm, OrderGroup, _shipment).ConfigureAwait(false);
+                return authorizePaymentStep.Process(payment, _orderForm, OrderGroup, _shipment);
             }
             catch (Exception ex)
             {

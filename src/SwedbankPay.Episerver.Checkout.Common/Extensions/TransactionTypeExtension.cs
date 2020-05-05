@@ -9,6 +9,7 @@
             switch (transactionType)
             {
                 case TransactionType.Authorization:
+                case TransactionType.Initialization:
                     return Mediachase.Commerce.Orders.TransactionType.Authorization;
                 case TransactionType.Cancellation:
                     return Mediachase.Commerce.Orders.TransactionType.Void;
