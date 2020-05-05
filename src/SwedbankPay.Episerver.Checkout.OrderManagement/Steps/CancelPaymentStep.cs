@@ -108,21 +108,5 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 
             return paymentStepResult;
         }
-
-
-        private void A(IOrderGroup orderGroup, string noteTitle, string noteMessage)
-        {
-            var orderGroupFactory = ServiceLocator.Current.GetInstance<IOrderGroupFactory>();
-            var note = orderGroupFactory.CreateOrderNote(orderGroup);
-            note.CustomerId = CustomerContext.Current.CurrentContactId;
-            note.Type = OrderNoteTypes.Custom.ToString();
-            note.Title = noteTitle;
-            note.Detail = noteMessage;
-            note.Created = DateTime.UtcNow;
-            orderGroup.Notes.Add(note);
-
-            var orderRepository = ServiceLocator.Current.GetInstance<IOrderRepository>();
-            orderRepository.Save(orderGroup);
-        }
     }
 }
