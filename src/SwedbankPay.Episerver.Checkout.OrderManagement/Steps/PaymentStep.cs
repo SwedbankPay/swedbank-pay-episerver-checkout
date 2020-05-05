@@ -9,7 +9,6 @@ using SwedbankPay.Episerver.Checkout.Common.Extensions;
 using SwedbankPay.Sdk;
 
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
@@ -38,7 +37,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
             Successor = successor;
         }
 
-        public abstract Task<PaymentStepResult> Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup,
+        public abstract PaymentStepResult Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup,
             IShipment shipment);
 
         public void AddNoteAndSaveChanges(IOrderGroup orderGroup, string transactionType, string noteMessage)

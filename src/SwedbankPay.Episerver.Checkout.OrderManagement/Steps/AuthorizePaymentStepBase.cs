@@ -5,8 +5,6 @@ using Mediachase.Commerce.Orders;
 
 using SwedbankPay.Episerver.Checkout.Common;
 
-using System.Threading.Tasks;
-
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
     public abstract class AuthorizePaymentStepBase : PaymentStep
@@ -15,14 +13,14 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
         {
         }
 
-        public override async Task<PaymentStepResult> Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment)
+        public override PaymentStepResult Process(IPayment payment, IOrderForm orderForm, IOrderGroup orderGroup, IShipment shipment)
         {
             if (payment.TransactionType != TransactionType.Authorization.ToString())
             {
                 var paymentStepResult = new PaymentStepResult();
                 if (Successor != null)
                 {
-                    paymentStepResult = await Successor.Process(payment, orderForm, orderGroup, shipment).ConfigureAwait(false);
+                    paymentStepResult = Successor.Process(payment, orderForm, orderGroup, shipment);
                     paymentStepResult.Status = true;
                     paymentStepResult.Status = Successor != null && paymentStepResult.Status;
                 }
@@ -30,9 +28,9 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                 return paymentStepResult;
             }
 
-            return await ProcessAuthorization(payment, orderGroup).ConfigureAwait(false);
+            return ProcessAuthorization(payment, orderGroup);
         }
 
-        public abstract Task<PaymentStepResult> ProcessAuthorization(IPayment payment, IOrderGroup orderGroup);
+        public abstract PaymentStepResult ProcessAuthorization(IPayment payment, IOrderGroup orderGroup);
     }
 }
