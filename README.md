@@ -199,11 +199,9 @@ namespace EPiServer.Reference.Commerce.Site.Features.Payment.PaymentMethods
             payment.ProviderTransactionID = transaction?.Number;
             payment.Amount = amount;
             var isSwishPayment = currentPayment?.Instrument.Equals(PaymentInstrument.Swish) ?? false;
-            var isInvoicePayment = currentPayment?.Instrument.Equals(PaymentInstrument.Invoice) ?? false;
-            payment.Status = isSwishPayment || isInvoicePayment ? PaymentStatus.Processed.ToString() : PaymentStatus.Pending.ToString();
-            
-            payment.TransactionType = isInvoicePayment ? TransactionType.Other.ToString() : transactionType.ToString();
+            payment.Status = isSwishPayment ? PaymentStatus.Processed.ToString() : PaymentStatus.Pending.ToString();
 
+            payment.TransactionType = isInvoicePayment ? TransactionType.Other.ToString() : transactionType.ToString();
             
             return payment;
         }
