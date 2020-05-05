@@ -162,8 +162,8 @@
 								<asp:RequiredFieldValidator ID="requiredCompleteUrl" runat="server" ControlToValidate="txtCompletetUrl" ErrorMessage="CompleteUrl URL is required." />
                                 <asp:RegularExpressionValidator ID="regCompleteUrl" runat="server" 
                                                                 ControlToValidate="txtCompletetUrl" 
-                                                                ValidationExpression="^((https)://)?([\w-]+\.)+[\w]+(/[\w-={} ./?]*)?$"
-                                                                Text="Enter a valid URL" />   
+                                                                ValidationExpression="^((https)://)?([\w-]+\.)+[\w]+(/[\w-={} ./?&]*)?$"
+									                            Text="Enter a valid URL" />   
 							</td>
 						</tr>
 						<tr>
@@ -175,9 +175,10 @@
 								<asp:TextBox runat="server" ID="txtCancelUrl" CssClass="swedbankpaypayment-parameters-url" />
                                 <asp:RegularExpressionValidator ID="regCancelUrl" runat="server" 
                                                                 ControlToValidate="txtCancelUrl" 
-                                                                ValidationExpression="^((https)://)?([\w-]+\.)+[\w]+(/[\w-={} ./?]*)?$"
-                                                                Text="Enter a valid URL" />   
-							</td>
+                                                                ValidationExpression="^((https)://)?([\w-]+\.)+[\w]+(/[\w-={} ./?&]*)?$"
+                                                                Text="Enter a valid URL" />
+
+                            </td>
 						</tr>
 						<tr>
 							<td class="FormLabelCell">
@@ -188,7 +189,7 @@
 								<asp:TextBox runat="server" ID="txtCallbackUrl" CssClass="swedbankpaypayment-parameters-url" />
                                 <asp:RegularExpressionValidator ID="regCallbackUrl" runat="server" 
                                                                 ControlToValidate="txtCallbackUrl" 
-                                                                ValidationExpression="^((https)://)?([\w-]+\.)+[\w]+(/[\w-={} ./?]*)?$"
+                                                                ValidationExpression="^((https)://)?([\w-]+\.)+[\w]+(/[\w-={} ./?&]*)?$"
                                                                 Text="Enter a valid URL" />   
 							</td>
 						</tr>
@@ -202,7 +203,7 @@
 								<asp:RequiredFieldValidator ID="requiredTermsOfServiceUrl" runat="server" ControlToValidate="txtTermsOfServiceUrl" ErrorMessage="Terms of Service URL is required." />
                                 <asp:RegularExpressionValidator ID="regTermsOfServiceUrl" runat="server" 
                                                                 ControlToValidate="txtTermsOfServiceUrl" 
-                                                                ValidationExpression="^((https)://)?([\w-]+\.)+[\w]+(/[\w-={} ./?]*)?$"
+                                                                ValidationExpression="^((https)://)?([\w-]+\.)+[\w]+(/[\w-={} ./?&]*)?$"
                                                                 Text="Enter a valid URL" />   
 							</td>
 						</tr>
@@ -215,7 +216,7 @@
 								<asp:TextBox runat="server" ID="txtPaymentUrl" CssClass="swedbankpaypayment-parameters-url" />
                                 <asp:RegularExpressionValidator ID="regPaymentUrl" runat="server" 
                                                                 ControlToValidate="txtPaymentUrl" 
-                                                                ValidationExpression="^((https)://)?([\w-]+\.)+[\w]+(/[\w-={} ./?]*)?$"
+                                                                ValidationExpression="^((https)://)?([\w-]+\.)+[\w]+(/[\w-={} ./?&]*)?$"
                                                                 Text="Enter a valid URL" />   
 								
 							</td>
