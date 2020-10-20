@@ -1,0 +1,23 @@
+﻿@using Foundation.Features.Search
+@using Foundation.Features.Search.Search
+
+@model SearchViewModel<SearchResultPage>
+
+@{
+    Layout = null;
+}
+
+@{
+    if (Model.ShowProductSearchResults)
+    {
+        Html.RenderPartial("_QuickSearch", Model.ProductViewModels);
+    }
+    if (Model.ShowContentSearchResults)
+    {
+        Html.RenderPartial("_QuickSearchContent", Model);
+    }
+    if (Model.ShowPdfSearchResults)
+    {
+        Html.RenderPartial("_QuickSearchPdf", Model);
+    }
+}

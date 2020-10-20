@@ -1,0 +1,34 @@
+﻿@using EPiServer.Web.Routing
+@using Foundation.Features.Header
+
+@model HeaderViewModel
+
+@if (Model.IsReadonlyMode)
+{
+    @Html.RenderReadonlyMessage()
+}
+else
+{
+    <div class="top-header">
+        <div class="container" style="@(Model.LargeHeaderMenu ? "max-width: 1750px;" : "")">
+            <div class="row">
+                <div class="col-12">
+                    <div class="top-header__banner-text">
+                        @Html.PropertyFor(x => x.LayoutSettings.BannerText)
+                    </div>
+                    @if (Model.ShowCommerceControls)
+                    {
+                        Html.RenderAction("Index", "Market", new { contentLink = ViewContext.RequestContext.GetContentLink() });
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<header class="header @(Model.LayoutSettings.StickyTopHeader ? "sticky-top" : "")">
+    <div class="header__wrapper">
+        @Html.Partial("_MobileNavigation", Model)
+        @Html.Partial("_Navigation", Model)
+    </div>
+</header>

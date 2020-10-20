@@ -1,0 +1,50 @@
+@model IContentViewModel<IContent>
+
+@{
+    Layout = "~/Features/Shared/Views/_MasterLayout.cshtml";
+}
+
+@section AdditionalStyles {
+    @RenderSection("AdditionalStyles", required: false)
+}
+
+<div class="loading-box display-none">
+    <div class="loader"></div>
+</div>
+
+@Html.RenderEPiServerQuickNavigator()
+
+@{
+    var foundationPageData = Model.CurrentContent as IFoundationContent;
+}
+
+@if (!foundationPageData?.HideSiteHeader ?? false)
+{
+    Html.RenderAction("GetHeader", "Header", new { homePage = Model.StartPage });
+}
+else
+{
+    Html.RenderAction("GetHeaderLogoOnly", "Header");
+}
+
+<div class="container">
+    @RenderBody()
+</div>
+
+@if (!foundationPageData?.HideSiteFooter ?? false)
+{
+    @Html.Partial("_Footer", Html.GetLayoutSettings())
+}
+
+@Html.Partial("_QuickViewModal")
+
+<script src="~/Assets/js/main.min.js"></script>
+
+@RenderSection("AdditionalScripts", required: false)
+@Html.RequiredClientResources("Footer")
+@Html.RenderExtendedScripts(Model.CurrentContent)
+@if (Model.CurrentContent is EntryContentBase)
+{
+    @Html.RenderExtendedScriptsForCommerce(Model.CurrentContent)
+}
+@Model.SchemaMarkup
