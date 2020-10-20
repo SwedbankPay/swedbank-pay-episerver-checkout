@@ -14,6 +14,7 @@ using Mediachase.Commerce.Pricing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Foundation.Commerce.Markets;
 
 namespace Foundation.Commerce.Extensions
 {
@@ -48,6 +49,9 @@ namespace Foundation.Commerce.Extensions
 
         private static readonly Lazy<IContentLoader> ContentLoader =
             new Lazy<IContentLoader>(() => ServiceLocator.Current.GetInstance<IContentLoader>());
+
+        private static readonly Lazy<ICurrencyService> CurrencyService =
+            new Lazy<ICurrencyService>(() => ServiceLocator.Current.GetInstance<CurrencyService>());
 
         public static IEnumerable<Inventory> Inventories(this EntryContentBase entryContentBase)
         {
@@ -126,7 +130,8 @@ namespace Foundation.Commerce.Extensions
 
             var priceFilter = new PriceFilter
             {
-                CustomerPricing = new[] { CustomerPricing.AllCustomers }
+                CustomerPricing = new[] { CustomerPricing.AllCustomers },
+                Currencies = new Currency[] { CurrencyService.Value.GetCurrentCurrency() }
             };
 
             if (entryContentBase is ProductContent productContent)
