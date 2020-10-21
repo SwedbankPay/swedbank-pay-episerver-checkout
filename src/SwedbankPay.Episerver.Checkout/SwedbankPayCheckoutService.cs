@@ -62,9 +62,9 @@ namespace SwedbankPay.Episerver.Checkout
         public virtual Consumer InitiateConsumerSession(CultureInfo currentLanguage, string email = null, string mobilePhone = null, string ssn = null)
         {
             var market = _currentMarket.GetCurrentMarket();
-            var swedbankPayClient = _swedbankPayClientFactory.Create(market);
+            var swedbankPayClient = _swedbankPayClientFactory.Create(market, currentLanguage.TwoLetterISOLanguageName);
 
-            var config = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
+            var config = _checkoutConfigurationLoader.GetConfiguration(market.MarketId, currentLanguage.TwoLetterISOLanguageName);
 
             try
             {
