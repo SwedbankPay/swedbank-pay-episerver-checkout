@@ -26,6 +26,10 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using SwedbankPay.Episerver.Checkout;
+using SwedbankPay.Episerver.Checkout.Common;
+using SwedbankPay.Sdk;
+using SwedbankPay.Sdk.PaymentOrders;
 
 namespace Foundation.Features.Checkout.Services
 {
@@ -44,6 +48,8 @@ namespace Foundation.Features.Checkout.Services
         private readonly ILogger _log = LogManager.GetLogger(typeof(CheckoutService));
         private readonly ILoyaltyService _loyaltyService;
         private readonly ISettingsService _settingsService;
+        private readonly ICartService _cartService;
+        private readonly ISwedbankPayCheckoutService _swedbankPayCheckoutService;
 
         public AuthenticatedPurchaseValidation AuthenticatedPurchaseValidation { get; private set; }
         public AnonymousPurchaseValidation AnonymousPurchaseValidation { get; private set; }
@@ -60,7 +66,9 @@ namespace Foundation.Features.Checkout.Services
             IMailService mailService,
             IPromotionEngine promotionEngine,
             ILoyaltyService loyaltyService,
-            ISettingsService settingsService)
+            ISettingsService settingsService,
+            ICartService cartService,
+            ISwedbankPayCheckoutService swedbankPayCheckoutService)
         {
             _addressBookService = addressBookService;
             _orderGroupFactory = orderGroupFactory;
@@ -78,6 +86,8 @@ namespace Foundation.Features.Checkout.Services
             AnonymousPurchaseValidation = new AnonymousPurchaseValidation(_localizationService);
             CheckoutAddressHandling = new CheckoutAddressHandling(_addressBookService);
             _settingsService = settingsService;
+            _cartService = cartService;
+            _swedbankPayCheckoutService = swedbankPayCheckoutService;
         }
 
         public virtual void UpdateShippingMethods(ICart cart, IList<ShipmentViewModel> shipmentViewModels)
@@ -392,6 +402,76 @@ namespace Foundation.Features.Checkout.Services
             cart.Notes.Add(note);
         }
         #endregion
+
+
+
+        public IPurchaseOrder GetOrCreatePurchaseOrder(int orderGroupId, string swedbankPayOrderId)
+        {
+            // Check if the order has been created already
+            var purchaseOrder = _swedbankPayCheckoutService.GetPurchaseOrderBySwedbankPayOrderId(swedbankPayOrderId);
+            if (purchaseOrder != null)
+            {
+                return purchaseOrder;
+            }
+
+            // Check if we still have a cart and can create an order
+            var cart = _orderRepository.Load<ICart>(orderGroupId);
+            var cartSwedbankPayId = cart?.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
+            if (cartSwedbankPayId == null || !cartSwedbankPayId.Equals(swedbankPayOrderId))
+            {
+                return null;
+            }
+
+            var order = _swedbankPayCheckoutService.GetPaymentOrder(cart, PaymentOrderExpand.All);
+
+            var paymentResponse = order.PaymentOrderResponse.CurrentPayment;
+            var transaction = paymentResponse.Payment.Transactions?.TransactionList?.FirstOrDefault(x =>
+                x.State.Equals(State.Completed) &&
+                x.Type.Equals(SwedbankPay.Sdk.TransactionType.Authorization) ||
+                x.Type.Equals(SwedbankPay.Sdk.TransactionType.Sale));
+
+            if (transaction != null)
+            {
+                var finalPurchaseOrderCheck = _swedbankPayCheckoutService.GetPurchaseOrderBySwedbankPayOrderId(swedbankPayOrderId);
+                purchaseOrder = finalPurchaseOrderCheck ?? CreatePurchaseOrderForSwedbankPay(cart);
+
+                return purchaseOrder;
+            }
+
+            // Won't create order, SwedbankPay checkout not complete
+            return null;
+        }
+
+
+        private IPurchaseOrder CreatePurchaseOrderForSwedbankPay(ICart cart)
+        {
+            cart.ProcessPayments(_paymentProcessor, _orderGroupCalculator);
+            var totalProcessedAmount = cart.GetFirstForm().Payments.Where(x => x.Status.Equals(PaymentStatus.Processed.ToString())).Sum(x => x.Amount);
+            if (totalProcessedAmount != cart.GetTotal(_orderGroupCalculator).Amount)
+            {
+                throw new InvalidOperationException("Wrong amount");
+            }
+
+            var orderReference = _orderRepository.SaveAsPurchaseOrder(cart);
+            var purchaseOrder = _orderRepository.Load<IPurchaseOrder>(orderReference.OrderGroupId);
+
+            _orderRepository.Delete(cart.OrderLink);
+            var validationIssues = _cartService.RequestInventory(cart);
+
+            if (purchaseOrder == null || validationIssues != null && validationIssues.Any())
+            {
+                _swedbankPayCheckoutService.CancelOrder(cart);
+                return null;
+            }
+            else
+            {
+                _swedbankPayCheckoutService.Complete(purchaseOrder);
+
+
+                _orderRepository.Save(purchaseOrder);
+                return purchaseOrder;
+            }
+        }
 
     }
 }

@@ -6,11 +6,14 @@ using EPiServer.Framework.Localization;
 using EPiServer.Web.Mvc;
 using EPiServer.Web.Mvc.Html;
 using EPiServer.Web.Routing;
+
+using Foundation.Cms.Attributes;
 using Foundation.Cms.Identity;
 using Foundation.Cms.Settings;
 using Foundation.Commerce;
 using Foundation.Commerce.Customer.Services;
 using Foundation.Commerce.GiftCard;
+using Foundation.Commerce.Markets;
 using Foundation.Features.Checkout.Payments;
 using Foundation.Features.Checkout.Services;
 using Foundation.Features.Checkout.ViewModels;
@@ -19,9 +22,19 @@ using Foundation.Features.MyOrganization.Organization;
 using Foundation.Features.NamedCarts;
 using Foundation.Features.Settings;
 using Foundation.Personalization;
+
 using Mediachase.Commerce;
+using Mediachase.Commerce.Markets;
 using Mediachase.Commerce.Shared;
+
 using Microsoft.AspNet.Identity.Owin;
+
+using Newtonsoft.Json;
+
+using SwedbankPay.Episerver.Checkout;
+using SwedbankPay.Episerver.Checkout.Common;
+using SwedbankPay.Sdk.JsonSerialization;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +66,10 @@ namespace Foundation.Features.Checkout
         private readonly ShipmentViewModelFactory _shipmentViewModelFactory;
         private readonly IGiftCardService _giftCardService;
         private readonly ISettingsService _settingsService;
+        private readonly ISwedbankPayCheckoutService _swedbankPayCheckoutService;
+        private readonly ISwedbankPayClientFactory _swedbankPayClientFactory;
+        private readonly LanguageService _languageService;
+        private readonly IMarketService _marketService;
 
         public CheckoutController(
             IOrderRepository orderRepository,
@@ -73,7 +90,11 @@ namespace Foundation.Features.Checkout
             IOrganizationService organizationService,
             ShipmentViewModelFactory shipmentViewModelFactory,
             IGiftCardService giftCardService,
-            ISettingsService settingsService)
+            ISettingsService settingsService,
+            ISwedbankPayCheckoutService swedbankPayCheckoutService,
+            ISwedbankPayClientFactory swedbankPayClientFactory,
+            LanguageService languageService,
+            IMarketService marketService)
         {
             _orderRepository = orderRepository;
             _checkoutViewModelFactory = checkoutViewModelFactory;
@@ -94,6 +115,10 @@ namespace Foundation.Features.Checkout
             _shipmentViewModelFactory = shipmentViewModelFactory;
             _giftCardService = giftCardService;
             _settingsService = settingsService;
+            _swedbankPayCheckoutService = swedbankPayCheckoutService;
+            _swedbankPayClientFactory = swedbankPayClientFactory;
+            _languageService = languageService;
+            _marketService = marketService;
         }
 
         [HttpGet]
@@ -771,5 +796,60 @@ namespace Foundation.Features.Checkout
         private CartWithValidationIssues CartWithValidationIssues => _cart ?? (_cart = _cartService.LoadCart(_cartService.DefaultCartName, true));
 
         private bool CartIsNullOrEmpty() => CartWithValidationIssues.Cart == null || !CartWithValidationIssues.Cart.GetAllLineItems().Any();
+
+
+
+
+        [HttpPost]
+        [AllowDBWrite]
+        public JsonResult AddPaymentAndAddressInformation(CheckoutViewModel viewModel, IPaymentMethod paymentMethod, string paymentId)
+        {
+            _checkoutService.CheckoutAddressHandling.UpdateAnonymousUserAddresses(viewModel);
+            _checkoutService.UpdateShippingAddresses(CartWithValidationIssues.Cart, viewModel);
+
+            // Clean up payments in cart on payment provider site.
+            foreach (var form in CartWithValidationIssues.Cart.Forms)
+            {
+                form.Payments.Clear();
+            }
+
+            var payment = paymentMethod.CreatePayment(CartWithValidationIssues.Cart.GetTotal().Amount, CartWithValidationIssues.Cart);
+            payment.BillingAddress = _addressBookService.ConvertToAddress(viewModel.BillingAddress, CartWithValidationIssues.Cart);
+
+            CartWithValidationIssues.Cart.AddPayment(payment);
+            CartWithValidationIssues.Cart.Properties[Constants.SwedbankPayPaymentIdField] = paymentId;
+            _orderRepository.Save(CartWithValidationIssues.Cart);
+
+            return new JsonResult
+            {
+                Data = true
+            };
+        }
+
+        [HttpPost]
+        public string GetViewPaymentOrderHref(string consumerProfileRef)
+        {
+            var paymentOrderResponseObject = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(CartWithValidationIssues.Cart, "description", consumerProfileRef);
+            return paymentOrderResponseObject.Operations.View.Href.OriginalString;
+        }
+
+        [HttpPost]
+        public async Task<string> GetSwedbankPayShippingDetails(Uri url)
+        {
+            var market = _marketService.GetMarket(CartWithValidationIssues.Cart.MarketId);
+            var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
+            var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
+            return JsonConvert.SerializeObject(shippingDetails, JsonSerialization.Settings);
+        }
+
+        [HttpPost]
+        public async Task<string> GetSwedbankPayBillingDetails(Uri url)
+        {
+            var market = _marketService.GetMarket(CartWithValidationIssues.Cart.MarketId);
+            var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
+            
+            var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
+            return JsonConvert.SerializeObject(billingDetails, JsonSerialization.Settings);
+        }
     }
 }

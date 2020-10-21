@@ -8,23 +8,35 @@ using Foundation.Features.Checkout.Services;
 using Foundation.Features.MyAccount.AddressBook;
 using Foundation.Infrastructure.Services;
 using System.Web.Mvc;
+using SwedbankPay.Episerver.Checkout;
+using SwedbankPay.Episerver.Checkout.Common;
 
 namespace Foundation.Features.MyAccount.OrderConfirmation
 {
     public class OrderConfirmationController : OrderConfirmationControllerBase<OrderConfirmationPage>
     {
         private readonly ICampaignService _campaignService;
+        private readonly IOrderRepository _orderRepository;
+        private readonly ISwedbankPayCheckoutService _swedbankPayCheckoutService;
+        private readonly CheckoutService _checkoutService;
+
         public OrderConfirmationController(
             ICampaignService campaignService,
             ConfirmationService confirmationService,
             IAddressBookService addressBookService,
+            IOrderRepository orderRepository,
             IOrderGroupCalculator orderGroupCalculator,
-            UrlResolver urlResolver, ICustomerService customerService) :
+            UrlResolver urlResolver, ICustomerService customerService,
+            ISwedbankPayCheckoutService swedbankPayCheckoutService,
+            CheckoutService checkoutService) :
             base(confirmationService, addressBookService, orderGroupCalculator, urlResolver, customerService)
         {
             _campaignService = campaignService;
+            _orderRepository = orderRepository;
+            _swedbankPayCheckoutService = swedbankPayCheckoutService;
+            _checkoutService = checkoutService;
         }
-        public ActionResult Index(OrderConfirmationPage currentPage, string notificationMessage, int? orderNumber)
+        public ActionResult Index(OrderConfirmationPage currentPage, string notificationMessage, int? orderNumber, string payeeReference)
         {
             IPurchaseOrder order = null;
             if (PageEditing.PageIsInEditMode)
@@ -34,6 +46,20 @@ namespace Foundation.Features.MyAccount.OrderConfirmation
             else if (orderNumber.HasValue)
             {
                 order = _confirmationService.GetOrder(orderNumber.Value);
+            }
+
+            if (order == null && orderNumber.HasValue)
+            {
+                var cart = _orderRepository.Load<ICart>(orderNumber.Value);
+                if (cart != null)
+                {
+                    var swedbankPayOrderId = cart.Properties[Constants.SwedbankPayOrderIdField];
+                    order = _checkoutService.GetOrCreatePurchaseOrder(orderNumber.Value, swedbankPayOrderId.ToString());
+                }
+                else
+                {
+                    order = _swedbankPayCheckoutService.GetByPayeeReference(payeeReference);
+                }
             }
 
             if (order != null && order.CustomerId == _customerService.CurrentContactId)

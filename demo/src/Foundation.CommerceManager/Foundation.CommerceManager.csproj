@@ -300,6 +300,9 @@
     <Reference Include="StructureMap.Web, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\structuremap.web.4.0.0.315\lib\net40\StructureMap.Web.dll</HintPath>
     </Reference>
+    <Reference Include="SwedbankPay.Sdk, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SwedbankPay.Sdk.1.2.0-beta0000\lib\netstandard2.0\SwedbankPay.Sdk.dll</HintPath>
+    </Reference>
     <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.ComponentModel.Annotations.4.7.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
     </Reference>
@@ -417,6 +420,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Apps\Order\Payments\Plugins\SwedbankPayCheckout\ConfigurePayment.ascx">
+      <SubType>ASPXCodeBehind</SubType>
+    </Content>
     <Content Include="NotificationTemplates\default\order-paymentplan-confirm.xsl" />
     <Content Include="NotificationTemplates\default\order-paymentplan-notify.xsl" />
     <Content Include="NotificationTemplates\default\order-purchaseorder-confirm.xsl" />
@@ -483,6 +489,22 @@
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout.CommerceManager\SwedbankPay.Episerver.Checkout.CommerceManager.csproj">
+      <Project>{b70821a5-7ef6-44e8-a812-4e17254036a7}</Project>
+      <Name>SwedbankPay.Episerver.Checkout.CommerceManager</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj">
+      <Project>{d773b6a3-ee81-40aa-b585-4f0d164ade97}</Project>
+      <Name>SwedbankPay.Episerver.Checkout.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout.OrderManagement\SwedbankPay.Episerver.Checkout.OrderManagement.csproj">
+      <Project>{8e3481e0-8017-4202-9aeb-ee413c049655}</Project>
+      <Name>SwedbankPay.Episerver.Checkout.OrderManagement</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout\SwedbankPay.Episerver.Checkout.csproj">
+      <Project>{9588675b-3d10-4f5c-a0d3-5260734e821b}</Project>
+      <Name>SwedbankPay.Episerver.Checkout</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Foundation.Cms\Foundation.Cms.csproj">
       <Project>{c9638f52-7402-446d-bf89-993686e26a52}</Project>
       <Name>Foundation.Cms</Name>

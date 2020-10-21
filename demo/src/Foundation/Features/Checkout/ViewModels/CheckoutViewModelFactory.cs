@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using SwedbankPay.Episerver.Checkout.Common;
 
 namespace Foundation.Features.Checkout.ViewModels
 {
@@ -175,6 +176,12 @@ namespace Foundation.Features.Checkout.ViewModels
             var selectedPaymentMethod = viewModel.Payment == null ?
                 defaultPaymentMethod :
                 methodViewModels.Single(p => p.SystemKeyword == viewModel.Payment.SystemKeyword);
+
+            if (selectedPaymentMethod.SystemKeyword == Constants.SwedbankPayCheckoutSystemKeyword)
+            {
+                var swedbankPayCheckoutPaymentOption = selectedPaymentMethod.PaymentOption as SwedbankPayCheckoutPaymentOption;
+                swedbankPayCheckoutPaymentOption?.InitializeValues(cart);
+            }
 
             viewModel.Payment = selectedPaymentMethod.PaymentOption;
             viewModel.Payments = methodViewModels.Where(x => cart.GetFirstForm().Payments.Any(p => p.PaymentMethodId == x.PaymentMethodId))
