@@ -474,6 +474,25 @@ public string GetViewPaymentOrderHref(string consumerProfileRef)
     return paymentOrderResponseObject.Operations.View.Href.OriginalString;
 }
 
+[HttpPost]
+public async Task<string> GetSwedbankPayShippingDetails(Uri url)
+{
+    var market = _marketService.GetMarket(CartWithValidationIssues.Cart.MarketId);
+    var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
+    var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
+    return JsonConvert.SerializeObject(shippingDetails, JsonSerialization.Settings);
+}
+
+[HttpPost]
+public async Task<string> GetSwedbankPayBillingDetails(Uri url)
+{
+    var market = _marketService.GetMarket(CartWithValidationIssues.Cart.MarketId);
+    var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
+    
+    var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
+    return JsonConvert.SerializeObject(billingDetails, JsonSerialization.Settings);
+}
+
 ```
 
 
@@ -718,16 +737,14 @@ else
 		        var response = JSON.parse(this.responseText);
 		        console.log(response);
 		        var billingAddress = response.billingAddress;
-		        $('#BillingAddress_Email').val(response.email);
-		        $('#BillingAddress_FirstName').val(billingAddress.addressee);
-		        $('#BillingAddress_LastName').val(billingAddress.addressee);
-		        $('#BillingAddress_Line1').val(billingAddress.streetAddress);
-		        $('#BillingAddress_PostalCode').val(billingAddress.zipCode);
-		        $('#BillingAddress_City').val(billingAddress.city);
-		        $('#BillingAddress_CountryCode').val(billingAddress.CountryCode.ThreeLetterISORegionName);
-
+		        document.querySelector('#Shipments_0__Address_Email').value = response.email;
+		        document.querySelector('#Shipments_0__Address_FirstName').value = billingAddress.addressee;
+		        document.querySelector('#Shipments_0__Address_LastName').value = billingAddress.addressee;
+		        document.querySelector('#Shipments_0__Address_Line1').value = billingAddress.streetAddress;
+		        document.querySelector('#Shipments_0__Address_PostalCode').value = billingAddress.zipCode;
+		        document.querySelector('#Shipments_0__Address_City').value = billingAddress.city;
 	        });
-	        request.open('POST', '@Url.Action("GetSwedbankPayBillingDetails", "SwedbankPayCheckout", null)', true);
+	        request.open('POST', '@Url.Action("GetSwedbankPayBillingDetails", "Checkout", null)', true);
 	        request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
 	        request.send(JSON.stringify(data));
         }
@@ -740,16 +757,14 @@ else
                 var response = JSON.parse(this.responseText);
                 console.log(response);
                 var shippingAddress = response.shippingAddress;
-                $('#BillingAddress_Email').val(response.Email);
-                $('#BillingAddress_FirstName').val(shippingAddress.addressee);
-                $('#BillingAddress_LastName').val(shippingAddress.addressee);
-                $('#BillingAddress_Line1').val(shippingAddress.streetAddress);
-                $('#BillingAddress_PostalCode').val(shippingAddress.zipCode);
-                $('#BillingAddress_City').val(shippingAddress.city);
-                $('#BillingAddress_CountryCode').val(shippingAddress.CountryCode.ThreeLetterISORegionName);
-
+                document.querySelector('#Shipments_0__Address_Email').value = response.Email;
+                document.querySelector('#Shipments_0__Address_FirstName').value = shippingAddress.addressee;
+                document.querySelector('#Shipments_0__Address_LastName').value = shippingAddress.addressee;
+                document.querySelector('#Shipments_0__Address_Line1').value = shippingAddress.streetAddress;
+                document.querySelector('#Shipments_0__Address_PostalCode').value = shippingAddress.zipCode;
+                document.querySelector('#Shipments_0__Address_City').value = shippingAddress.city;
             });
-            request.open('POST', '@Url.Action("GetSwedbankPayShippingDetails", "SwedbankPayCheckout", null)', true);
+            request.open('POST', '@Url.Action("GetSwedbankPayShippingDetails", "Checkout", null)', true);
             request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
             request.send(JSON.stringify(data));
         }
