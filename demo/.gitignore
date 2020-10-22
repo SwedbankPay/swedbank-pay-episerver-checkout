@@ -86,3 +86,4 @@ src/Foundation.CommerceManager/App_Data/ImportExport/*
 rebuild.cmd
 resetup.cmd
 /src/Foundation/App_Data/Catalog/
+!**/FolderProfile.pubxml
