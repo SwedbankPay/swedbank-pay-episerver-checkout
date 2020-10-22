@@ -490,19 +490,19 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout.CommerceManager\SwedbankPay.Episerver.Checkout.CommerceManager.csproj">
-      <Project>{b70821a5-7ef6-44e8-a812-4e17254036a7}</Project>
+      <Project>{08a5fff9-7fa9-4966-b396-a21c723ea186}</Project>
       <Name>SwedbankPay.Episerver.Checkout.CommerceManager</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj">
-      <Project>{d773b6a3-ee81-40aa-b585-4f0d164ade97}</Project>
+      <Project>{ca9828a7-3e25-4b19-9f0f-c77d7dbe8405}</Project>
       <Name>SwedbankPay.Episerver.Checkout.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout.OrderManagement\SwedbankPay.Episerver.Checkout.OrderManagement.csproj">
-      <Project>{8e3481e0-8017-4202-9aeb-ee413c049655}</Project>
+      <Project>{1896a900-14d5-4ada-b66d-c723411e4826}</Project>
       <Name>SwedbankPay.Episerver.Checkout.OrderManagement</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\src\SwedbankPay.Episerver.Checkout\SwedbankPay.Episerver.Checkout.csproj">
-      <Project>{9588675b-3d10-4f5c-a0d3-5260734e821b}</Project>
+      <Project>{7cfb57a0-a037-4487-bd91-731e6fdf5900}</Project>
       <Name>SwedbankPay.Episerver.Checkout</Name>
     </ProjectReference>
     <ProjectReference Include="..\Foundation.Cms\Foundation.Cms.csproj">
