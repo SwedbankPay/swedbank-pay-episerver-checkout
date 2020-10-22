@@ -178,7 +178,7 @@ jobs:
       - name: Transform site config files
         working-directory: demo/src/Foundation
         run: |          
-          dotnet xdt --source EpiserverFramework.config --transform EpiserverFramework.${{ needs.variables.outputs.ENVIRONMENT }}.config --output EpiserverFramework.config
+          dotnet xdt --source Web.config --transform Web.${{ needs.variables.outputs.ENVIRONMENT }}.config --output Web.config
           dotnet xdt --source connectionStrings.config --transform connectionStrings.${{ needs.variables.outputs.ENVIRONMENT }}.config --output connectionStrings.config
 
       - name: Transform cm config files
