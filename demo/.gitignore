@@ -82,8 +82,6 @@ src/Foundation/Assets/scss/main.min.css.map
 src/Foundation/Assets/js/main.min.js
 src/Foundation/Assets/js/main.min.js.map
 src/Foundation/License.config
-src/Foundation/connectionStrings.config
-src/Foundation.CommerceManager/connectionStrings.config
 src/Foundation.CommerceManager/App_Data/ImportExport/*
 rebuild.cmd
 resetup.cmd
