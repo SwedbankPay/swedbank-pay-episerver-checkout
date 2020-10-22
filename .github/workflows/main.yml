@@ -9,6 +9,8 @@ on:
       - develop
       - release/**
       - hotfix/**
+
+      - feature/**
   pull_request:
     branches:
       - develop
@@ -95,7 +97,7 @@ jobs:
 
       - name: Set dev environment variables
         uses: allenevans/set-env@v1.1.0
-        if: ${{ startsWith(github.ref, 'refs/heads/develop') || github.base_ref == 'develop' }} 
+        if: ${{ startsWith(github.ref, 'refs/heads/develop') || github.base_ref == 'develop' || startsWith(github.ref, 'refs/heads/feature/') }} 
         with: 
           ENVIRONMENT: dev
           AZURE_SITE_NAME: payexepiserver001dev
