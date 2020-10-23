@@ -444,22 +444,53 @@ IAddressBookService addressBookService
 [AllowDBWrite]
 public JsonResult AddPaymentAndAddressInformation(CheckoutViewModel viewModel, IPaymentMethod paymentMethod, string paymentId)
 {
-    viewModel.IsAuthenticated = User.Identity.IsAuthenticated;
-    _checkoutService.CheckoutAddressHandling.UpdateUserAddresses(viewModel);
-    _checkoutService.UpdateShippingAddresses(Cart, viewModel);
+    // shipping information
+    if (!viewModel.UseShippingingAddressForBilling)
+    {
+        for (var i = 0; i < viewModel.Shipments.Count; i++)
+        {
+            if (viewModel.Shipments[i].ShippingAddressType == 0)
+            {
+                var addressName = viewModel.Shipments[i].Address.FirstName + " " + viewModel.Shipments[i].Address.LastName;
+                viewModel.Shipments[i].Address.AddressId = null;
+                viewModel.Shipments[i].Address.Name = addressName + " " + DateTime.Now.ToString();
+                viewModel.Shipments[i].Address = viewModel.Shipments[i].Address;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(viewModel.Shipments[i].Address.AddressId))
+                {
+                    viewModel.Shipments[i].ShippingAddressType
+                        = 1;
+                    ModelState.AddModelError("Shipments[" + i + "].Address.AddressId", "Address is required.");
+                }
+
+                _addressBookService.LoadAddress(viewModel.Shipments[i].Address);
+                viewModel.Shipments[i].Address = viewModel.Shipments[i].Address;
+            }
+        }
+    }
+
+    _checkoutService.UpdateShippingAddresses(CartWithValidationIssues.Cart, viewModel);
+
+    // subscription
+    AddSubscription(viewModel);
+
 
     // Clean up payments in cart on payment provider site.
-    foreach (var form in Cart.Forms)
+    foreach (var form in CartWithValidationIssues.Cart.Forms)
     {
         form.Payments.Clear();
     }
+    var payment = paymentMethod.CreatePayment(CartWithValidationIssues.Cart.GetTotal().Amount, CartWithValidationIssues.Cart);
+    CartWithValidationIssues.Cart.AddPayment(payment);
+    CartWithValidationIssues.Cart.Properties[Constants.SwedbankPayPaymentIdField] = paymentId;
 
-    var payment = paymentMethod.CreatePayment(Cart.GetTotal().Amount, Cart);
-    payment.BillingAddress = _addressBookService.ConvertToAddress(viewModel.BillingAddress, Cart);
+    // billing address
+    UpdatePaymentAddress(viewModel);
 
-    Cart.AddPayment(payment);
-    Cart.Properties[Constants.SwedbankPayPaymentIdField] = paymentId;
-    _orderRepository.Save(Cart);
+    //payment.BillingAddress = _addressBookService.ConvertToAddress(viewModel.BillingAddress, CartWithValidationIssues.Cart);
+    _orderRepository.Save(CartWithValidationIssues.Cart);
 
     return new JsonResult
     {
@@ -757,7 +788,7 @@ else
                 var response = JSON.parse(this.responseText);
                 console.log(response);
                 var shippingAddress = response.shippingAddress;
-                document.querySelector('#Shipments_0__Address_Email').value = response.Email;
+                document.querySelector('#Shipments_0__Address_Email').value = response.email;
                 document.querySelector('#Shipments_0__Address_FirstName').value = shippingAddress.addressee;
                 document.querySelector('#Shipments_0__Address_LastName').value = shippingAddress.addressee;
                 document.querySelector('#Shipments_0__Address_Line1').value = shippingAddress.streetAddress;
@@ -803,11 +834,12 @@ else
 
 Add view Foundation/Features/MyAccount/OrderConfirmation/_SwedbankPayCheckoutConfirmation.cshtml
 ```Html
-<div class="quicksilver-well">
+@model EPiServer.Commerce.Order.IPayment
+<div>
 	<h4>@Html.Translate("/OrderConfirmation/PaymentDetails")</h4>
-	<p>
-		SwedbankPay
-	</p>
+	<p>@Model.PaymentMethodName</p>
+	<p>TransactionId: @Model.ProviderTransactionID</p>
+
 </div>
 ```
 
