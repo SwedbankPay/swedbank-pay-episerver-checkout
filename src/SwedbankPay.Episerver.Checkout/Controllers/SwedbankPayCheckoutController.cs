@@ -25,18 +25,18 @@ namespace SwedbankPay.Episerver.Checkout.Controllers
 
 
         [HttpPost]
-        public async Task<string> GetSwedbankPayShippingDetails(Uri url)
+        public async Task<string> GetSwedbankPayShippingDetails(Uri url, string languageId)
         {
 
-            var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket());
+            var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket(), languageId);
             var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
             return JsonConvert.SerializeObject(shippingDetails, JsonSerialization.Settings);
         }
 
         [HttpPost]
-        public async Task<string> GetSwedbankPayBillingDetails(Uri url)
+        public async Task<string> GetSwedbankPayBillingDetails(Uri url, string languageId)
         {
-            var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket());
+            var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket(), languageId);
             var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
             return JsonConvert.SerializeObject(billingDetails, JsonSerialization.Settings);
         }

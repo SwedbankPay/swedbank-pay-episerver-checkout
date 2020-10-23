@@ -8,6 +8,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
     public interface ISwedbankPayClientFactory
     {
         ISwedbankPayClient Create(IMarket market);
+        ISwedbankPayClient Create(IMarket market, string languageId);
         ISwedbankPayClient Create(PaymentMethodDto paymentMethodDto, MarketId marketMarketId);
         ISwedbankPayClient Create(ConnectionConfiguration connectionConfiguration);
     }
