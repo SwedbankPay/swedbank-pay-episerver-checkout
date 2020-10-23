@@ -1,6 +1,6 @@
-﻿<div class="quicksilver-well">
+﻿@model EPiServer.Commerce.Order.IPayment
+<div>
 	<h4>@Html.Translate("/OrderConfirmation/PaymentDetails")</h4>
-	<p>
-		SwedbankPay
-	</p>
+	<p>@Model.PaymentMethodName</p>
+	<p>TransactionId: @Model.ProviderTransactionID</p>
 </div>

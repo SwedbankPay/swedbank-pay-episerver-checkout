@@ -804,20 +804,52 @@ namespace Foundation.Features.Checkout
         [AllowDBWrite]
         public JsonResult AddPaymentAndAddressInformation(CheckoutViewModel viewModel, IPaymentMethod paymentMethod, string paymentId)
         {
-            _checkoutService.CheckoutAddressHandling.UpdateAnonymousUserAddresses(viewModel);
+            // shipping information
+            if (!viewModel.UseShippingingAddressForBilling)
+            {
+                for (var i = 0; i < viewModel.Shipments.Count; i++)
+                {
+                    if (viewModel.Shipments[i].ShippingAddressType == 0)
+                    {
+                        var addressName = viewModel.Shipments[i].Address.FirstName + " " + viewModel.Shipments[i].Address.LastName;
+                        viewModel.Shipments[i].Address.AddressId = null;
+                        viewModel.Shipments[i].Address.Name = addressName + " " + DateTime.Now.ToString();
+                        viewModel.Shipments[i].Address = viewModel.Shipments[i].Address;
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(viewModel.Shipments[i].Address.AddressId))
+                        {
+                            viewModel.Shipments[i].ShippingAddressType
+                                = 1;
+                            ModelState.AddModelError("Shipments[" + i + "].Address.AddressId", "Address is required.");
+                        }
+
+                        _addressBookService.LoadAddress(viewModel.Shipments[i].Address);
+                        viewModel.Shipments[i].Address = viewModel.Shipments[i].Address;
+                    }
+                }
+            }
+
             _checkoutService.UpdateShippingAddresses(CartWithValidationIssues.Cart, viewModel);
+
+            // subscription
+            AddSubscription(viewModel);
+
 
             // Clean up payments in cart on payment provider site.
             foreach (var form in CartWithValidationIssues.Cart.Forms)
             {
                 form.Payments.Clear();
             }
-
             var payment = paymentMethod.CreatePayment(CartWithValidationIssues.Cart.GetTotal().Amount, CartWithValidationIssues.Cart);
-            payment.BillingAddress = _addressBookService.ConvertToAddress(viewModel.BillingAddress, CartWithValidationIssues.Cart);
-
             CartWithValidationIssues.Cart.AddPayment(payment);
             CartWithValidationIssues.Cart.Properties[Constants.SwedbankPayPaymentIdField] = paymentId;
+
+            // billing address
+            UpdatePaymentAddress(viewModel);
+
+            //payment.BillingAddress = _addressBookService.ConvertToAddress(viewModel.BillingAddress, CartWithValidationIssues.Cart);
             _orderRepository.Save(CartWithValidationIssues.Cart);
 
             return new JsonResult

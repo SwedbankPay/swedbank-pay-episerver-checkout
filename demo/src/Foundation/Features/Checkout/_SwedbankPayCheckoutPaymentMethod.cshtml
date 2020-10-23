@@ -181,7 +181,7 @@ else
                 var response = JSON.parse(this.responseText);
                 console.log(response);
                 var shippingAddress = response.shippingAddress;
-                document.querySelector('#Shipments_0__Address_Email').value = response.Email;
+                document.querySelector('#Shipments_0__Address_Email').value = response.email;
                 document.querySelector('#Shipments_0__Address_FirstName').value = shippingAddress.addressee;
                 document.querySelector('#Shipments_0__Address_LastName').value = shippingAddress.addressee;
                 document.querySelector('#Shipments_0__Address_Line1').value = shippingAddress.streetAddress;
