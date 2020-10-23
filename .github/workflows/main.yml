@@ -97,7 +97,7 @@ jobs:
 
       - name: Set dev environment variables
         uses: allenevans/set-env@v1.1.0
-        if: ${{ startsWith(github.ref, 'refs/heads/develop') || github.base_ref == 'develop' }} 
+        if: ${{ startsWith(github.ref, 'refs/heads/develop') || github.base_ref == 'develop' || startsWith(github.ref, 'refs/heads/feature/')}} 
         with: 
           ENVIRONMENT: dev
           AZURE_SITE_NAME: payexepiserver001dev
@@ -191,7 +191,7 @@ jobs:
         run: msbuild demo/Foundation.sln /p:DeployOnBuild=true /p:PublishProfile=FolderProfile /p:Configuration=Release
 
       - name: Deploy Dev Site to Azure
-        if: ${{ github.event_name != 'pull_request' && needs.variables.outputs.ENVIRONMENT == 'dev'}}
+        if: ${{ !startsWith(github.ref, 'refs/heads/feature/') && github.event_name != 'pull_request' && needs.variables.outputs.ENVIRONMENT == 'dev'}}
         uses: Azure/webapps-deploy@v2
         with:
           app-name: ${{ needs.variables.outputs.AZURE_SITE_NAME }}
@@ -199,7 +199,7 @@ jobs:
           publish-profile: ${{ secrets.AZURE_SITE_DEV_PUBLISH_PROFILE }}
         
       - name: Deploy Dev Commerce Manager to Azure
-        if: ${{ github.event_name != 'pull_request' && needs.variables.outputs.ENVIRONMENT == 'dev'}}
+        if: ${{ !startsWith(github.ref, 'refs/heads/feature/') && github.event_name != 'pull_request' && needs.variables.outputs.ENVIRONMENT == 'dev'}}
         uses: Azure/webapps-deploy@v2
         with:
           app-name: ${{ needs.variables.outputs.AZURE_CM_NAME }}
