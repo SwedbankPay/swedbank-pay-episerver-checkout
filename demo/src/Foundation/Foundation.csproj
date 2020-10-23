@@ -1456,7 +1456,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="modules\_protected\EPiServer\EPiServer.Labs.LanguageManager\Translation\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\customers.xml" />
     <Content Include="App_Data\markets.xml" />
@@ -2286,6 +2288,8 @@
     <Content Include="modules\_protected\EPiServer.GoogleAnalytics\EPiServer.GoogleAnalytics.zip" />
     <Content Include="Features\Checkout\_SwedbankPayCheckoutPaymentMethod.cshtml" />
     <Content Include="Features\MyAccount\OrderConfirmation\_SwedbankPayCheckoutConfirmation.cshtml" />
+    <Content Include="modules\_protected\episerver-labs-content-manager\episerver-labs-content-manager.zip" />
+    <Content Include="modules\_protected\episerver-labs-grid-view\episerver-labs-grid-view.zip" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
