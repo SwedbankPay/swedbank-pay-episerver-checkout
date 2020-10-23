@@ -97,13 +97,13 @@ jobs:
 
       - name: Set dev environment variables
         uses: allenevans/set-env@v1.1.0
-        if: ${{ startsWith(github.ref, 'refs/heads/develop') || github.base_ref == 'develop' || startsWith(github.ref, 'refs/heads/feature/') }} 
+        if: ${{ startsWith(github.ref, 'refs/heads/develop') || github.base_ref == 'develop' }} 
         with: 
           ENVIRONMENT: dev
-          AZURE_SITE_NAME: payexepiserver001tst
-          AZURE_CM_NAME: mgrpayexepiserver001tst
-          SITE_URL: https://payexepiserver001tst.azurewebsites.net/
-          CM_URL: https://mgrpayexepiserver001tst.azurewebsites.net/
+          AZURE_SITE_NAME: payexepiserver001dev
+          AZURE_CM_NAME: mgrpayexepiserver001dev
+          SITE_URL: https://payexepiserver001dev.azurewebsites.net/
+          CM_URL: https://mgrpayexepiserver001dev.azurewebsites.net/
           
       - name: Set uat environment variables
         uses: allenevans/set-env@v1.1.0
