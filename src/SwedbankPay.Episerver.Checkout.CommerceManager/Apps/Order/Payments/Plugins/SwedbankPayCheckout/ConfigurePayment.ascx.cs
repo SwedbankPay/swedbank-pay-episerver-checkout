@@ -134,6 +134,10 @@ namespace SwedbankPay.Episerver.Checkout.CommerceManager.Apps.Order.Payments.Plu
 
         public void BindConfigurationData(CheckoutConfiguration checkoutConfiguration)
         {
+            if(checkoutConfiguration == null)
+            {
+	            return;
+            }
 
             txtToken.Text = checkoutConfiguration.Token;
             txtApiUrl.Text = checkoutConfiguration.ApiUrl?.ToString();
