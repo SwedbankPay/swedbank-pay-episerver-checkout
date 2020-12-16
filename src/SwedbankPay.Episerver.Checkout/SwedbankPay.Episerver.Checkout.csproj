@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj" PrivateAssets="all"/>
-    <ProjectReference Include="..\SwedbankPay.Episerver.Checkout.OrderManagement\SwedbankPay.Episerver.Checkout.OrderManagement.csproj" PrivateAssets="all"/>
+    <ProjectReference Include="..\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\SwedbankPay.Episerver.Checkout.OrderManagement\SwedbankPay.Episerver.Checkout.OrderManagement.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
