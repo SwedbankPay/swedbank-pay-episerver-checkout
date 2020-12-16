@@ -96,7 +96,7 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
 
       - name: Set dev environment variables
-        uses: allenevans/set-env@v1.1.0
+        uses: allenevans/set-env@v2.0.0
         if: ${{ startsWith(github.ref, 'refs/heads/develop') || github.base_ref == 'develop' || startsWith(github.ref, 'refs/heads/feature/')}} 
         with: 
           ENVIRONMENT: dev
@@ -106,7 +106,7 @@ jobs:
           CM_URL: https://mgrpayexepiserver001dev.azurewebsites.net/
           
       - name: Set uat environment variables
-        uses: allenevans/set-env@v1.1.0
+        uses: allenevans/set-env@v2.0.0
         if: ${{ startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/hotfix/') || contains(github.ref, '-beta')}} 
         with: 
           ENVIRONMENT: uat
@@ -116,7 +116,7 @@ jobs:
           CM_URL: https://mgrpayexepiserver001uat.azurewebsites.net/
           
       - name: Set pro environment variables
-        uses: allenevans/set-env@v1.1.0
+        uses: allenevans/set-env@v2.0.0
         if: ${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref, 'refs/tags/*-*') }} 
         with: 
           ENVIRONMENT: pro
