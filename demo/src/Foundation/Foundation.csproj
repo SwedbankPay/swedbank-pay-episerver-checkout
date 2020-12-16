@@ -2377,6 +2377,7 @@
   </Target>
   -->
   <Target Name="AfterBuild">
+    <Exec Command="npm install" />
     <Exec Condition="'$(Configuration)' == 'Debug' " Command="npm run dev" />
     <Exec Condition="'$(Configuration)' == 'Release' " Command="npm run prod" />
   </Target>
