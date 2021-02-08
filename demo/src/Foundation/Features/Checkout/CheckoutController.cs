@@ -871,7 +871,7 @@ namespace Foundation.Features.Checkout
             var market = _marketService.GetMarket(CartWithValidationIssues.Cart.MarketId);
             var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
             var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
-            return JsonConvert.SerializeObject(shippingDetails, JsonSerialization.Settings);
+            return System.Text.Json.JsonSerializer.Serialize(shippingDetails, JsonSerialization.Settings);
         }
 
         [HttpPost]
@@ -881,7 +881,7 @@ namespace Foundation.Features.Checkout
             var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
             
             var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
-            return JsonConvert.SerializeObject(billingDetails, JsonSerialization.Settings);
+            return System.Text.Json.JsonSerializer.Serialize(billingDetails, JsonSerialization.Settings);
         }
     }
 }

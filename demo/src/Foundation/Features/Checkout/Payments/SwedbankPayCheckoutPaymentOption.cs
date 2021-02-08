@@ -114,7 +114,7 @@ namespace Foundation.Features.Checkout.Payments
         public override IPayment CreatePayment(decimal amount, IOrderGroup orderGroup)
         {
             var paymentOrder = _swedbankPayCheckoutService.GetPaymentOrder(orderGroup, PaymentOrderExpand.All);
-            var currentPayment = paymentOrder.PaymentOrderResponse.CurrentPayment.Payment;
+            var currentPayment = paymentOrder.PaymentOrder.CurrentPayment.Payment;
             var transaction = currentPayment?.Transactions?.TransactionList?.FirstOrDefault();
             var transactionType = transaction?.Type.ConvertToEpiTransactionType() ?? TransactionType.Authorization;
 
@@ -122,7 +122,7 @@ namespace Foundation.Features.Checkout.Payments
             payment.PaymentType = PaymentType.Other;
             payment.PaymentMethodId = PaymentMethodId;
             payment.PaymentMethodName = Constants.SwedbankPayCheckoutSystemKeyword;
-            payment.ProviderTransactionID = transaction?.Number;
+            payment.ProviderTransactionID = transaction?.Number.ToString();
             payment.Amount = amount;
             var isSwishPayment = currentPayment?.Instrument.Equals(PaymentInstrument.Swish) ?? false;
             payment.Status = isSwishPayment ? PaymentStatus.Processed.ToString() : PaymentStatus.Pending.ToString();

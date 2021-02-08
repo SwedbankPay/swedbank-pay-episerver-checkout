@@ -424,11 +424,11 @@ namespace Foundation.Features.Checkout.Services
 
             var order = _swedbankPayCheckoutService.GetPaymentOrder(cart, PaymentOrderExpand.All);
 
-            var paymentResponse = order.PaymentOrderResponse.CurrentPayment;
+            var paymentResponse = order.PaymentOrder.CurrentPayment;
             var transaction = paymentResponse.Payment.Transactions?.TransactionList?.FirstOrDefault(x =>
                 x.State.Equals(State.Completed) &&
-                x.Type.Equals(SwedbankPay.Sdk.TransactionType.Authorization) ||
-                x.Type.Equals(SwedbankPay.Sdk.TransactionType.Sale));
+                x.Type.Equals(SwedbankPay.Sdk.PaymentInstruments.TransactionType.Authorization) ||
+                x.Type.Equals(SwedbankPay.Sdk.PaymentInstruments.TransactionType.Sale));
 
             if (transaction != null)
             {
