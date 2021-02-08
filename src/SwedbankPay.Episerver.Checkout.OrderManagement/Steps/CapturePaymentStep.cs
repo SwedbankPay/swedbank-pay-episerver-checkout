@@ -45,8 +45,8 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         var paymentOrder = AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative)));
                         if (paymentOrder.Operations.Capture == null)
                         {
-                            remainingCaptureAmount = paymentOrder.PaymentOrderResponse.RemainingCaptureAmount?.Value;
-                            if (!remainingCaptureAmount.HasValue || remainingCaptureAmount.Value == 0)
+                            remainingCaptureAmount = paymentOrder.PaymentOrder.RemainingCaptureAmount.InLowestMonetaryUnit;
+                            if (remainingCaptureAmount.Value == 0)
                             {
                                 AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Capture is not possible on this order {orderId}, capture already performed");
                                 paymentStepResult.Status = true;
@@ -60,10 +60,10 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         var captureRequest = _requestFactory.GetCaptureRequest(payment, _market, shipment);
                         var captureResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Capture(captureRequest));
 
-                        if (captureResponse.Capture.Transaction.Type == Sdk.TransactionType.Capture && captureResponse.Capture.Transaction.State.Equals(State.Completed))
+                        if (captureResponse.Capture.Type == Sdk.PaymentInstruments.TransactionType.Capture && captureResponse.Capture.State.Equals(State.Completed))
                         {
-                            payment.ProviderTransactionID = captureResponse.Capture.Transaction.Number;
-                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Order captured at SwedbankPay, Transaction number: {captureResponse.Capture.Transaction.Number}");
+                            payment.ProviderTransactionID = captureResponse.Capture.Number.ToString();
+                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Order captured at SwedbankPay, Transaction number: {captureResponse.Capture.Number}");
                             paymentStepResult.Status = true;
                         }
 

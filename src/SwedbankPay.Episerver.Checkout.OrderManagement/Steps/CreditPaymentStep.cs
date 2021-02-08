@@ -63,10 +63,10 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                                 }
 
                                 var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reverse(reversalRequest));
-                                if (reversalResponse.Reversal.Transaction.Type == Sdk.TransactionType.Reversal && reversalResponse.Reversal.Transaction.State.Equals(State.Completed))
+                                if (reversalResponse.Reversal.Transaction.Type == SwedbankPay.Sdk.PaymentInstruments.TransactionType.Reversal && reversalResponse.Reversal.Transaction.State.Equals(State.Completed))
                                 {
                                     payment.Status = PaymentStatus.Processed.ToString();
-                                    payment.TransactionID = reversalResponse.Reversal.Transaction.Number;
+                                    payment.TransactionID = reversalResponse.Reversal.Transaction.Number.ToString();
                                     payment.ProviderTransactionID = reversalResponse.Reversal.Transaction.Id.ToString();
                                     AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
 

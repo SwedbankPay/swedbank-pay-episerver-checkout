@@ -30,7 +30,7 @@ namespace SwedbankPay.Episerver.Checkout.Controllers
 
             var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket(), languageId);
             var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
-            return JsonConvert.SerializeObject(shippingDetails, JsonSerialization.Settings);
+            return System.Text.Json.JsonSerializer.Serialize(shippingDetails, JsonSerialization.Settings);
         }
 
         [HttpPost]
@@ -38,7 +38,7 @@ namespace SwedbankPay.Episerver.Checkout.Controllers
         {
             var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket(), languageId);
             var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
-            return JsonConvert.SerializeObject(billingDetails, JsonSerialization.Settings);
+            return System.Text.Json.JsonSerializer.Serialize(billingDetails, JsonSerialization.Settings);
         }
     }
 }
