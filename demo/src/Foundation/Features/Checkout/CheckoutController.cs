@@ -848,8 +848,7 @@ namespace Foundation.Features.Checkout
 
             // billing address
             UpdatePaymentAddress(viewModel);
-
-            //payment.BillingAddress = _addressBookService.ConvertToAddress(viewModel.BillingAddress, CartWithValidationIssues.Cart);
+            
             _orderRepository.Save(CartWithValidationIssues.Cart);
 
             return new JsonResult
