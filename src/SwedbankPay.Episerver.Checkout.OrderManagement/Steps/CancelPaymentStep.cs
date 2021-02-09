@@ -1,9 +1,7 @@
 using EPiServer.Commerce.Order;
 using EPiServer.Logging;
-using EPiServer.ServiceLocation;
 
 using Mediachase.Commerce;
-using Mediachase.Commerce.Customers;
 using Mediachase.Commerce.Orders;
 
 using SwedbankPay.Episerver.Checkout.Common;
@@ -17,7 +15,7 @@ using TransactionType = Mediachase.Commerce.Orders.TransactionType;
 
 namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 {
-    public class CancelPaymentStep : PaymentStep
+	public class CancelPaymentStep : PaymentStep
     {
         private readonly IMarket _market;
         private readonly IRequestFactory _requestFactory;
@@ -54,7 +52,7 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         {
                             var reversalRequest = _requestFactory.GetReversalRequest(payment, orderForm.GetAllLineItems(), _market, shipment, description: "Cancelling purchase order");
                             var reversalResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Reverse(reversalRequest));
-                            if (reversalResponse.Reversal.Transaction.Type == Sdk.TransactionType.Reversal)
+                            if (reversalResponse.Reversal.Transaction.Type == Sdk.PaymentInstruments.TransactionType.Reversal)
                             {
                                 payment.Status = PaymentStatus.Processed.ToString();
                                 AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Refunded {payment.Amount}");
@@ -80,10 +78,10 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
 
                         var cancelRequest = _requestFactory.GetCancelRequest();
                         var cancelResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Cancel(cancelRequest));
-                        if (cancelResponse.Cancellation.Transaction.Type == Sdk.TransactionType.Cancellation && cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
+                        if (cancelResponse.Cancellation.Transaction.Type == Sdk.PaymentInstruments.TransactionType.Cancellation && cancelResponse.Cancellation.Transaction.State.Equals(State.Completed))
                         {
                             payment.Status = PaymentStatus.Processed.ToString();
-                            payment.TransactionID = cancelResponse.Cancellation.Transaction.Number;
+                            payment.TransactionID = cancelResponse.Cancellation.Transaction.Number.ToString();
                             payment.ProviderTransactionID = cancelResponse.Cancellation.Transaction.Id.ToString();
                             AddNoteAndSaveChanges(orderGroup, payment.TransactionType, "Order cancelled at SwedbankPay");
                             return paymentStepResult;

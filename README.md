@@ -212,7 +212,7 @@ namespace Foundation.Features.Checkout.Payments
         public override IPayment CreatePayment(decimal amount, IOrderGroup orderGroup)
         {
             var paymentOrder = _swedbankPayCheckoutService.GetPaymentOrder(orderGroup, PaymentOrderExpand.All);
-            var currentPayment = paymentOrder.PaymentOrderResponse.CurrentPayment.Payment;
+            var currentPayment = paymentOrder.PaymentOrder.CurrentPayment.Payment;
             var transaction = currentPayment?.Transactions?.TransactionList?.FirstOrDefault();
             var transactionType = transaction?.Type.ConvertToEpiTransactionType() ?? TransactionType.Authorization;
 
@@ -220,7 +220,7 @@ namespace Foundation.Features.Checkout.Payments
             payment.PaymentType = PaymentType.Other;
             payment.PaymentMethodId = PaymentMethodId;
             payment.PaymentMethodName = Constants.SwedbankPayCheckoutSystemKeyword;
-            payment.ProviderTransactionID = transaction?.Number;
+            payment.ProviderTransactionID = transaction?.Number.ToString();
             payment.Amount = amount;
             var isSwishPayment = currentPayment?.Instrument.Equals(PaymentInstrument.Swish) ?? false;
             payment.Status = isSwishPayment ? PaymentStatus.Processed.ToString() : PaymentStatus.Pending.ToString();
@@ -265,11 +265,11 @@ public IPurchaseOrder GetOrCreatePurchaseOrder(int orderGroupId, string swedbank
 
     var order = _swedbankPayCheckoutService.GetPaymentOrder(cart, PaymentOrderExpand.All);
 
-    var paymentResponse = order.PaymentOrderResponse.CurrentPayment;
+    var paymentResponse = order.PaymentOrder.CurrentPayment;
     var transaction = paymentResponse.Payment.Transactions?.TransactionList?.FirstOrDefault(x =>
         x.State.Equals(State.Completed) &&
-        x.Type.Equals(SwedbankPay.Sdk.TransactionType.Authorization) ||
-        x.Type.Equals(SwedbankPay.Sdk.TransactionType.Sale));
+        x.Type.Equals(SwedbankPay.Sdk.PaymentInstruments.TransactionType.Authorization) ||
+        x.Type.Equals(SwedbankPay.Sdk.PaymentInstruments.TransactionType.Sale));
 
     if (transaction != null)
     {
@@ -393,15 +393,15 @@ namespace Foundation.Features.Checkout
                 if (!purchaseOrderContainsPaymentTransaction)
                 {
                     var paymentOrder = _swedbankPayCheckoutService.GetPaymentOrder(purchaseOrder, PaymentOrderExpand.All);
-                    var transaction = paymentOrder.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList
-                        .FirstOrDefault(x => x.Number == callback.Transaction.Number.ToString());
+                    var transaction = paymentOrder.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList
+                        .FirstOrDefault(x => x.Number == callback.Transaction.Number);
                     
-                    var swedbankPayCheckoutPaymentMethodDto = PaymentManager.GetPaymentMethodBySystemName(Constants.SwedbankPayCheckoutSystemKeyword, paymentOrder.PaymentOrderResponse.Language.TwoLetterISOLanguageName);
+                    var swedbankPayCheckoutPaymentMethodDto = PaymentManager.GetPaymentMethodBySystemName(Constants.SwedbankPayCheckoutSystemKeyword, paymentOrder.PaymentOrder.Language.ToString());
                     var paymentMethod = swedbankPayCheckoutPaymentMethodDto?.PaymentMethod?.FirstOrDefault();
                     if (paymentMethod != null && transaction != null)
                     {
-                        if (paymentOrder.PaymentOrderResponse.CurrentPayment.Payment.Instrument == PaymentInstrument.Invoice
-                            && transaction.Type == TransactionType.Authorization)
+                        if (paymentOrder.PaymentOrder.CurrentPayment.Payment.Instrument == PaymentInstrument.Invoice
+                            && transaction.Type == SwedbankPay.Sdk.PaymentInstruments.TransactionType.Authorization)
                         {
                             //Already added a authorization transaction for Invoice when creating payment.
                             return Ok();
@@ -412,8 +412,8 @@ namespace Foundation.Features.Checkout
                         payment.PaymentMethodId = paymentMethod.PaymentMethodId;
                         payment.PaymentMethodName = Constants.SwedbankPayCheckoutSystemKeyword;
                         payment.TransactionType = transaction.Type.ConvertToEpiTransactionType().ToString();
-                        payment.ProviderTransactionID = transaction.Number;
-                        payment.Amount = transaction.Amount.Value / (decimal)100;
+                        payment.ProviderTransactionID = transaction.Number.ToString();
+                        payment.Amount = transaction.Amount / (decimal)100;
                         payment.Status = PaymentStatus.Processed.ToString();
                         purchaseOrder.AddPayment(payment);
                         _orderRepository.Save(purchaseOrder);
@@ -511,7 +511,7 @@ public async Task<string> GetSwedbankPayShippingDetails(Uri url)
     var market = _marketService.GetMarket(CartWithValidationIssues.Cart.MarketId);
     var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
     var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
-    return JsonConvert.SerializeObject(shippingDetails, JsonSerialization.Settings);
+    return System.Text.Json.JsonSerializer.Serialize(shippingDetails, JsonSerialization.Settings);
 }
 
 [HttpPost]
@@ -521,7 +521,7 @@ public async Task<string> GetSwedbankPayBillingDetails(Uri url)
     var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
     
     var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
-    return JsonConvert.SerializeObject(billingDetails, JsonSerialization.Settings);
+    return System.Text.Json.JsonSerializer.Serialize(billingDetails, JsonSerialization.Settings);
 }
 
 ```
