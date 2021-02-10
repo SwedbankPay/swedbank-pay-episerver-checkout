@@ -29,8 +29,6 @@ using Mediachase.Commerce.Shared;
 
 using Microsoft.AspNet.Identity.Owin;
 
-using Newtonsoft.Json;
-
 using SwedbankPay.Episerver.Checkout;
 using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Sdk.JsonSerialization;
@@ -332,7 +330,8 @@ namespace Foundation.Features.Checkout
             }
             _orderRepository.Save(CartWithValidationIssues.Cart);
             model = CreateCheckoutViewModel(currentPage);
-            model.OrderSummary = _orderSummaryViewModelFactory.CreateOrderSummaryViewModel(CartWithValidationIssues.Cart); ;
+            model.OrderSummary = _orderSummaryViewModelFactory.CreateOrderSummaryViewModel(CartWithValidationIssues.Cart);
+
             return PartialView("_AddPayment", model);
         }
 
@@ -558,7 +557,7 @@ namespace Foundation.Features.Checkout
                 var paymentTotal = CurrencyFormatter.ConvertCurrency(new Money(viewModel.OrderSummary.PaymentTotal, CartWithValidationIssues.Cart.Currency), Currency.USD);
                 if (paymentTotal > giftCard.RemainBalance)
                 {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Not enought money in Gift Card");
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Not enough money in Gift Card");
                 }
             }
 
@@ -848,7 +847,7 @@ namespace Foundation.Features.Checkout
 
             // billing address
             UpdatePaymentAddress(viewModel);
-            
+
             _orderRepository.Save(CartWithValidationIssues.Cart);
 
             return new JsonResult
@@ -857,9 +856,34 @@ namespace Foundation.Features.Checkout
             };
         }
 
+        [HttpGet]
+        public ActionResult ConsumerProfileRef()
+        {
+            var value = CartWithValidationIssues.Cart.Properties[Constants.ConsumerProfileRef]?.ToString();
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return new JsonResult
+                {
+                    Data = new
+                    {
+                        ConsumerProfileRef = value
+                    },
+                    JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                };
+            }
+
+            return new HttpNotFoundResult();
+        }
+
         [HttpPost]
         public string GetViewPaymentOrderHref(string consumerProfileRef)
         {
+            var paymentOrderResponse = _swedbankPayCheckoutService.GetPaymentOrder(CartWithValidationIssues.Cart);
+            if (paymentOrderResponse != null)
+            {
+                return paymentOrderResponse.Operations.View.Href.OriginalString;
+            }
+
             var paymentOrderResponseObject = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(CartWithValidationIssues.Cart, "description", consumerProfileRef);
             return paymentOrderResponseObject.Operations.View.Href.OriginalString;
         }
@@ -878,7 +902,7 @@ namespace Foundation.Features.Checkout
         {
             var market = _marketService.GetMarket(CartWithValidationIssues.Cart.MarketId);
             var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
-            
+
             var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
             return System.Text.Json.JsonSerializer.Serialize(billingDetails, JsonSerialization.Settings);
         }

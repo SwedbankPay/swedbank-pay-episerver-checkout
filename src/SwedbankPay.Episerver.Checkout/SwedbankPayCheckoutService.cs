@@ -57,9 +57,14 @@ namespace SwedbankPay.Episerver.Checkout
         public virtual IPaymentOrderResponse CreateOrUpdatePaymentOrder(IOrderGroup orderGroup, string description,
             string consumerProfileRef = null)
         {
-            //return string.IsNullOrWhiteSpace(orderId) ? CreateOrder(orderGroup, userAgent, consumerProfileRef) :  UpdateOrder(orderId, orderGroup, userAgent);
-            return
-                CreatePaymentOrder(orderGroup, description, consumerProfileRef); //TODO Change to UpdateOrder when SwedbankPay Api supports updating of orderitems
+			Uri orderId = null;
+			var swedbankPayOrderIdField = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
+			if (!string.IsNullOrWhiteSpace(swedbankPayOrderIdField))
+			{
+				orderId = new Uri(swedbankPayOrderIdField, UriKind.RelativeOrAbsolute);
+			}
+
+			return orderId == null ? CreatePaymentOrder(orderGroup, description, consumerProfileRef) : UpdatePaymentOrder(orderId, orderGroup);
         }
 
         public virtual IConsumersResponse InitiateConsumerSession(CultureInfo currentLanguage, string email = null, string mobilePhone = null, string ssn = null)
@@ -177,6 +182,7 @@ namespace SwedbankPay.Episerver.Checkout
                 var paymentOrderRequest = _requestFactory.GetPaymentOrderRequest(orderGroup, market, PaymentMethodDto, description, consumerProfileRef);
                 var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Create(paymentOrderRequest));
 
+                orderGroup.Properties[Constants.ConsumerProfileRef] = consumerProfileRef;
                 orderGroup.Properties[Constants.Culture] = ContentLanguage.PreferredCulture.TwoLetterISOLanguageName;
                 orderGroup.Properties[Constants.SwedbankPayOrderIdField] = paymentOrder.PaymentOrder.Id.OriginalString;
                 orderGroup.Properties[Constants.SwedbankPayPayeeReference] = paymentOrderRequest.PaymentOrder.PayeeInfo.PayeeReference;
@@ -190,13 +196,12 @@ namespace SwedbankPay.Episerver.Checkout
             }
         }
 
-        private IPaymentOrderResponse UpdatePaymentOrder(Uri orderId, IOrderGroup orderGroup, string userAgent)
+        private IPaymentOrderResponse UpdatePaymentOrder(Uri orderId, IOrderGroup orderGroup)
         {
             var market = _marketService.GetMarket(orderGroup.MarketId);
             var swedbankPayClient = _swedbankPayClientFactory.Create(PaymentMethodDto, orderGroup.MarketId);
-            var total = orderGroup.GetTotal();
-
-            var updateOrderRequest = _requestFactory.GetUpdateRequest(orderGroup);
+            
+            var updateOrderRequest = _requestFactory.GetUpdateRequest(orderGroup, market);
             var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Get(orderId));
 
             if (paymentOrder?.Operations?.Update != null)
