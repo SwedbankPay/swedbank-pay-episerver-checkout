@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="EPiServer.Commerce.Core" Version="13.7.1" />
-    <PackageReference Include="SwedbankPay.Sdk" Version="2.0.0-alpha.set-target-framework-to-netstandard-20.1.8" />
+    <PackageReference Include="SwedbankPay.Sdk" Version="2.0.0-alpha.add-orderitems-to-updateorderdto.1.6" />
   </ItemGroup>
   
   <ItemGroup>

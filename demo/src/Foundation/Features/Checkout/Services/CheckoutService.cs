@@ -30,6 +30,7 @@ using SwedbankPay.Episerver.Checkout;
 using SwedbankPay.Episerver.Checkout.Common;
 using SwedbankPay.Sdk;
 using SwedbankPay.Sdk.PaymentOrders;
+using SwedbankPay.Episerver.Checkout.Common.Extensions;
 
 namespace Foundation.Features.Checkout.Services
 {
@@ -422,13 +423,19 @@ namespace Foundation.Features.Checkout.Services
                 return null;
             }
 
-            var order = _swedbankPayCheckoutService.GetPaymentOrder(cart, PaymentOrderExpand.All);
+            var paymentOrder = _swedbankPayCheckoutService.GetPaymentOrder(cart, PaymentOrderExpand.All);
+            var currentPayment = paymentOrder.PaymentOrder.CurrentPayment.Payment;
 
-            var paymentResponse = order.PaymentOrder.CurrentPayment;
-            var transaction = paymentResponse.Payment.Transactions?.TransactionList?.FirstOrDefault(x =>
+            if (currentPayment.State.Equals(State.Failed) || currentPayment.Amount == 0)
+            {
+                cart.AddNote($"Payment {currentPayment.Number} failed", $"Payment {currentPayment.Number} failed");
+                return null;
+            }
+
+            var transaction = currentPayment.Transactions?.TransactionList?.FirstOrDefault(x =>
                 x.State.Equals(State.Completed) &&
-                x.Type.Equals(SwedbankPay.Sdk.PaymentInstruments.TransactionType.Authorization) ||
-                x.Type.Equals(SwedbankPay.Sdk.PaymentInstruments.TransactionType.Sale));
+                (x.Type.Equals(SwedbankPay.Sdk.PaymentInstruments.TransactionType.Authorization) ||
+                x.Type.Equals(SwedbankPay.Sdk.PaymentInstruments.TransactionType.Sale)));
 
             if (transaction != null)
             {

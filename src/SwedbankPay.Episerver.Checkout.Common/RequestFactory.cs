@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Web;
 using SwedbankPay.Sdk.Consumers;
 using Currency = Mediachase.Commerce.Currency;
@@ -152,10 +153,26 @@ namespace SwedbankPay.Episerver.Checkout.Common
             return new PaymentOrderAbortRequest(abortReason);
         }
 
-        public virtual PaymentOrderUpdateRequest GetUpdateRequest(IOrderGroup orderGroup)
+        public virtual PaymentOrderUpdateRequest GetUpdateRequest(IOrderGroup orderGroup, IMarket market)
         {
             var totals = _orderGroupCalculator.GetOrderGroupTotals(orderGroup);
-            return new PaymentOrderUpdateRequest(new Amount(totals.Total.Amount), new Amount(totals.TaxTotal));
+            var updateRequest = new PaymentOrderUpdateRequest(new Amount(totals.Total.Amount), new Amount(totals.TaxTotal));
+
+            foreach (var orderGroupForm in orderGroup.Forms)
+            {
+	            foreach (var shipment in orderGroupForm.Shipments)
+	            {
+		            var orderItems = GetOrderItems(market, orderGroup.Currency, shipment.ShippingAddress, shipment.LineItems);
+		            foreach (var orderItem in orderItems)
+		            {
+			            updateRequest.PaymentOrder.OrderItems.Add(orderItem);
+
+		            }
+		            updateRequest.PaymentOrder.OrderItems.Add(GetShippingOrderItem(shipment, market));
+	            }
+            }
+
+            return updateRequest;
         }
 
         private IEnumerable<OrderItem> GetOrderItems(IMarket market, Currency currency, IOrderAddress shippingAddress, IEnumerable<ILineItem> lineItems)

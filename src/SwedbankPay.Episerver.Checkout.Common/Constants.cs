@@ -14,5 +14,7 @@
         public static readonly string SwedbankPayPaymentIdField = "SwedbankPayPaymentId";
         public static readonly string SwedbankPayPayeeReference = "SwedbankPayPayeeReference";
         public static readonly string Culture = "Culture";
+        public static readonly string ConsumerProfileRef = "ConsumerProfileRef";
+        public static readonly string ConsumerUiScriptSource = "ConsumerUiScriptSource";
     }
 }
