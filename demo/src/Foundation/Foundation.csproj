@@ -1653,7 +1653,6 @@
     <Content Include="ClientResources\Styles\fontawesome.min.css" />
     <Content Include="Features\Events\CalendarBlock\calendar-block.js" />
     <Content Include="Features\Markets\market.js" />
-    <Content Include="license.txt" />
     <Content Include="modules\_protected\Foundation.Cms\ClientResources\img\episerver.png" />
     <Content Include="modules\_protected\Foundation.Cms\ClientResources\js\vendors\axios.min.js" />
     <Content Include="modules\_protected\Foundation.Cms\ClientResources\js\vendors\jquery-3.4.0.min.js" />
