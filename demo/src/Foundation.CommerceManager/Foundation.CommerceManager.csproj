@@ -502,7 +502,6 @@
     <Content Include="EPiServerLog.config" />
     <Content Include="connectionStrings.config" />
     <None Include="packages.config" />
-    <Content Include="SwedbankPay.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
