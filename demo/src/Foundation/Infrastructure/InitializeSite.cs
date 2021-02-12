@@ -58,6 +58,8 @@ using System.Linq;
 using System.Web.Http;
 using System.Web.Http.Owin;
 using System.Web.Mvc;
+using Mediachase.Commerce.Orders;
+using Mediachase.MetaDataPlus.Configurator;
 
 namespace Foundation.Infrastructure
 {
@@ -80,8 +82,7 @@ namespace Foundation.Infrastructure
             _services.Configure<ContentApiConfiguration>(c =>
             {
                 c.EnablePreviewFeatures = true;
-                c.Default(RestVersion.Version_3_0).SetMinimumRoles(string.Empty).SetRequiredRole(string.Empty);
-                c.Default(RestVersion.Version_2_0).SetMinimumRoles(string.Empty).SetRequiredRole(string.Empty);
+                c.Default().SetMinimumRoles(string.Empty).SetRequiredRole(string.Empty);
             });
 
             _services.Configure<ContentApiSearchConfiguration>(config =>
@@ -197,6 +198,7 @@ namespace Foundation.Infrastructure
             }
 
             context.InitComplete += ContextOnInitComplete;
+            context.InitComplete += AddMetaFieldLineItem;
 
             SearchClient.Instance.Conventions.UnifiedSearchRegistry
                 .ForInstanceOf<LocationListPage>()
@@ -208,6 +210,7 @@ namespace Foundation.Infrastructure
         public void Uninitialize(InitializationEngine context)
         {
             context.InitComplete -= ContextOnInitComplete;
+            context.InitComplete -= AddMetaFieldLineItem;
             context.Locate.Advanced.GetInstance<IContentEvents>().PublishedContent -= OnPublishedContent;
         }
 
@@ -241,6 +244,41 @@ namespace Foundation.Infrastructure
                 configItems
                     .ToList()
                     .ForEach(x => _locator.GetInstance<IFacetRegistry>().AddFacetDefinitions(_locator.GetInstance<IFacetConfigFactory>().GetFacetDefinition(x)));
+            }
+        }
+
+        private void AddMetaFieldLineItem(object sender, EventArgs eventArgs)
+        {
+            var lineItemMetaClass = OrderContext.Current.LineItemMetaClass;
+            var context = OrderContext.MetaDataContext;
+
+            var name = "VariantOptionCodes";
+            var displayName = "Variant Option Codes";
+            var length = 256;
+            var metaFieldType = MetaDataType.LongString;
+            var metaNamespace = string.Empty;
+            var description = string.Empty;
+            var isNullable = false;
+            var isMultiLanguage = true;
+            var isSearchable = true;
+            var isEncrypted = true;
+
+            var metaField = MetaField.Load(context, name) ?? MetaField.Create(context,
+                lineItemMetaClass.Namespace,
+                name,
+                displayName,
+                description,
+                metaFieldType,
+                length,
+                isNullable,
+                isMultiLanguage,
+                isSearchable,
+                isEncrypted);
+
+
+            if (lineItemMetaClass.MetaFields.All(x => x.Id != metaField.Id))
+            {
+                lineItemMetaClass.AddField(metaField);
             }
         }
     }
