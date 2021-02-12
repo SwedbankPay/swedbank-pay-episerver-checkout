@@ -23,7 +23,7 @@ using TransactionType = Mediachase.Commerce.Orders.TransactionType;
 
 namespace Foundation.Features.Checkout.Payments
 {
-	[ServiceConfiguration(typeof(IPaymentMethod))]
+    [ServiceConfiguration(typeof(IPaymentMethod))]
     public class SwedbankPayCheckoutPaymentOption : PaymentOptionBase, IDataErrorInfo
     {
         private readonly IOrderGroupFactory _orderGroupFactory;
@@ -86,8 +86,8 @@ namespace Foundation.Features.Checkout.Payments
             CheckoutConfiguration = _swedbankPayCheckoutService.LoadCheckoutConfiguration(market, currentLanguage.TwoLetterISOLanguageName);
 
             var orderId = cart.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
-			if (!CheckoutConfiguration.UseAnonymousCheckout)
-			{
+            if (!CheckoutConfiguration.UseAnonymousCheckout)
+            {
                 GetCheckInJavascriptSource(cart);
             }
             if (!string.IsNullOrWhiteSpace(orderId) || CheckoutConfiguration.UseAnonymousCheckout)
@@ -109,7 +109,7 @@ namespace Foundation.Features.Checkout.Payments
         private void GetCheckInJavascriptSource(ICart cart)
         {
             var consumerUiScriptSource = cart.Properties[Constants.ConsumerUiScriptSource]?.ToString();
-			if (!string.IsNullOrWhiteSpace(consumerUiScriptSource))
+            if (!string.IsNullOrWhiteSpace(consumerUiScriptSource))
             {
                 ConsumerUiScriptSource = new Uri(consumerUiScriptSource, UriKind.RelativeOrAbsolute);
                 return;
