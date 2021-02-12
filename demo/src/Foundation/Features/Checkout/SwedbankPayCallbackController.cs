@@ -81,7 +81,7 @@ namespace Foundation.Features.Checkout
                         payment.PaymentMethodName = Constants.SwedbankPayCheckoutSystemKeyword;
                         payment.TransactionType = transaction.Type.ConvertToEpiTransactionType().ToString();
                         payment.ProviderTransactionID = transaction.Number.ToString();
-                        payment.Amount = transaction.Amount / (decimal)100;
+                        payment.Amount = transaction.Amount;
                         payment.Status = PaymentStatus.Processed.ToString();
                         purchaseOrder.AddPayment(payment);
                         _orderRepository.Save(purchaseOrder);
