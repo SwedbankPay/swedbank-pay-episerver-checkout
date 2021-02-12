@@ -39,6 +39,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using SwedbankPay.Sdk.Consumers;
 
 namespace Foundation.Features.Checkout
 {
@@ -857,7 +858,7 @@ namespace Foundation.Features.Checkout
         }
 
         [HttpGet]
-        public ActionResult ConsumerProfileRef()
+        public JsonResult ConsumerProfileRef()
         {
             var value = CartWithValidationIssues.Cart.Properties[Constants.ConsumerProfileRef]?.ToString();
             if (!string.IsNullOrWhiteSpace(value))
@@ -872,7 +873,7 @@ namespace Foundation.Features.Checkout
                 };
             }
 
-            return new HttpNotFoundResult();
+            return null;
         }
 
         [HttpPost]
@@ -889,22 +890,28 @@ namespace Foundation.Features.Checkout
         }
 
         [HttpPost]
-        public async Task<string> GetSwedbankPayShippingDetails(Uri url)
+        public async Task<JsonResult> GetSwedbankPayShippingDetails(Uri url)
         {
             var market = _marketService.GetMarket(CartWithValidationIssues.Cart.MarketId);
             var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
             var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
-            return System.Text.Json.JsonSerializer.Serialize(shippingDetails, JsonSerialization.Settings);
+            return new JsonResult
+            {
+                Data = new AddressDetailsDto(shippingDetails)
+            };
         }
 
         [HttpPost]
-        public async Task<string> GetSwedbankPayBillingDetails(Uri url)
+        public async Task<JsonResult> GetSwedbankPayBillingDetails(Uri url)
         {
             var market = _marketService.GetMarket(CartWithValidationIssues.Cart.MarketId);
             var swedbankPayClient = _swedbankPayClientFactory.Create(market, _languageService.GetCurrentLanguage().TwoLetterISOLanguageName);
 
             var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
-            return System.Text.Json.JsonSerializer.Serialize(billingDetails, JsonSerialization.Settings);
+            return new JsonResult
+            {
+                Data = new AddressDetailsDto(billingDetails)
+            };
         }
     }
 }
