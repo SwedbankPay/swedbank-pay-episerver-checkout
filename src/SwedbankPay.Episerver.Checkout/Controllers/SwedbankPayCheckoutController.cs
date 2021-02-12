@@ -1,9 +1,6 @@
 ﻿using Mediachase.Commerce;
 
-using Newtonsoft.Json;
-
 using SwedbankPay.Episerver.Checkout.Common;
-using SwedbankPay.Sdk.JsonSerialization;
 
 using System;
 using System.Threading.Tasks;
@@ -11,7 +8,7 @@ using System.Web.Mvc;
 
 namespace SwedbankPay.Episerver.Checkout.Controllers
 {
-    public class SwedbankPayCheckoutController : Controller
+	public class SwedbankPayCheckoutController : Controller
     {
         private readonly ISwedbankPayClientFactory _swedbankPayClientFactory;
         private readonly ICurrentMarket _currentMarket;
@@ -25,20 +22,26 @@ namespace SwedbankPay.Episerver.Checkout.Controllers
 
 
         [HttpPost]
-        public async Task<string> GetSwedbankPayShippingDetails(Uri url, string languageId)
+        public async Task<JsonResult> GetSwedbankPayShippingDetails(Uri url, string languageId)
         {
-
-            var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket(), languageId);
+	        var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket(), languageId);
             var shippingDetails = await swedbankPayClient.Consumers.GetShippingDetails(url);
-            return JsonConvert.SerializeObject(shippingDetails, JsonSerialization.Settings);
+	        return new JsonResult
+	        {
+		        Data = new AddressDetailsDto(shippingDetails)
+	        };
         }
 
         [HttpPost]
-        public async Task<string> GetSwedbankPayBillingDetails(Uri url, string languageId)
+        public async Task<JsonResult> GetSwedbankPayBillingDetails(Uri url, string languageId)
         {
-            var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket(), languageId);
+	        var swedbankPayClient = _swedbankPayClientFactory.Create(_currentMarket.GetCurrentMarket(), languageId);
+
             var billingDetails = await swedbankPayClient.Consumers.GetBillingDetails(url);
-            return JsonConvert.SerializeObject(billingDetails, JsonSerialization.Settings);
+	        return new JsonResult
+	        {
+		        Data = new AddressDetailsDto(billingDetails)
+	        };
         }
     }
 }

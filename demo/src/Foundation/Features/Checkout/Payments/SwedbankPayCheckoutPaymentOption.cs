@@ -27,6 +27,7 @@ namespace Foundation.Features.Checkout.Payments
     public class SwedbankPayCheckoutPaymentOption : PaymentOptionBase, IDataErrorInfo
     {
         private readonly IOrderGroupFactory _orderGroupFactory;
+        private readonly IOrderRepository _orderRepository;
         private readonly ICartService _cartService;
         private readonly LanguageService _languageService;
         private readonly IMarketService _marketService;
@@ -36,6 +37,7 @@ namespace Foundation.Features.Checkout.Payments
         public SwedbankPayCheckoutPaymentOption() : this(
             LocalizationService.Current,
             ServiceLocator.Current.GetInstance<IOrderGroupFactory>(),
+            ServiceLocator.Current.GetInstance<IOrderRepository>(),
             ServiceLocator.Current.GetInstance<ICartService>(),
             ServiceLocator.Current.GetInstance<ICurrentMarket>(),
             ServiceLocator.Current.GetInstance<LanguageService>(),
@@ -48,6 +50,7 @@ namespace Foundation.Features.Checkout.Payments
         public SwedbankPayCheckoutPaymentOption(
             LocalizationService localizationService,
             IOrderGroupFactory orderGroupFactory,
+            IOrderRepository orderRepository,
             ICartService cartService,
             ICurrentMarket currentMarket,
             LanguageService languageService,
@@ -56,6 +59,7 @@ namespace Foundation.Features.Checkout.Payments
             ISwedbankPayCheckoutService swedbankPayCheckoutService) : base(localizationService, orderGroupFactory, currentMarket, languageService, paymentService)
         {
             _orderGroupFactory = orderGroupFactory;
+            _orderRepository = orderRepository;
             _cartService = cartService;
             _languageService = languageService;
             _marketService = marketService;
@@ -82,13 +86,13 @@ namespace Foundation.Features.Checkout.Payments
             CheckoutConfiguration = _swedbankPayCheckoutService.LoadCheckoutConfiguration(market, currentLanguage.TwoLetterISOLanguageName);
 
             var orderId = cart.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
+            if (!CheckoutConfiguration.UseAnonymousCheckout)
+            {
+                GetCheckInJavascriptSource(cart);
+            }
             if (!string.IsNullOrWhiteSpace(orderId) || CheckoutConfiguration.UseAnonymousCheckout)
             {
                 GetCheckoutJavascriptSource(cart, $"description cart {cart.OrderLink.OrderGroupId}");
-            }
-            else
-            {
-                GetCheckInJavascriptSource(cart);
             }
 
             _isInitalized = true;
@@ -96,25 +100,31 @@ namespace Foundation.Features.Checkout.Payments
 
         private void GetCheckoutJavascriptSource(ICart cart, string description)
         {
-            var orderData = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(cart, description);
+            var consumerProfileRef = cart.Properties[Constants.ConsumerProfileRef]?.ToString();
+            var orderData = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(cart, description, consumerProfileRef);
             JavascriptSource = orderData.Operations.View?.Href;
             UseCheckoutSource = true;
         }
 
         private void GetCheckInJavascriptSource(ICart cart)
         {
-            string email = "PayexTester@payex.com";
-            string phone = "+46739000001";
-            string ssn = "199710202392";
+            var consumerUiScriptSource = cart.Properties[Constants.ConsumerUiScriptSource]?.ToString();
+            if (!string.IsNullOrWhiteSpace(consumerUiScriptSource))
+            {
+                ConsumerUiScriptSource = new Uri(consumerUiScriptSource, UriKind.RelativeOrAbsolute);
+                return;
+            }
 
-            var orderData = _swedbankPayCheckoutService.InitiateConsumerSession(_languageService.GetCurrentLanguage(), email, phone, ssn);
-            JavascriptSource = orderData.Operations.ViewConsumerIdentification?.Href;
+            var orderData = _swedbankPayCheckoutService.InitiateConsumerSession(_languageService.GetCurrentLanguage());
+            cart.Properties[Constants.ConsumerUiScriptSource] = orderData.Operations.ViewConsumerIdentification?.Href;
+            _orderRepository.Save(cart);
+            ConsumerUiScriptSource = orderData.Operations.ViewConsumerIdentification?.Href;
         }
 
         public override IPayment CreatePayment(decimal amount, IOrderGroup orderGroup)
         {
             var paymentOrder = _swedbankPayCheckoutService.GetPaymentOrder(orderGroup, PaymentOrderExpand.All);
-            var currentPayment = paymentOrder.PaymentOrderResponse.CurrentPayment.Payment;
+            var currentPayment = paymentOrder.PaymentOrder.CurrentPayment.Payment;
             var transaction = currentPayment?.Transactions?.TransactionList?.FirstOrDefault();
             var transactionType = transaction?.Type.ConvertToEpiTransactionType() ?? TransactionType.Authorization;
 
@@ -122,7 +132,7 @@ namespace Foundation.Features.Checkout.Payments
             payment.PaymentType = PaymentType.Other;
             payment.PaymentMethodId = PaymentMethodId;
             payment.PaymentMethodName = Constants.SwedbankPayCheckoutSystemKeyword;
-            payment.ProviderTransactionID = transaction?.Number;
+            payment.ProviderTransactionID = transaction?.Number.ToString();
             payment.Amount = amount;
             var isSwishPayment = currentPayment?.Instrument.Equals(PaymentInstrument.Swish) ?? false;
             payment.Status = isSwishPayment ? PaymentStatus.Processed.ToString() : PaymentStatus.Pending.ToString();
@@ -138,6 +148,7 @@ namespace Foundation.Features.Checkout.Payments
         public string Error { get; }
         public CheckoutConfiguration CheckoutConfiguration { get; set; }
         public string Culture { get; set; }
+        public Uri ConsumerUiScriptSource { get; set; }
         public Uri JavascriptSource { get; set; }
         public bool UseCheckoutSource { get; set; }
     }

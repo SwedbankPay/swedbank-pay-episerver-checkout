@@ -30,10 +30,10 @@ namespace SwedbankPay.Episerver.Checkout.Steps
                 try
                 {
                     var result =  AsyncHelper.RunSync(() => SwedbankPayClient.PaymentOrders.Get(new Uri(orderId, UriKind.Relative), Sdk.PaymentOrders.PaymentOrderExpand.All));
-                    var transaction = result.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList?.FirstOrDefault();
+                    var transaction = result.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList?.FirstOrDefault();
                     if (transaction != null)
                     {
-                        payment.ProviderTransactionID = transaction.Number;
+                        payment.ProviderTransactionID = transaction.Number.ToString();
                         AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Authorize completed at SwedbankPay, Transaction number: {transaction.Number}");
                         paymentStepResult.Status = true;
                     }

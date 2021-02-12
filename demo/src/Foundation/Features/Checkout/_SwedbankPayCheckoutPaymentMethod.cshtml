@@ -8,7 +8,7 @@
 <h3>SwedbankPay</h3>
 
 <div id="swedbankpay-checkout">
-	@if (Model.CheckoutConfiguration.UseAnonymousCheckout || Model.UseCheckoutSource)
+	@if (Model.ConsumerUiScriptSource == null && (Model.CheckoutConfiguration.UseAnonymousCheckout || Model.UseCheckoutSource))
 	{
 		<div id="paymentMenuFrame">
 			<div id="swedbankpay-paymentmenu-@containerId">
@@ -33,193 +33,223 @@
 </div>
 
 <script type="text/javascript">
-    var loadScriptAsync = function (uri) {
-        return new Promise(function (resolve, reject) {
-            var tag = document.createElement('script');
-            tag.src = uri;
-            tag.async = true;
-            tag.onload = function () {
-                resolve();
-            };
-            var firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        });
-    }
-    var scriptLoaded = loadScriptAsync('@(Model.JavascriptSource)');
+	var serializeToArray = function (form) {
+		// Setup our serialized data
+		var serialized = [];
 
-    var serializeToArray = function (form) {
-	    // Setup our serialized data
-	    var serialized = [];
+		// Loop through each field in the form
+		for (var i = 0; i < form.elements.length; i++) {
 
-	    // Loop through each field in the form
-	    for (var i = 0; i < form.elements.length; i++) {
+			var field = form.elements[i];
 
-		    var field = form.elements[i];
+			// Don't serialize fields without a name, submits, buttons, file and reset inputs, and disabled fields
+			if (!field.name || field.disabled || field.type === 'file' || field.type === 'reset' || field.type === 'submit' || field.type === 'button') continue;
 
-		    // Don't serialize fields without a name, submits, buttons, file and reset inputs, and disabled fields
-		    if (!field.name || field.disabled || field.type === 'file' || field.type === 'reset' || field.type === 'submit' || field.type === 'button') continue;
+			// If a multi-select, get all selections
+			if (field.type === 'select-multiple') {
+				for (var n = 0; n < field.options.length; n++) {
+					if (!field.options[n].selected) continue;
+					serialized.push(encodeURIComponent(field.name) + "=" + encodeURIComponent(field.options[n].value));
+				}
+			}
 
-		    // If a multi-select, get all selections
-		    if (field.type === 'select-multiple') {
-			    for (var n = 0; n < field.options.length; n++) {
-				    if (!field.options[n].selected) continue;
-				    serialized.push(encodeURIComponent(field.name) + "=" + encodeURIComponent(field.options[n].value));
-			    }
-		    }
+			// Convert field data to a query string
+			else if ((field.type !== 'checkbox' && field.type !== 'radio') || field.checked) {
+				serialized.push(encodeURIComponent(field.name) + "=" + encodeURIComponent(field.value));
+			}
+		}
 
-		    // Convert field data to a query string
-		    else if ((field.type !== 'checkbox' && field.type !== 'radio') || field.checked) {
-			    serialized.push(encodeURIComponent(field.name) + "=" + encodeURIComponent(field.value));
-		    }
-	    }
+		return serialized;
+	};
 
-	    return serialized;
-    };
+	function onCreatedPaymentHandler(paymentCreatedEvent) {
+		//console.log(paymentCreatedEvent);
+	}
 
-    var onCreatedPaymentHandler = function(paymentCreatedEvent) {
-        console.log(paymentCreatedEvent);
-        var form = document.querySelector('#jsCheckoutForm');
+	function onPaymentCanceledHandler(paymentCanceledEvent) {
+		//console.log(paymentCanceledEvent);
+	}
 
-        var dataArray = serializeToArray(form);
-        dataArray.push('paymentId=' + paymentCreatedEvent.id);
-        var data = dataArray.join('&');
+	function onPaymentFailedHandler(paymentFailedEvent) {
+		console.log("Ooopsy daisy");
+		console.log(paymentFailedEvent);
+	};
 
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", form.getAttribute('data-addpaymentinfourl'), false);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-	            console.log('payment created');
-	        }
-	        else if (xhr.status !== 200) {
-		        alert('Request failed.  Returned status of ' + xhr.status);
-	        }
-        };
+	function onPaymentCompletedHandler(paymentCompletedEvent) {
+		var form = document.querySelector('#jsCheckoutForm');
+		var dataArray = serializeToArray(form);
+		dataArray.push('paymentId=' + paymentCompletedEvent.id);
+		var data = dataArray.join('&');
 
-        xhr.send(data);
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", form.getAttribute('data-addpaymentinfourl'), false);
+		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+		xhr.onload = function () {
+			if (xhr.status === 200) {
+				console.log('payment created');
+				var url = paymentCompletedEvent.redirectUrl;
+				console.log(url);
+				window.location.href = url;
+			}
+			else if (xhr.status !== 200) {
+				alert('Request failed.  Returned status of ' + xhr.status);
+			}
+		};
 
-        console.log('address saved');
-    }
+		xhr.send(data);
+		console.log('address saved');
+	}
 
-    var style = {
-	    body: {
-		    //backgroundColor: "#555",
-		    //color: "#bbb"
-	    },
-	    button: {
-		    backgroundColor: "#337ab7",
-		    color: "#fff"
-	    },
-	    secondaryButton: {
-		    backgroundColor: "#555",
-		    border: "solid 1px #bbb"
-	    },
-	    formGroup: {
-		    color: "#bbb",
-		    backgroundColor: "#555"
-	    },
-	    label: {
-		    color: "#bbb"
-	    }
-    };
 
-    var config1 = {
-	    container: 'swedbankpay-paymentmenu-@containerId',
-	    culture: '@Culture',
-	    style: style,
-	    onPaymentCreated: onCreatedPaymentHandler
-    };
+	var style = {
+		body: {
+			//backgroundColor: "#555",
+			//color: "#bbb"
+		},
+		button: {
+			backgroundColor: "#337ab7",
+			color: "#fff"
+		},
+		secondaryButton: {
+			backgroundColor: "#555",
+			border: "solid 1px #bbb"
+		},
+		formGroup: {
+			color: "#bbb",
+			backgroundColor: "#555"
+		},
+		label: {
+			color: "#bbb"
+		}
+	};
+
+	var paymentMenuConfig = {
+		container: 'swedbankpay-paymentmenu-@containerId',
+		culture: '@Culture',
+		style: style,
+		onPaymentCreated: onCreatedPaymentHandler,
+		onPaymentCompleted: onPaymentCompletedHandler,
+		onPaymentFailed: onPaymentFailedHandler,
+		onPaymentCanceled: onPaymentCanceledHandler
+	};
+
+	function createPaymentMenuElements(menuScript) {
+		if (window.payex?.hostedView?.paymentMenu !== undefined)
+		{
+			window.payex.hostedView.paymentMenu = undefined;
+		}
+
+		var paymentMenuScriptTag = document.getElementById('paymentMenuScript');
+		if (paymentMenuScriptTag !== null) {
+			paymentMenuScriptTag.remove();
+		}
+
+		var script = document.createElement('script');
+		script.setAttribute("id", "paymentMenuScript");
+		script.onload = function () {
+			window.payex.hostedView.paymentMenu(paymentMenuConfig).open();
+		};
+		script.src = menuScript;
+		document.getElementsByTagName('head')[0].appendChild(script);
+	}
 </script>
 
 
-@if (Model.CheckoutConfiguration.UseAnonymousCheckout || Model.UseCheckoutSource)
+@if (Model.ConsumerUiScriptSource == null && (Model.CheckoutConfiguration.UseAnonymousCheckout || Model.UseCheckoutSource))
 {
 	<script type="text/javascript">
-		scriptLoaded.then(function () {
-			payex.hostedView.paymentMenu(config1).open();
-		});
+		createPaymentMenuElements('@Model.JavascriptSource');
 	</script>
 }
 else
 {
 	<script type="text/javascript">
 
-        var paymentMenuConfig = {
-            container: "swedbankpay-consumer-@containerId",
-            culture: '@Culture',
-            style: style,
-            onConsumerIdentified: onIdentifiedConsumerHandler,
+		var consumerConfig = {
+			container: "swedbankpay-consumer-@containerId",
+			culture: '@Culture',
+			style: style,
+			onConsumerIdentified: onIdentifiedConsumerHandler,
 			onShippingDetailsAvailable: onShippingDetailsAvailableHandler,
 			onBillingDetailsAvailable: OnBillingDetailsAvailableHandler
-        };
+		};
 
-        function OnBillingDetailsAvailableHandler(data) {
-	        console.log(data);
-	        var request = new XMLHttpRequest();
+		function OnBillingDetailsAvailableHandler(data) {
+			console.log(data);
+			var request = new XMLHttpRequest();
 
-	        request.addEventListener('load', function() {
-		        var response = JSON.parse(this.responseText);
-		        console.log(response);
-		        var billingAddress = response.billingAddress;
-		        document.querySelector('#Shipments_0__Address_Email').value = response.email;
-		        document.querySelector('#Shipments_0__Address_FirstName').value = billingAddress.addressee;
-		        document.querySelector('#Shipments_0__Address_LastName').value = billingAddress.addressee;
-		        document.querySelector('#Shipments_0__Address_Line1').value = billingAddress.streetAddress;
-		        document.querySelector('#Shipments_0__Address_PostalCode').value = billingAddress.zipCode;
-		        document.querySelector('#Shipments_0__Address_City').value = billingAddress.city;
-	        });
-	        request.open('POST', '@Url.Action("GetSwedbankPayBillingDetails", "Checkout", null)', true);
-	        request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-	        request.send(JSON.stringify(data));
-        }
+			request.addEventListener('load', function() {
+				var response = JSON.parse(this.responseText);
+				var billingAddress = response.BillingAddress;
+				document.querySelector('#Shipments_0__Address_Email').value = response.Email;
+				document.querySelector('#Shipments_0__Address_FirstName').value = billingAddress.Addressee;
+				document.querySelector('#Shipments_0__Address_LastName').value = billingAddress.Addressee;
+				document.querySelector('#Shipments_0__Address_Line1').value = billingAddress.StreetAddress;
+				document.querySelector('#Shipments_0__Address_PostalCode').value = billingAddress.ZipCode;
+				document.querySelector('#Shipments_0__Address_City').value = billingAddress.City;
+				document.querySelector('[name="Shipments[0].Address.CountryCode"]').value = billingAddress.CountryCode;
+			});
+			request.open('POST', '@Url.Action("GetSwedbankPayBillingDetails", "Checkout", null)', true);
+			request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+			request.send(JSON.stringify(data));
+		}
 
-        function onShippingDetailsAvailableHandler(data) {
-            console.log(data);
-            var request = new XMLHttpRequest();
+		function onShippingDetailsAvailableHandler(data) {
+			console.log(data);
+			var request = new XMLHttpRequest();
 
-            request.addEventListener('load', function() {
-                var response = JSON.parse(this.responseText);
-                console.log(response);
-                var shippingAddress = response.shippingAddress;
-                document.querySelector('#Shipments_0__Address_Email').value = response.email;
-                document.querySelector('#Shipments_0__Address_FirstName').value = shippingAddress.addressee;
-                document.querySelector('#Shipments_0__Address_LastName').value = shippingAddress.addressee;
-                document.querySelector('#Shipments_0__Address_Line1').value = shippingAddress.streetAddress;
-                document.querySelector('#Shipments_0__Address_PostalCode').value = shippingAddress.zipCode;
-                document.querySelector('#Shipments_0__Address_City').value = shippingAddress.city;
-            });
-            request.open('POST', '@Url.Action("GetSwedbankPayShippingDetails", "Checkout", null)', true);
-            request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-            request.send(JSON.stringify(data));
-        }
+			request.addEventListener('load', function () {
+				var response = JSON.parse(this.responseText);
+				var shippingAddress = response.ShippingAddress;
+				document.querySelector('#Shipments_0__Address_Email').value = response.Email;
+				document.querySelector('#Shipments_0__Address_FirstName').value = shippingAddress.Addressee;
+				document.querySelector('#Shipments_0__Address_LastName').value = shippingAddress.Addressee;
+				document.querySelector('#Shipments_0__Address_Line1').value = shippingAddress.StreetAddress;
+				document.querySelector('#Shipments_0__Address_PostalCode').value = shippingAddress.ZipCode;
+				document.querySelector('#Shipments_0__Address_City').value = shippingAddress.City;
+				document.querySelector('[name="Shipments[0].Address.CountryCode"]').value = shippingAddress.CountryCode;
+			});
+			request.open('POST', '@Url.Action("GetSwedbankPayShippingDetails", "Checkout", null)', true);
+			request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+			request.send(JSON.stringify(data));
+		}
 
-        function onIdentifiedConsumerHandler(data) {
-            var paymentMenuFrame = document.getElementById("paymentMenuFrame");
-            paymentMenuFrame.removeAttribute("hidden");
+		function onIdentifiedConsumerHandler(data) {
+			console.log('onIdentifiedConsumerHandler:' + JSON.stringify(data));
+			var paymentMenuFrame = document.getElementById("paymentMenuFrame");
+			paymentMenuFrame.removeAttribute("hidden");
 
-            var request = new XMLHttpRequest();
-            request.addEventListener('load', function () {
-				var script = document.createElement('script');
-                // This assumses the operations from the response of the POST of the
-                // payment order is returned verbatim from the server to the Ajax:
-                script.setAttribute('src', this.responseText);
-                script.onload = function() {
-                    // When the 'view-paymentorder' script is loaded, we can initialize the payment
-                    // menu inside our 'checkin' container.
-                    payex.hostedView.paymentMenu(config1).open();
-                };
-				var head = document.getElementsByTagName('head')[0];
-				head.appendChild(script);
-            });
-            request.open('POST', '@Url.Action("GetViewPaymentOrderHref", "Checkout", null)', true);
-            request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-            request.send(JSON.stringify(data));
-        }
+			var request = new XMLHttpRequest();
+			request.addEventListener('load', function () {
+				createPaymentMenuElements(this.responseText);
+			});
+			request.open('POST', '@Url.Action("GetViewPaymentOrderHref", "Checkout", null)', true);
+			request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+			request.send(JSON.stringify(data));
+		}
 
+		if (window.payex?.hostedView?.consumer === undefined) {
+			var script = document.createElement('script');
+			script.setAttribute('src', '@Model.ConsumerUiScriptSource');
+			script.onload = function () {
+				window.payex.hostedView.consumer(consumerConfig).open();
+			}
 
-        scriptLoaded.then(function () {
-	        payex.hostedView.consumer(paymentMenuConfig).open();
-        });
+			var head = document.getElementsByTagName('head')[0];
+			head.appendChild(script);
+		}
+		else
+		{
+			window.payex.hostedView.consumer(consumerConfig).open();
+		}
 
+		var request = new XMLHttpRequest();
+		request.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200 && this.responseText) {
+				onIdentifiedConsumerHandler(JSON.parse(this.responseText));
+			}
+		}
+		request.open('GET', '@Url.Action("ConsumerProfileRef", "Checkout", null)', true);
+		request.send();
 	</script>
 }

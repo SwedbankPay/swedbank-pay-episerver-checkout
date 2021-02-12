@@ -1,8 +1,8 @@
-﻿namespace SwedbankPay.Episerver.Checkout.Common.Extensions
-{
-    using SwedbankPay.Sdk;
+﻿using SwedbankPay.Sdk.PaymentInstruments;
 
-    public static class TransactionTypeExtension
+namespace SwedbankPay.Episerver.Checkout.Common.Extensions
+{
+	public static class TransactionTypeExtension
     {
         public static Mediachase.Commerce.Orders.TransactionType ConvertToEpiTransactionType(this TransactionType transactionType)
         {
