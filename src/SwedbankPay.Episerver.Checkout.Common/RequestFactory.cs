@@ -10,20 +10,20 @@ using Mediachase.Commerce.Orders.Dto;
 
 using SwedbankPay.Episerver.Checkout.Common.Helpers;
 using SwedbankPay.Sdk;
+using SwedbankPay.Sdk.Consumers;
 using SwedbankPay.Sdk.PaymentOrders;
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using System.Web;
-using SwedbankPay.Sdk.Consumers;
+
 using Currency = Mediachase.Commerce.Currency;
 
 namespace SwedbankPay.Episerver.Checkout.Common
 {
-    [ServiceConfiguration(typeof(IRequestFactory))]
+	[ServiceConfiguration(typeof(IRequestFactory))]
     public class RequestFactory : IRequestFactory
     {
         private readonly ICheckoutConfigurationLoader _checkoutConfigurationLoader;
