@@ -33,12 +33,14 @@ namespace Foundation.UiTests.Tests.PaymentTest
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
+            var defaultUri = "https://api.externalintegration.payex.com";
+            var defaultToken = ConfigurationManager.AppSettings["payexTestToken"];
             #if DEBUG
-            var baseUri = new Uri("https://api.externalintegration.payex.com");
-            var bearer = ConfigurationManager.AppSettings["payexTestToken"];
+            var baseUri = new Uri(defaultUri);
+            var bearer = defaultToken;
             #elif RELEASE
-            var baseUri = new Uri(Environment.GetEnvironmentVariable("Payex.Api.Url", EnvironmentVariableTarget.User));
-            var bearer = Environment.GetEnvironmentVariable("Payex.Api.Token", EnvironmentVariableTarget.User);
+            var baseUri = new Uri(Environment.GetEnvironmentVariable("Payex.Api.Url", EnvironmentVariableTarget.User) ?? defaultUri);
+            var bearer = Environment.GetEnvironmentVariable("Payex.Api.Token", EnvironmentVariableTarget.User) ?? defaultToken;
             #endif
 
             var httpClient = new HttpClient()
@@ -58,9 +60,9 @@ namespace Foundation.UiTests.Tests.PaymentTest
                 .Settings.Click()
                 .MarketList.Items[x => x.Content.Value.ToLower().Contains("sweden")].ClickAndGo<HomeCommercePage>()
                 .MarketLanguageSelection.IsVisible.Should.Within(10).BeTrue();
-                //.Settings.Click()
-                //.LanguageList.Items[x => x.Content.Value.ToLower().Contains("english")].ClickAndGo<HomeCommercePage>()
-                //.PageUrl.WaitTo.Contain("en");
+            //.Settings.Click()
+            //.LanguageList.Items[x => x.Content.Value.ToLower().Contains("english")].ClickAndGo<HomeCommercePage>()
+            //.PageUrl.WaitTo.Contain("en");
         }
 
         public ProductsPage SelectProducts(Product[] products)
@@ -69,7 +71,7 @@ namespace Foundation.UiTests.Tests.PaymentTest
 
             return GoTo<ProductsPage>()
                 .ProductList[0].IsVisible.Should.BeTrue()
-                .Do(x => 
+                .Do(x =>
                 {
                     var index = 0;
 
@@ -85,7 +87,7 @@ namespace Foundation.UiTests.Tests.PaymentTest
 
                         x.AlertSuccess.IsVisible.Should.Within(10).BeFalse();
 
-                        for(int i= 0; i < product.Quantity; i++)
+                        for (int i = 0; i < product.Quantity; i++)
                         {
                             x.Modal.AddToCart.Click();
                         }
@@ -120,7 +122,7 @@ namespace Foundation.UiTests.Tests.PaymentTest
                 .Phone.Set(TestDataService.SwedishPhoneNumber)
                 .Next.Click().Wait(1);
 
-            if(identificationFrame.ContinueWithoutSaving.IsPresent)
+            if (identificationFrame.ContinueWithoutSaving.IsPresent)
             {
                 identificationFrame.ContinueWithoutSaving.Click()
                     .Firstname.Set(TestDataService.FirstName)
