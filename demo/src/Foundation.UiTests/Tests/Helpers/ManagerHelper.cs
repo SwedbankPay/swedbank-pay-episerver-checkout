@@ -203,7 +203,7 @@ namespace Foundation.UiTests.Tests.Helpers
                         {
                             if (!partial)
                             {
-                                x.Amount.Set(totalAmount.Split(',').First().Replace(".",""));
+                                x.Amount.Set(totalAmount.Split(',').First().Replace(".","").Replace(" ", ""));
                             }
                         })
                         .Confirm.Click()
