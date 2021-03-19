@@ -187,7 +187,6 @@ else
 				document.querySelector('#Shipments_0__Address_Line1').value = billingAddress.StreetAddress;
 				document.querySelector('#Shipments_0__Address_PostalCode').value = billingAddress.ZipCode;
 				document.querySelector('#Shipments_0__Address_City').value = billingAddress.City;
-				document.querySelector('[name="Shipments[0].Address.CountryCode"]').value = billingAddress.CountryCode;
 			});
 			request.open('POST', '@Url.Action("GetSwedbankPayBillingDetails", "Checkout", null)', true);
 			request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
@@ -207,7 +206,6 @@ else
 				document.querySelector('#Shipments_0__Address_Line1').value = shippingAddress.StreetAddress;
 				document.querySelector('#Shipments_0__Address_PostalCode').value = shippingAddress.ZipCode;
 				document.querySelector('#Shipments_0__Address_City').value = shippingAddress.City;
-				document.querySelector('[name="Shipments[0].Address.CountryCode"]').value = shippingAddress.CountryCode;
 			});
 			request.open('POST', '@Url.Action("GetSwedbankPayShippingDetails", "Checkout", null)', true);
 			request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
