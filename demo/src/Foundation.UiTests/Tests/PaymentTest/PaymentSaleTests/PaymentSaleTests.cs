@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using SwedbankPay.Sdk;
 using System.Threading.Tasks;
 using System.Linq;
+using SwedbankPay.Sdk.PaymentInstruments;
 
 namespace Foundation.UiTests.Tests.PaymentTest.PaymentSaleTests
 {
@@ -34,12 +35,12 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentSaleTests
 
 
             // Assert
-            var order = await SwedbankPayClient.PaymentOrder.Get(_paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
+            var order = await SwedbankPayClient.PaymentOrders.Get(_paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
 
             // Global Order
-            Assert.That(order.PaymentOrderResponse.Amount.Value, Is.EqualTo(_totalAmount * 100));
-            Assert.That(order.PaymentOrderResponse.Currency.ToString(), Is.EqualTo("SEK"));
-            Assert.That(order.PaymentOrderResponse.State, Is.EqualTo(State.Ready));
+            Assert.That(order.PaymentOrder.Amount.InLowestMonetaryUnit, Is.EqualTo(_totalAmount * 100));
+            Assert.That(order.PaymentOrder.Currency.ToString(), Is.EqualTo("SEK"));
+            Assert.That(order.PaymentOrder.State, Is.EqualTo(State.Ready));
 
             // Operations
             Assert.That(order.Operations[LinkRelation.CreateCancellation], Is.Null);
@@ -48,18 +49,18 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentSaleTests
             Assert.That(order.Operations[LinkRelation.PaidPaymentOrder], Is.Not.Null);
 
             // Transactions
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Sale).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Sale).State,
                         Is.EqualTo(State.Completed));
 
             // Order Items
-            Assert.That(order.PaymentOrderResponse.OrderItems.OrderItemList.Count, Is.EqualTo(products.Count() + 1));
+            Assert.That(order.PaymentOrder.OrderItems.OrderItemList.Count, Is.EqualTo(products.Count() + 1));
             for (var i = 0; i < products.Count(); i++)
             {
-                Assert.That(order.PaymentOrderResponse.OrderItems.OrderItemList.ElementAt(i).Name, Is.EqualTo(products[i].Name));
-                Assert.That(order.PaymentOrderResponse.OrderItems.OrderItemList.ElementAt(i).UnitPrice.Value, Is.EqualTo(products[i].UnitPrice * 100));
-                Assert.That(order.PaymentOrderResponse.OrderItems.OrderItemList.ElementAt(i).Quantity, Is.EqualTo(products[i].Quantity));
-                Assert.That(order.PaymentOrderResponse.OrderItems.OrderItemList.ElementAt(i).Amount.Value, Is.EqualTo(products[i].UnitPrice * 100 * products[i].Quantity));
+                Assert.That(order.PaymentOrder.OrderItems.OrderItemList.ElementAt(i).Name, Is.EqualTo(products[i].Name));
+                Assert.That(order.PaymentOrder.OrderItems.OrderItemList.ElementAt(i).UnitPrice.InLowestMonetaryUnit, Is.EqualTo(products[i].UnitPrice * 100));
+                Assert.That(order.PaymentOrder.OrderItems.OrderItemList.ElementAt(i).Quantity, Is.EqualTo(products[i].Quantity));
+                Assert.That(order.PaymentOrder.OrderItems.OrderItemList.ElementAt(i).Amount.InLowestMonetaryUnit, Is.EqualTo(products[i].UnitPrice * 100 * products[i].Quantity));
             }
         }
     }

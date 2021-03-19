@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using SwedbankPay.Sdk;
 using System.Threading.Tasks;
 using System.Linq;
+using SwedbankPay.Sdk.PaymentInstruments;
 
 namespace Foundation.UiTests.Tests.PaymentTest.PaymentReversalTests
 {
@@ -33,7 +34,7 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentReversalTests
                 .CreateReversal(_orderId, new Product[] { products[0] }, partial: true)
                 .AssertPaymentOrderTransactions(_orderId, expected, out var paymentOrderLink);
 
-            var order = await SwedbankPayClient.PaymentOrder.Get(paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
+            var order = await SwedbankPayClient.PaymentOrders.Get(paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
 
             // Operations
             Assert.That(order.Operations[LinkRelation.CreatePaymentOrderCancel], Is.Null);
@@ -42,12 +43,12 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentReversalTests
             Assert.That(order.Operations[LinkRelation.PaidPaymentOrder], Is.Not.Null);
 
             // Transactions
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Authorization).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Authorization).State,
                         Is.EqualTo(State.Completed));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Capture).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Capture).State,
                         Is.EqualTo(State.Completed));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Reversal).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Reversal).State,
                         Is.EqualTo(State.Completed));
         }
 
@@ -73,7 +74,7 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentReversalTests
                 .CreateReversal(_orderId, new Product[] { products[1] }, partial: true, index: 1)
                 .AssertPaymentOrderTransactions(_orderId, expected, out var paymentOrderLink);
 
-            var order = await SwedbankPayClient.PaymentOrder.Get(paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
+            var order = await SwedbankPayClient.PaymentOrders.Get(paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
 
             // Operations
             Assert.That(order.Operations[LinkRelation.CreatePaymentOrderCancel], Is.Null);
@@ -82,12 +83,12 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentReversalTests
             Assert.That(order.Operations[LinkRelation.PaidPaymentOrder], Is.Not.Null);
 
             // Transactions
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Authorization).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Authorization).State,
                         Is.EqualTo(State.Completed));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Capture).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Capture).State,
                         Is.EqualTo(State.Completed));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.Where(x => x.Type == TransactionType.Reversal && x.State == State.Completed).Count,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.Where(x => x.Type == TransactionType.Reversal && x.State == State.Completed).Count,
                         Is.EqualTo(2));
         }
 
@@ -116,7 +117,7 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentReversalTests
 
 
             // Assert
-            var order = await SwedbankPayClient.PaymentOrder.Get(paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
+            var order = await SwedbankPayClient.PaymentOrders.Get(paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
 
             // Operations
             Assert.That(order.Operations[LinkRelation.CreatePaymentOrderCancel], Is.Null);
@@ -125,12 +126,12 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentReversalTests
             Assert.That(order.Operations[LinkRelation.PaidPaymentOrder], Is.Not.Null);
 
             // Transactions
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Authorization).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Authorization).State,
                         Is.EqualTo(State.Completed));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Capture).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Capture).State,
                         Is.EqualTo(State.Completed));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Reversal).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Reversal).State,
                         Is.EqualTo(State.Completed));
         }
 
@@ -158,7 +159,7 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentReversalTests
 
 
             // Assert
-            var order = await SwedbankPayClient.PaymentOrder.Get(paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
+            var order = await SwedbankPayClient.PaymentOrders.Get(paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
 
             // Operations
             Assert.That(order.Operations[LinkRelation.CreatePaymentOrderCancel], Is.Null);
@@ -167,10 +168,10 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentReversalTests
             Assert.That(order.Operations[LinkRelation.PaidPaymentOrder], Is.Not.Null);
 
             // Transactions
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Sale).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Sale).State,
                         Is.EqualTo(State.Completed));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Reversal).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Reversal).State,
                         Is.EqualTo(State.Completed));
         }
 

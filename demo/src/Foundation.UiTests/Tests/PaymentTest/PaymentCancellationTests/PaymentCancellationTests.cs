@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using SwedbankPay.Sdk;
 using System.Threading.Tasks;
 using System.Linq;
+using SwedbankPay.Sdk.PaymentInstruments;
 
 namespace Foundation.UiTests.Tests.PaymentTest.PaymentCancellationTests
 {
@@ -36,7 +37,7 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentCancellationTests
 
 
             // Assert
-            var order = await SwedbankPayClient.PaymentOrder.Get(_paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
+            var order = await SwedbankPayClient.PaymentOrders.Get(_paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
 
             // Operations
             Assert.That(order.Operations[LinkRelation.CreatePaymentOrderCancel], Is.Null);
@@ -45,10 +46,10 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentCancellationTests
             Assert.That(order.Operations[LinkRelation.PaidPaymentOrder], Is.Not.Null);
 
             // Transactions
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Authorization).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Authorization).State,
                         Is.EqualTo(State.Completed));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Cancellation).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Cancellation).State,
                         Is.EqualTo(State.Completed));
         }
 

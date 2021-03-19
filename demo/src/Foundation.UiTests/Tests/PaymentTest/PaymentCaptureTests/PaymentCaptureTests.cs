@@ -1,10 +1,11 @@
-﻿using NUnit.Framework;
-using Foundation.UiTests.Tests.Base;
+﻿using Foundation.UiTests.Tests.Base;
 using Foundation.UiTests.Tests.Helpers;
-using System.Collections.Generic;
+using NUnit.Framework;
 using SwedbankPay.Sdk;
-using System.Threading.Tasks;
+using SwedbankPay.Sdk.PaymentInstruments;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Foundation.UiTests.Tests.PaymentTest.PaymentCaptureTests
 {
@@ -35,7 +36,7 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentCaptureTests
 
 
             // Assert
-            var order = await SwedbankPayClient.PaymentOrder.Get(_paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
+            var order = await SwedbankPayClient.PaymentOrders.Get(_paymentOrderLink, SwedbankPay.Sdk.PaymentOrders.PaymentOrderExpand.All);
 
             // Operations
             Assert.That(order.Operations[LinkRelation.CreatePaymentOrderCancel], Is.Null);
@@ -44,10 +45,10 @@ namespace Foundation.UiTests.Tests.PaymentTest.PaymentCaptureTests
             Assert.That(order.Operations[LinkRelation.CreatePaymentOrderReversal], Is.Not.Null);
 
             // Transactions
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Authorization).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.Count, Is.EqualTo(expected.Count));
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Authorization).State,
                         Is.EqualTo(State.Completed));
-            Assert.That(order.PaymentOrderResponse.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Capture).State,
+            Assert.That(order.PaymentOrder.CurrentPayment.Payment.Transactions.TransactionList.First(x => x.Type == TransactionType.Capture).State,
                         Is.EqualTo(State.Completed));
         }
     }
