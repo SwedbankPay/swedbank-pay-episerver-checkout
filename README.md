@@ -127,7 +127,6 @@ namespace Foundation.Features.Checkout.Payments
         private readonly IOrderGroupFactory _orderGroupFactory;
         private readonly IOrderRepository _orderRepository;
         private readonly ICartService _cartService;
-        private readonly ICurrentMarket _currentMarket;
         private readonly LanguageService _languageService;
         private readonly IMarketService _marketService;
         private readonly ISwedbankPayCheckoutService _swedbankPayCheckoutService;
@@ -160,7 +159,6 @@ namespace Foundation.Features.Checkout.Payments
             _orderGroupFactory = orderGroupFactory;
             _orderRepository = orderRepository;
             _cartService = cartService;
-            _currentMarket = currentMarket;
             _languageService = languageService;
             _marketService = marketService;
             _swedbankPayCheckoutService = swedbankPayCheckoutService;
@@ -185,8 +183,6 @@ namespace Foundation.Features.Checkout.Payments
             Culture = currentLanguage.TextInfo.CultureName;
             CheckoutConfiguration = _swedbankPayCheckoutService.LoadCheckoutConfiguration(market, currentLanguage.TwoLetterISOLanguageName);
 
-            VerifyCartHasShippingCountry(cart);
-
             var orderId = cart.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
 			if (!CheckoutConfiguration.UseAnonymousCheckout)
 			{
@@ -198,22 +194,6 @@ namespace Foundation.Features.Checkout.Payments
             }
 
             _isInitalized = true;
-        }
-
-        private void VerifyCartHasShippingCountry(ICart cart)
-        {
-            var orderAddress = cart.GetFirstShipment().ShippingAddress;
-            if (orderAddress == null)
-            {
-                orderAddress = cart.CreateOrderAddress(Guid.NewGuid().ToString());
-                cart.GetFirstShipment().ShippingAddress = orderAddress;
-            }
-
-            if (string.IsNullOrWhiteSpace(orderAddress.CountryCode))
-            {
-                orderAddress.CountryCode = _currentMarket.GetCurrentMarket().DefaultLanguage.ThreeLetterISOLanguageName;
-                _orderRepository.Save(cart);
-            }
         }
 
         private void GetCheckoutJavascriptSource(ICart cart, string description)
@@ -952,5 +932,30 @@ Add view Foundation/Features/MyAccount/OrderConfirmation/_SwedbankPayCheckoutCon
         <add name="X-Content-Type-Options" value="nosniff " />
       </customHeaders>
 ```
+
+PaymentOption assumes you have set a country code on your shipping address to be able to calculate correct tax values.
+One way to achieve this could be to make sure to set it in `ShipmentViewModelFactory`.
+Add e.g. following method and call it from the top of `CreateShipmentsViewModel`.
+```csharp
+private void VerifyCartHasShippingCountry(ICart cart)
+{
+    var orderAddress = cart.GetFirstShipment().ShippingAddress;
+    if (orderAddress == null)
+    {
+        orderAddress = cart.CreateOrderAddress(Guid.NewGuid().ToString());
+        cart.GetFirstShipment().ShippingAddress = orderAddress;
+    }
+
+    if (string.IsNullOrWhiteSpace(orderAddress.CountryCode))
+    {
+        orderAddress.CountryCode = _currentMarket.GetCurrentMarket().DefaultLanguage.ThreeLetterISOLanguageName;
+        _orderRepository.Save(cart);
+    }
+}
+```
+
+**Note: `CountryOptions.cshtml` does not seem to set correct country as selected. Noticed it passes in value in lowercase letters and value is in capital letters. So it won´t set correct country code as selected.
+Update the view with ToUpper to make it use correct value as selected.
+`@Helpers.RenderDropdown(values, ViewData["SelectItem"]?.ToString()?.ToUpper(), "", (string)ViewData["Name"] ?? "CountryCode")`
 
 [opengraph-image]: https://repository-images.githubusercontent.com/171851967/01256480-53e7-11ea-9c0f-da3e3b5811b3

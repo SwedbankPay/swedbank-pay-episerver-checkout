@@ -26,6 +26,8 @@ namespace Foundation.Features.Checkout.Services
         private readonly CartItemViewModelFactory _cartItemViewModelFactory;
         private readonly LanguageResolver _languageResolver;
         private readonly IMarketService _marketService;
+        private readonly ICurrentMarket _currentMarket;
+        private readonly IOrderRepository _orderRepository;
         private ShippingMethodInfoModel _instorePickup;
 
         public ShipmentViewModelFactory(
@@ -36,7 +38,9 @@ namespace Foundation.Features.Checkout.Services
             IAddressBookService addressBookService,
             CartItemViewModelFactory cartItemViewModelFactory,
             LanguageResolver languageResolver,
-            IMarketService marketService)
+            IMarketService marketService,
+            ICurrentMarket currentMarket,
+            IOrderRepository orderRepository)
         {
             _contentLoader = contentLoader;
             _shippingService = shippingService;
@@ -46,13 +50,32 @@ namespace Foundation.Features.Checkout.Services
             _cartItemViewModelFactory = cartItemViewModelFactory;
             _languageResolver = languageResolver;
             _marketService = marketService;
+            _currentMarket = currentMarket;
+            _orderRepository = orderRepository;
         }
 
         public virtual ShippingMethodInfoModel InStorePickupInfoModel => _instorePickup ?? (_instorePickup = _shippingService.GetInstorePickupModel());
 
+        private void VerifyCartHasShippingCountry(ICart cart)
+        {
+            var orderAddress = cart.GetFirstShipment().ShippingAddress;
+            if (orderAddress == null)
+            {
+                orderAddress = cart.CreateOrderAddress(Guid.NewGuid().ToString());
+                cart.GetFirstShipment().ShippingAddress = orderAddress;
+            }
+
+            if (string.IsNullOrWhiteSpace(orderAddress.CountryCode))
+            {
+                orderAddress.CountryCode = _currentMarket.GetCurrentMarket().DefaultLanguage.ThreeLetterISOLanguageName;
+                _orderRepository.Save(cart);
+            }
+        }
+
         public virtual IEnumerable<ShipmentViewModel> CreateShipmentsViewModel(ICart cart)
         {
             var preferredCulture = _languageResolver.GetPreferredCulture();
+            VerifyCartHasShippingCountry(cart);
             foreach (var shipment in cart.GetFirstForm().Shipments)
             {
                 var shipmentModel = new ShipmentViewModel

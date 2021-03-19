@@ -29,7 +29,6 @@ namespace Foundation.Features.Checkout.Payments
         private readonly IOrderGroupFactory _orderGroupFactory;
         private readonly IOrderRepository _orderRepository;
         private readonly ICartService _cartService;
-        private readonly ICurrentMarket _currentMarket;
         private readonly LanguageService _languageService;
         private readonly IMarketService _marketService;
         private readonly ISwedbankPayCheckoutService _swedbankPayCheckoutService;
@@ -62,7 +61,6 @@ namespace Foundation.Features.Checkout.Payments
             _orderGroupFactory = orderGroupFactory;
             _orderRepository = orderRepository;
             _cartService = cartService;
-            _currentMarket = currentMarket;
             _languageService = languageService;
             _marketService = marketService;
             _swedbankPayCheckoutService = swedbankPayCheckoutService;
@@ -86,9 +84,7 @@ namespace Foundation.Features.Checkout.Payments
             var currentLanguage = _languageService.GetCurrentLanguage();
             Culture = currentLanguage.TextInfo.CultureName;
             CheckoutConfiguration = _swedbankPayCheckoutService.LoadCheckoutConfiguration(market, currentLanguage.TwoLetterISOLanguageName);
-
-            VerifyCartHasShippingCountry(cart);
-
+            
             var orderId = cart.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
             if (!CheckoutConfiguration.UseAnonymousCheckout)
             {
@@ -109,23 +105,6 @@ namespace Foundation.Features.Checkout.Payments
             JavascriptSource = orderData.Operations.View?.Href;
             UseCheckoutSource = true;
         }
-
-        private void VerifyCartHasShippingCountry(ICart cart)
-        {
-            var orderAddress = cart.GetFirstShipment().ShippingAddress;
-            if (orderAddress == null)
-            {
-                orderAddress = cart.CreateOrderAddress(Guid.NewGuid().ToString());
-                cart.GetFirstShipment().ShippingAddress = orderAddress;
-            }
-
-            if (string.IsNullOrWhiteSpace(orderAddress.CountryCode))
-            {
-                orderAddress.CountryCode = _currentMarket.GetCurrentMarket().DefaultLanguage.ThreeLetterISOLanguageName;
-                _orderRepository.Save(cart);
-            }
-        }
-
 
         private void GetCheckInJavascriptSource(ICart cart)
         {
