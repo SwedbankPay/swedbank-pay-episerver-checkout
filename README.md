@@ -30,7 +30,7 @@ Swish (Sweden). Credit Card Payments are available world-wide.
 
 The installation assumes that you have Foundation installed, and are using ngrok for callbacks.
 
-[Foundation](https://github.com/episerver/foundation)
+[Foundation](https://github.com/episerver/foundation)  
 [ngrok](https://ngrok.com/)
 
 ---
@@ -127,6 +127,7 @@ namespace Foundation.Features.Checkout.Payments
         private readonly IOrderGroupFactory _orderGroupFactory;
         private readonly IOrderRepository _orderRepository;
         private readonly ICartService _cartService;
+        private readonly ICurrentMarket _currentMarket;
         private readonly LanguageService _languageService;
         private readonly IMarketService _marketService;
         private readonly ISwedbankPayCheckoutService _swedbankPayCheckoutService;
@@ -159,6 +160,7 @@ namespace Foundation.Features.Checkout.Payments
             _orderGroupFactory = orderGroupFactory;
             _orderRepository = orderRepository;
             _cartService = cartService;
+            _currentMarket = currentMarket;
             _languageService = languageService;
             _marketService = marketService;
             _swedbankPayCheckoutService = swedbankPayCheckoutService;
@@ -183,6 +185,8 @@ namespace Foundation.Features.Checkout.Payments
             Culture = currentLanguage.TextInfo.CultureName;
             CheckoutConfiguration = _swedbankPayCheckoutService.LoadCheckoutConfiguration(market, currentLanguage.TwoLetterISOLanguageName);
 
+            VerifyCartHasShippingCountry(cart);
+
             var orderId = cart.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
 			if (!CheckoutConfiguration.UseAnonymousCheckout)
 			{
@@ -194,6 +198,22 @@ namespace Foundation.Features.Checkout.Payments
             }
 
             _isInitalized = true;
+        }
+
+        private void VerifyCartHasShippingCountry(ICart cart)
+        {
+            var orderAddress = cart.GetFirstShipment().ShippingAddress;
+            if (orderAddress == null)
+            {
+                orderAddress = cart.CreateOrderAddress(Guid.NewGuid().ToString());
+                cart.GetFirstShipment().ShippingAddress = orderAddress;
+            }
+
+            if (string.IsNullOrWhiteSpace(orderAddress.CountryCode))
+            {
+                orderAddress.CountryCode = _currentMarket.GetCurrentMarket().DefaultLanguage.ThreeLetterISOLanguageName;
+                _orderRepository.Save(cart);
+            }
         }
 
         private void GetCheckoutJavascriptSource(ICart cart, string description)
@@ -653,6 +673,7 @@ In Foundation/Features/Checkout/Checkout.cshtml on #jsCheckoutForm add data attr
 ```
 
 Add view Foundation/Features/Checkout/_SwedbankPayCheckoutPeymentMethod.cshtml
+
 ```Csharp
 @model Foundation.Features.Checkout.Payments.SwedbankPayCheckoutPaymentOption
 @{
@@ -843,7 +864,6 @@ else
 				document.querySelector('#Shipments_0__Address_Line1').value = billingAddress.StreetAddress;
 				document.querySelector('#Shipments_0__Address_PostalCode').value = billingAddress.ZipCode;
 				document.querySelector('#Shipments_0__Address_City').value = billingAddress.City;
-				document.querySelector('[name="Shipments[0].Address.CountryCode"]').value = billingAddress.CountryCode;
 			});
 			request.open('POST', '@Url.Action("GetSwedbankPayBillingDetails", "Checkout", null)', true);
 			request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
@@ -863,7 +883,6 @@ else
 				document.querySelector('#Shipments_0__Address_Line1').value = shippingAddress.StreetAddress;
 				document.querySelector('#Shipments_0__Address_PostalCode').value = shippingAddress.ZipCode;
 				document.querySelector('#Shipments_0__Address_City').value = shippingAddress.City;
-				document.querySelector('[name="Shipments[0].Address.CountryCode"]').value = shippingAddress.CountryCode;
 			});
 			request.open('POST', '@Url.Action("GetSwedbankPayShippingDetails", "Checkout", null)', true);
 			request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
