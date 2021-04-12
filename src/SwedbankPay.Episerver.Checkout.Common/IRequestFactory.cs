@@ -14,7 +14,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
 {
 	public interface IRequestFactory
     {
-	    PaymentOrderRequest GetPaymentOrderRequest(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string description, string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null);
+	    PaymentOrderRequest GetPaymentOrderRequest(IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string description, string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null, Uri completedUrl = null);
         ConsumerRequest GetConsumerResourceRequest(Language language, IList<CountryCode> shippingAddressRestrictedToCountryCodes, EmailAddress email = null, Msisdn msisdn = null, NationalIdentifier nationalIdentifier = null);
         PaymentOrderAbortRequest GetAbortRequest(string abortReason);
         PaymentOrderCancelRequest GetCancelRequest(string description = "Cancelling purchase order.");

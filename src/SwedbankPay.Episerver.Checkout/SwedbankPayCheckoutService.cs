@@ -55,7 +55,7 @@ namespace SwedbankPay.Episerver.Checkout
 															ContentLanguage.PreferredCulture.Name, true));
 
 		public virtual IPaymentOrderResponse CreateOrUpdatePaymentOrder(IOrderGroup orderGroup, string description,
-			string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null)
+			string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null, Uri completedUrl = null)
 		{
 			Uri orderId = null;
 			var swedbankPayOrderIdField = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
@@ -64,7 +64,7 @@ namespace SwedbankPay.Episerver.Checkout
 				orderId = new Uri(swedbankPayOrderIdField, UriKind.RelativeOrAbsolute);
 			}
 
-			return orderId == null ? CreatePaymentOrder(orderGroup, description, consumerProfileRef, cancelUrl, paymentUrl) : UpdatePaymentOrder(orderId, orderGroup);
+			return orderId == null ? CreatePaymentOrder(orderGroup, description, consumerProfileRef, cancelUrl, paymentUrl, completedUrl) : UpdatePaymentOrder(orderId, orderGroup);
 		}
 
 		public virtual IConsumersResponse InitiateConsumerSession(CultureInfo currentLanguage, string email = null, string mobilePhone = null, string ssn = null)
@@ -181,14 +181,14 @@ namespace SwedbankPay.Episerver.Checkout
 			return _checkoutConfigurationLoader.GetConfiguration(market.MarketId, languageId);
 		}
 
-		private IPaymentOrderResponse CreatePaymentOrder(IOrderGroup orderGroup, string description, string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null)
+		private IPaymentOrderResponse CreatePaymentOrder(IOrderGroup orderGroup, string description, string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null, Uri completedUrl = null)
 		{
 			var market = _currentMarket.GetCurrentMarket();
 			var swedbankPayClient = _swedbankPayClientFactory.Create(market);
 
 			try
 			{
-				var paymentOrderRequest = _requestFactory.GetPaymentOrderRequest(orderGroup, market, PaymentMethodDto, description, consumerProfileRef, cancelUrl, paymentUrl);
+				var paymentOrderRequest = _requestFactory.GetPaymentOrderRequest(orderGroup, market, PaymentMethodDto, description, consumerProfileRef, cancelUrl, paymentUrl, completedUrl);
 				var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Create(paymentOrderRequest));
 
 				orderGroup.Properties[Constants.ConsumerProfileRef] = consumerProfileRef;

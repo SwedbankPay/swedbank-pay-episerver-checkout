@@ -14,7 +14,7 @@ namespace SwedbankPay.Episerver.Checkout
 	public interface ISwedbankPayCheckoutService : ISwedbankPayService
 	{
 		IConsumersResponse InitiateConsumerSession(CultureInfo currentLanguage, string email = null, string mobilePhone = null, string ssn = null);
-		IPaymentOrderResponse CreateOrUpdatePaymentOrder(IOrderGroup orderGroup, string description, string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null);
+		IPaymentOrderResponse CreateOrUpdatePaymentOrder(IOrderGroup orderGroup, string description, string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null, Uri completedUrl = null);
 		CheckoutConfiguration LoadCheckoutConfiguration(IMarket market, string languageId);
 
 		IPaymentOrderResponse GetPaymentOrder(IOrderGroup orderGroup, PaymentOrderExpand paymentOrderExpand = PaymentOrderExpand.None);

@@ -47,7 +47,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
         }
 
         public virtual PaymentOrderRequest GetPaymentOrderRequest(
-            IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string description, string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl= null)
+            IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string description, string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null, Uri completedUrl = null)
         {
             if (orderGroup == null)
                 throw new ArgumentNullException(nameof(orderGroup));
@@ -69,7 +69,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 }
             }
 
-            return CreatePaymentOrderRequest(orderGroup, market, consumerProfileRef, orderItems, description, cancelUrl, paymentUrl);
+            return CreatePaymentOrderRequest(orderGroup, market, consumerProfileRef, orderItems, description, cancelUrl, paymentUrl, completedUrl);
         }
 
         public virtual ConsumerRequest GetConsumerResourceRequest(Language language,
@@ -201,7 +201,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
             return orderItems.Sum(x => x.VatAmount);
         }
     
-        private PaymentOrderRequest CreatePaymentOrderRequest(IOrderGroup orderGroup, IMarket market, string consumerProfileRef, List<OrderItem> orderItems, string description, Uri cancelUrl, Uri paymentUrl)
+        private PaymentOrderRequest CreatePaymentOrderRequest(IOrderGroup orderGroup, IMarket market, string consumerProfileRef, List<OrderItem> orderItems, string description, Uri cancelUrl, Uri paymentUrl, Uri completedUrl)
         {
             var configuration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
             var currencyCode = orderGroup.Currency.CurrencyCode;
@@ -215,7 +215,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
             var payeeReference = DateTime.Now.Ticks.ToString();
 
-            Urls merchantUrls = GetMerchantUrls(orderGroup, market, payeeReference);
+            Urls merchantUrls = GetMerchantUrls(orderGroup, market, payeeReference, completedUrl);
             if(cancelUrl != null)
             {
 	            merchantUrls.CancelUrl = cancelUrl;
@@ -259,7 +259,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 new Amount(shippingVatAmount.Amount));
         }
 
-        private Urls GetMerchantUrls(IOrderGroup orderGroup, IMarket market, string payeeReference)
+        private Urls GetMerchantUrls(IOrderGroup orderGroup, IMarket market, string payeeReference, Uri completedUrl = null)
         {
             var checkoutConfiguration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
             
@@ -282,7 +282,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
             var cancelUrl = checkoutConfiguration.PaymentUrl != null ? ToFullSiteUrl(c => c.CancelUrl) : null;
 
-            return new Urls(checkoutConfiguration.HostUrls, ToFullSiteUrl(c => c.CompleteUrl),
+            return new Urls(checkoutConfiguration.HostUrls, completedUrl ?? ToFullSiteUrl(c => c.CompleteUrl),
 				checkoutConfiguration.TermsOfServiceUrl)
             {
                 CallbackUrl = ToFullSiteUrl(c => c.CallbackUrl),

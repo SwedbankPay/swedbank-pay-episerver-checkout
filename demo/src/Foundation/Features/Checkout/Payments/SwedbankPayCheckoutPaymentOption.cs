@@ -74,7 +74,7 @@ namespace Foundation.Features.Checkout.Payments
             InitializeValues(cart);
         }
 
-        public void InitializeValues(ICart cart)
+        public void InitializeValues(ICart cart, Uri cancelUrl = null, Uri completedUrl = null)
         {
             if (_isInitalized || cart == null)
             {
@@ -94,23 +94,16 @@ namespace Foundation.Features.Checkout.Payments
             }
             if (!string.IsNullOrWhiteSpace(orderId) || CheckoutConfiguration.UseAnonymousCheckout)
             {
-                Uri cancelUrl = null;
-                if(HttpContext.Current?.Request.Url != null)
-				{
-                    var uriBuilder = new UriBuilder(HttpContext.Current.Request.Url);
-                    cancelUrl = !uriBuilder.Uri.IsAbsoluteUri ? new Uri(SiteDefinition.Current.SiteUrl, uriBuilder.Uri.PathAndQuery) : uriBuilder.Uri;
-                }
-                
-                GetCheckoutJavascriptSource(cart, $"description cart {cart.OrderLink.OrderGroupId}", cancelUrl);
+                GetCheckoutJavascriptSource(cart, $"description cart {cart.OrderLink.OrderGroupId}", cancelUrl, completedUrl: completedUrl);
             }
 
             _isInitalized = true;
         }
 
-        private void GetCheckoutJavascriptSource(ICart cart, string description, Uri cancelUrl = null, Uri paymentUrl = null)
+        private void GetCheckoutJavascriptSource(ICart cart, string description, Uri cancelUrl = null, Uri paymentUrl = null, Uri completedUrl = null)
         {
             var consumerProfileRef = cart.Properties[Constants.ConsumerProfileRef]?.ToString();
-            var orderData = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(cart, description, consumerProfileRef, cancelUrl, paymentUrl);
+            var orderData = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(cart, description, consumerProfileRef, cancelUrl, paymentUrl, completedUrl);
             JavascriptSource = orderData.Operations.View?.Href;
             UseCheckoutSource = true;
         }
