@@ -47,7 +47,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
         }
 
         public virtual PaymentOrderRequest GetPaymentOrderRequest(
-            IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string description, string consumerProfileRef = null)
+            IOrderGroup orderGroup, IMarket market, PaymentMethodDto paymentMethodDto, string description, string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl= null)
         {
             if (orderGroup == null)
                 throw new ArgumentNullException(nameof(orderGroup));
@@ -69,7 +69,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 }
             }
 
-            return CreatePaymentOrderRequest(orderGroup, market, consumerProfileRef, orderItems, description);
+            return CreatePaymentOrderRequest(orderGroup, market, consumerProfileRef, orderItems, description, cancelUrl, paymentUrl);
         }
 
         public virtual ConsumerRequest GetConsumerResourceRequest(Language language,
@@ -201,7 +201,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
             return orderItems.Sum(x => x.VatAmount);
         }
     
-        private PaymentOrderRequest CreatePaymentOrderRequest(IOrderGroup orderGroup, IMarket market, string consumerProfileRef, List<OrderItem> orderItems, string description)
+        private PaymentOrderRequest CreatePaymentOrderRequest(IOrderGroup orderGroup, IMarket market, string consumerProfileRef, List<OrderItem> orderItems, string description, Uri cancelUrl, Uri paymentUrl)
         {
             var configuration = _checkoutConfigurationLoader.GetConfiguration(market.MarketId);
             var currencyCode = orderGroup.Currency.CurrencyCode;
@@ -215,9 +215,19 @@ namespace SwedbankPay.Episerver.Checkout.Common
 
             var payeeReference = DateTime.Now.Ticks.ToString();
 
+            Urls merchantUrls = GetMerchantUrls(orderGroup, market, payeeReference);
+            if(cancelUrl != null)
+            {
+	            merchantUrls.CancelUrl = cancelUrl;
+            }
+            if(paymentUrl != null)
+            {
+	            merchantUrls.PaymentUrl = paymentUrl;
+            }
+
             var paymentOrderRequest = new PaymentOrderRequest(Operation.Purchase, new Sdk.Currency(currencyCode), new Amount(GetTotalAmountIncludingVatAsDecimal(orderItems)), new Amount(GetTotalVatAmountAsDecimal(orderItems)), description,
 	            HttpContext.Current.Request.UserAgent, new Language(CultureInfo.CreateSpecificCulture(ContentLanguage.PreferredCulture.Name).TextInfo.CultureName),
-	            false, GetMerchantUrls(orderGroup, market, payeeReference), new PayeeInfo(configuration.MerchantId,
+	            false, merchantUrls, new PayeeInfo(configuration.MerchantId,
 		            payeeReference));
 
             paymentOrderRequest.PaymentOrder.Payer = payer;

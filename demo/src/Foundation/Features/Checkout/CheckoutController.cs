@@ -885,7 +885,9 @@ namespace Foundation.Features.Checkout
                 return paymentOrderResponse.Operations.View.Href.OriginalString;
             }
 
-            var paymentOrderResponseObject = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(CartWithValidationIssues.Cart, "description", consumerProfileRef);
+            var cancelUrl = Request.UrlReferrer;
+
+            var paymentOrderResponseObject = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(CartWithValidationIssues.Cart, "description", consumerProfileRef, cancelUrl);
             return paymentOrderResponseObject.Operations.View.Href.OriginalString;
         }
 

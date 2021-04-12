@@ -18,7 +18,9 @@ using SwedbankPay.Sdk.PaymentOrders;
 using System;
 using System.ComponentModel;
 using System.Linq;
-
+using System.Net.Http;
+using System.Web;
+using EPiServer.Web;
 using TransactionType = Mediachase.Commerce.Orders.TransactionType;
 
 namespace Foundation.Features.Checkout.Payments
@@ -92,16 +94,23 @@ namespace Foundation.Features.Checkout.Payments
             }
             if (!string.IsNullOrWhiteSpace(orderId) || CheckoutConfiguration.UseAnonymousCheckout)
             {
-                GetCheckoutJavascriptSource(cart, $"description cart {cart.OrderLink.OrderGroupId}");
+                Uri cancelUrl = null;
+                if(HttpContext.Current?.Request.Url != null)
+				{
+                    var uriBuilder = new UriBuilder(HttpContext.Current.Request.Url);
+                    cancelUrl = !uriBuilder.Uri.IsAbsoluteUri ? new Uri(SiteDefinition.Current.SiteUrl, uriBuilder.Uri.PathAndQuery) : uriBuilder.Uri;
+                }
+                
+                GetCheckoutJavascriptSource(cart, $"description cart {cart.OrderLink.OrderGroupId}", cancelUrl);
             }
 
             _isInitalized = true;
         }
 
-        private void GetCheckoutJavascriptSource(ICart cart, string description)
+        private void GetCheckoutJavascriptSource(ICart cart, string description, Uri cancelUrl = null, Uri paymentUrl = null)
         {
             var consumerProfileRef = cart.Properties[Constants.ConsumerProfileRef]?.ToString();
-            var orderData = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(cart, description, consumerProfileRef);
+            var orderData = _swedbankPayCheckoutService.CreateOrUpdatePaymentOrder(cart, description, consumerProfileRef, cancelUrl, paymentUrl);
             JavascriptSource = orderData.Operations.View?.Href;
             UseCheckoutSource = true;
         }
