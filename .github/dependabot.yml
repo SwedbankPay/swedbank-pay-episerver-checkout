@@ -1,0 +1,95 @@
+version: 2
+updates:
+- package-ecosystem: nuget
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "03:00"
+    timezone: Europe/Oslo
+  open-pull-requests-limit: 99
+  ignore:
+  - dependency-name: AuthorizeNet
+    versions:
+    - "> 1.9.4"
+  - dependency-name: Castle.Core
+    versions:
+    - "> 4.2.1"
+  - dependency-name: Castle.Windsor
+    versions:
+    - "> 4.1.0"
+  - dependency-name: EPiServer.CMS.AspNet
+    versions:
+    - "> 11.13.0"
+  - dependency-name: EPiServer.CMS.Core
+    versions:
+    - "> 11.13.0"
+  - dependency-name: EPiServer.Commerce.Core
+    versions:
+    - "> 13.7.1"
+  - dependency-name: EPiServer.Framework
+    versions:
+    - "> 11.13.0"
+  - dependency-name: EPiServer.Framework.AspNet
+    versions:
+    - "> 11.13.0"
+  - dependency-name: ISO3166
+    versions:
+    - "> 1.0.1"
+  - dependency-name: Microsoft.AspNet.Mvc
+    versions:
+    - "> 5.2.3"
+  - dependency-name: Microsoft.AspNet.Razor
+    versions:
+    - "> 3.2.3"
+  - dependency-name: Microsoft.AspNet.WebPages
+    versions:
+    - "> 3.2.3"
+  - dependency-name: Newtonsoft.Json
+    versions:
+    - "> 11.0.1"
+  - dependency-name: SharpZipLib
+    versions:
+    - "> 0.86.0"
+  - dependency-name: System.Buffers
+    versions:
+    - "> 4.4.0"
+  - dependency-name: System.ComponentModel.Annotations
+    versions:
+    - "> 4.4.0"
+  - dependency-name: System.Data.SqlClient
+    versions:
+    - "> 4.4.0"
+  - dependency-name: System.Memory
+    versions:
+    - "> 4.5.2"
+  - dependency-name: System.Numerics.Vectors
+    versions:
+    - "> 4.4.0"
+  - dependency-name: System.Reflection.Emit
+    versions:
+    - "> 4.3.0"
+  - dependency-name: System.Runtime.CompilerServices.Unsafe
+    versions:
+    - "> 4.6.0"
+  - dependency-name: System.Security.AccessControl
+    versions:
+    - "> 4.4.0"
+  - dependency-name: System.Security.Cryptography.Xml
+    versions:
+    - "> 4.4.2"
+  - dependency-name: System.Security.Permissions
+    versions:
+    - "> 4.4.0"
+  - dependency-name: System.Security.Principal.Windows
+    versions:
+    - "> 4.4.0"
+  - dependency-name: System.Threading.AccessControl
+    versions:
+    - "> 4.4.0"
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "03:00"
+    timezone: Europe/Oslo
+  open-pull-requests-limit: 99
