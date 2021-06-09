@@ -55,7 +55,7 @@ namespace SwedbankPay.Episerver.Checkout
 															ContentLanguage.PreferredCulture.Name, true));
 
 		public virtual IPaymentOrderResponse CreateOrUpdatePaymentOrder(IOrderGroup orderGroup, string description,
-			string consumerProfileRef = null)
+			string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null, Uri completedUrl = null)
 		{
 			Uri orderId = null;
 			var swedbankPayOrderIdField = orderGroup.Properties[Constants.SwedbankPayOrderIdField]?.ToString();
@@ -64,7 +64,7 @@ namespace SwedbankPay.Episerver.Checkout
 				orderId = new Uri(swedbankPayOrderIdField, UriKind.RelativeOrAbsolute);
 			}
 
-			return orderId == null ? CreatePaymentOrder(orderGroup, description, consumerProfileRef) : UpdatePaymentOrder(orderId, orderGroup);
+			return orderId == null ? CreatePaymentOrder(orderGroup, description, consumerProfileRef, cancelUrl, paymentUrl, completedUrl) : UpdatePaymentOrder(orderId, orderGroup, description, consumerProfileRef, cancelUrl, paymentUrl, completedUrl);
 		}
 
 		public virtual IConsumersResponse InitiateConsumerSession(CultureInfo currentLanguage, string email = null, string mobilePhone = null, string ssn = null)
@@ -181,7 +181,7 @@ namespace SwedbankPay.Episerver.Checkout
 			return _checkoutConfigurationLoader.GetConfiguration(market.MarketId, languageId);
 		}
 
-		private IPaymentOrderResponse CreatePaymentOrder(IOrderGroup orderGroup, string description, string consumerProfileRef = null)
+		private IPaymentOrderResponse CreatePaymentOrder(IOrderGroup orderGroup, string description, string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null, Uri completedUrl = null)
 		{
 			var market = _currentMarket.GetCurrentMarket();
 			var swedbankPayClient = _swedbankPayClientFactory.Create(market);
@@ -205,21 +205,35 @@ namespace SwedbankPay.Episerver.Checkout
 			}
 		}
 
-		private IPaymentOrderResponse UpdatePaymentOrder(Uri orderId, IOrderGroup orderGroup)
+		private IPaymentOrderResponse UpdatePaymentOrder(Uri orderId, IOrderGroup orderGroup, string description,
+			string consumerProfileRef = null, Uri cancelUrl = null, Uri paymentUrl = null, Uri completedUrl = null)
 		{
 			var market = _marketService.GetMarket(orderGroup.MarketId);
 			var swedbankPayClient = _swedbankPayClientFactory.Create(PaymentMethodDto, orderGroup.MarketId);
+			var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Get(orderId, PaymentOrderExpand.OrderItems | PaymentOrderExpand.CurrentPayment));
 
 			var updateOrderRequest = _requestFactory.GetUpdateRequest(orderGroup, market);
-			var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Get(orderId));
+			var sameOrderItems = updateOrderRequest.PaymentOrder.OrderItems.Select(x => x.Reference).All(paymentOrder.PaymentOrder.OrderItems.OrderItemList.Select(y => y.Reference).Contains);
 
-			if (paymentOrder?.Operations?.Update != null)
+			var totalAmount = orderGroup.GetTotal().Amount;
+			var amountChanged = totalAmount != paymentOrder.PaymentOrder.Amount;
+
+			//Cart is updated, update payment order
+			if (amountChanged || !sameOrderItems)
 			{
-				var response = AsyncHelper.RunSync(() => paymentOrder.Operations.Update(updateOrderRequest));
-			}
+				var currentPayment = paymentOrder.PaymentOrder.CurrentPayment.Payment;
 
-			orderGroup.Properties[Constants.SwedbankPayOrderIdField] = paymentOrder?.PaymentOrder.Id.OriginalString;
-			_orderRepository.Save(orderGroup);
+				//If currentPayment is aborted or ready, abort paymentOrder and create new paymentOrder, otherwise update paymentOrder
+				if (currentPayment != null && (currentPayment.State.Equals(State.Aborted) || currentPayment.State.Equals(State.Ready)))
+				{
+					AsyncHelper.RunSync(() => paymentOrder.Operations.Abort(_requestFactory.GetAbortRequest("UpdatedOrderItems")));
+					return CreatePaymentOrder(orderGroup, description, consumerProfileRef, cancelUrl, paymentUrl, completedUrl);
+				}
+				else
+				{
+					AsyncHelper.RunSync(() => paymentOrder.Operations.Update(updateOrderRequest));
+				}
+			}
 
 			return paymentOrder;
 		}
