@@ -3,19 +3,6 @@
 
 @model HeaderViewModel
 
-<div class="top-header">
-	<div class="container" style="">
-		<div class="row">
-			<div class="col-12">
-				<div class="top-header__banner-text">
-					<p>Plugin: @Model.PluginVersion</p>
-					<p>SDK: @Model.SdkVersion</p>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-
 @if (Model.IsReadonlyMode)
 {
     @Html.RenderReadonlyMessage()
@@ -29,9 +16,8 @@ else
                     <div class="top-header__banner-text">
                         @Html.PropertyFor(x => x.LayoutSettings.BannerText)
                     </div>
-                    @if (Model.ShowCommerceControls)
-                    {
-                        Html.RenderAction("Index", "Market", new { contentLink = ViewContext.RequestContext.GetContentLink() });
+                    @{
+                        Html.RenderAction("Index", "Market", new { contentLink = ViewContext.RequestContext.GetContentLink(), showCommerceControls = Model.ShowCommerceControls });
                     }
                 </div>
             </div>

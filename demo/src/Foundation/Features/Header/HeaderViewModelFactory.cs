@@ -8,7 +8,6 @@ using EPiServer.Framework.Localization;
 using EPiServer.SpecializedProperties;
 using EPiServer.Web;
 using EPiServer.Web.Routing;
-
 using Foundation.Cms.Extensions;
 using Foundation.Cms.Settings;
 using Foundation.Commerce;
@@ -21,12 +20,9 @@ using Foundation.Features.Login;
 using Foundation.Features.MyAccount.AddressBook;
 using Foundation.Features.MyAccount.Bookmarks;
 using Foundation.Features.Settings;
-
 using Mediachase.Commerce.Customers;
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Web;
 
@@ -45,8 +41,6 @@ namespace Foundation.Features.Header
         private readonly ICustomerService _customerService;
         private readonly CustomerContext _customerContext;
         private readonly ISettingsService _settingsService;
-        private static string _pluginVersion;
-        private static string _sdkVersion;
 
         public HeaderViewModelFactory(LocalizationService localizationService,
             ICustomerService customerService,
@@ -90,21 +84,6 @@ namespace Foundation.Features.Header
             viewModel.ReferencePageSettings = _settingsService.GetSiteSettings<ReferencePageSettings>();
             viewModel.LabelSettings = _settingsService.GetSiteSettings<LabelSettings>();
 
-            if (string.IsNullOrWhiteSpace(_pluginVersion))
-            {
-                var pluginAssembly = typeof(Startup).Assembly;
-                var pluginVersionInfo = FileVersionInfo.GetVersionInfo(pluginAssembly.Location);
-                _pluginVersion = pluginVersionInfo.ProductVersion;
-            }
-            viewModel.PluginVersion = _pluginVersion;
-
-            if (string.IsNullOrWhiteSpace(_sdkVersion))
-            {
-                var sdkAssembly = typeof(SwedbankPay.Sdk.SwedbankPayClient).Assembly;
-                var sdkVersionInfo = FileVersionInfo.GetVersionInfo(sdkAssembly.Location);
-                _sdkVersion = sdkVersionInfo.ProductVersion;
-            }
-            viewModel.SdkVersion = _sdkVersion;
             return viewModel;
         }
 
@@ -215,7 +194,7 @@ namespace Foundation.Features.Header
                         return true;
                     }
                     var linkedItem = UrlResolver.Current.Route(new UrlBuilder(_menuItemBlock.Link));
-                    if (filter.ShouldFilter(linkedItem))
+                    if (linkedItem != null && filter.ShouldFilter(linkedItem))
                     {
                         return false;
                     }

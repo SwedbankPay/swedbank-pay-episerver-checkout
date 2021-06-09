@@ -18,10 +18,9 @@ using System.Net;
 using System.Web.Http;
 using System.Web.Http.Results;
 
-
 namespace Foundation.Features.Checkout
 {
-	[RoutePrefix("swedbankpay")]
+    [RoutePrefix("swedbankpay")]
     public class SwedbankPayCallbackController : ApiController
     {
         private ILogger _logger = LogManager.GetLogger(typeof(SwedbankPayCallbackController));

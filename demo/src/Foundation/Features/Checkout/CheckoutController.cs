@@ -145,35 +145,60 @@ namespace Foundation.Features.Checkout
             viewModel.BillingAddress = _addressBookService.ConvertToModel(CartWithValidationIssues.Cart.GetFirstForm()?.Payments.FirstOrDefault()?.BillingAddress);
             _addressBookService.LoadAddress(viewModel.BillingAddress);
 
-            if (viewModel.Shipments.Count == 1)
+            var shipmentBillingTypes = TempData["ShipmentBillingTypes"] as List<KeyValuePair<string, int>>;
+
+            if (shipmentBillingTypes != null && shipmentBillingTypes.Any(x => x.Key == "Billing"))
             {
-                viewModel.BillingAddressType = 2;
-            }
-            else if (Request.IsAuthenticated)
-            {
-                viewModel.BillingAddressType = 1;
+                viewModel.BillingAddressType = 0;
             }
             else
             {
-                viewModel.BillingAddressType = 0;
+                if (viewModel.Shipments.Count == 1)
+                {
+                    viewModel.BillingAddressType = 2;
+                }
+                else if (Request.IsAuthenticated)
+                {
+                    viewModel.BillingAddressType = 1;
+                }
+                else
+                {
+                    viewModel.BillingAddressType = 0;
+                }
             }
 
             var shippingAddressType = Request.IsAuthenticated ? 1 : 0;
             for (var i = 0; i < viewModel.Shipments.Count; i++)
             {
-                if (string.IsNullOrEmpty(viewModel.Shipments[i].Address.AddressId))
+                if (shipmentBillingTypes != null && shipmentBillingTypes.Where(x => x.Key == "Shipment").Any(x => x.Value == i))
                 {
-                    viewModel.Shipments[i].ShippingAddressType = shippingAddressType;
+                    viewModel.Shipments[i].ShippingAddressType = 0;
                 }
                 else
                 {
-                    viewModel.Shipments[i].ShippingAddressType = 1;
+                    if (string.IsNullOrEmpty(viewModel.Shipments[i].Address.AddressId))
+                    {
+                        viewModel.Shipments[i].ShippingAddressType = shippingAddressType;
+                    }
+                    else
+                    {
+                        viewModel.Shipments[i].ShippingAddressType = 1;
+                    }
                 }
             }
 
             if (TempData[Constant.ErrorMessages] != null)
             {
                 ViewBag.ErrorMessages = (string)TempData[Constant.ErrorMessages];
+            }
+
+            var tempDataState = TempData["ModelState"] as List<KeyValuePair<string, string>>;
+            if (tempDataState != null)
+            {
+                foreach (var e in tempDataState)
+                {
+                    ViewData.ModelState.AddModelError(e.Key, e.Value);
+                }
             }
 
             return View("Checkout", viewModel);
@@ -332,7 +357,6 @@ namespace Foundation.Features.Checkout
             _orderRepository.Save(CartWithValidationIssues.Cart);
             model = CreateCheckoutViewModel(currentPage);
             model.OrderSummary = _orderSummaryViewModelFactory.CreateOrderSummaryViewModel(CartWithValidationIssues.Cart);
-
             return PartialView("_AddPayment", model);
         }
 
@@ -474,15 +498,30 @@ namespace Foundation.Features.Checkout
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> PlaceOrder(CheckoutPage currentPage, CheckoutViewModel checkoutViewModel)
         {
+            ModelState.Clear();
+
+            // store the shipment indexes and billing address properties if they are invalid when run TryValidateModel
+            // format: key = Shipment | Billing
+            var errorTypes = new List<KeyValuePair<string, int>>();
+
             // shipping information
-            UpdateShipmentAddress(checkoutViewModel);
+            UpdateShipmentAddress(checkoutViewModel, errorTypes);
 
             // subscription
             AddSubscription(checkoutViewModel);
 
             // billing address
-            UpdatePaymentAddress(checkoutViewModel);
+            UpdatePaymentAddress(checkoutViewModel, errorTypes);
             _orderRepository.Save(CartWithValidationIssues.Cart);
+
+            if (!ModelState.IsValid)
+            {
+                var stateValues = new List<KeyValuePair<string, string>>();
+                stateValues.AddRange(ModelState.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.Errors.FirstOrDefault().ErrorMessage)));
+                TempData["ModelState"] = stateValues;
+                TempData["ShipmentBillingTypes"] = errorTypes;
+                return RedirectToAction("Index");
+            }
 
             try
             {
@@ -605,7 +644,7 @@ namespace Foundation.Features.Checkout
             return PartialView("_AddPayment", model);
         }
 
-        public void UpdatePaymentAddress(CheckoutViewModel viewModel)
+        public void UpdatePaymentAddress(CheckoutViewModel viewModel, List<KeyValuePair<string, int>> errorTypes)
         {
             var orderSummary = _orderSummaryViewModelFactory.CreateOrderSummaryViewModel(CartWithValidationIssues.Cart);
             var isMissingPayment = !CartWithValidationIssues.Cart.Forms.SelectMany(x => x.Payments).Any();
@@ -656,6 +695,11 @@ namespace Foundation.Features.Checkout
                 var addressName = viewModel.BillingAddress.FirstName + " " + viewModel.BillingAddress.LastName;
                 viewModel.BillingAddress.AddressId = null;
                 viewModel.BillingAddress.Name = addressName + " " + DateTime.Now.ToString();
+
+                if (!TryValidateModel(viewModel.BillingAddress, "BillingAddress"))
+                {
+                    errorTypes.Add(new KeyValuePair<string, int>("Billing", 1));
+                }
             }
 
             foreach (var payment in CartWithValidationIssues.Cart.GetFirstForm().Payments)
@@ -666,9 +710,8 @@ namespace Foundation.Features.Checkout
 
         public void AddSubscription(CheckoutViewModel checkoutViewModel) => _checkoutService.UpdatePaymentPlan(CartWithValidationIssues.Cart, checkoutViewModel);
 
-        public void UpdateShipmentAddress(CheckoutViewModel checkoutViewModel)
+        public void UpdateShipmentAddress(CheckoutViewModel checkoutViewModel, List<KeyValuePair<string, int>> errorTypes)
         {
-            ModelState.Clear();
             var content = Request.RequestContext.GetRoutedData<CheckoutPage>();
             var viewModel = CreateCheckoutViewModel(content);
             if (!checkoutViewModel.UseShippingingAddressForBilling)
@@ -681,6 +724,11 @@ namespace Foundation.Features.Checkout
                         checkoutViewModel.Shipments[i].Address.AddressId = null;
                         checkoutViewModel.Shipments[i].Address.Name = addressName + " " + DateTime.Now.ToString();
                         viewModel.Shipments[i].Address = checkoutViewModel.Shipments[i].Address;
+
+                        if (!TryValidateModel(checkoutViewModel.Shipments[i].Address, "Shipments[" + i + "].Address"))
+                        {
+                            errorTypes.Add(new KeyValuePair<string, int>("Shipment", i));
+                        }
                     }
                     else
                     {
@@ -797,9 +845,6 @@ namespace Foundation.Features.Checkout
 
         private bool CartIsNullOrEmpty() => CartWithValidationIssues.Cart == null || !CartWithValidationIssues.Cart.GetAllLineItems().Any();
 
-
-
-
         [HttpPost]
         [AllowDBWrite]
         public JsonResult AddPaymentAndAddressInformation(CheckoutViewModel viewModel, IPaymentMethod paymentMethod, string paymentId)
@@ -836,7 +881,6 @@ namespace Foundation.Features.Checkout
             // subscription
             AddSubscription(viewModel);
 
-
             // Clean up payments in cart on payment provider site.
             foreach (var form in CartWithValidationIssues.Cart.Forms)
             {
@@ -846,8 +890,9 @@ namespace Foundation.Features.Checkout
             CartWithValidationIssues.Cart.AddPayment(payment);
             CartWithValidationIssues.Cart.Properties[Constants.SwedbankPayPaymentIdField] = paymentId;
 
+            var errorTypes = new List<KeyValuePair<string, int>>();
             // billing address
-            UpdatePaymentAddress(viewModel);
+            UpdatePaymentAddress(viewModel, errorTypes);
 
             _orderRepository.Save(CartWithValidationIssues.Cart);
 
