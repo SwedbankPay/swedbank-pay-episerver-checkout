@@ -243,6 +243,10 @@ namespace Foundation.Features.Checkout.Services
             {
                 modelState.AddModelError("", _localizationService.GetString("/Checkout/Payment/Errors/ProcessingPaymentFailure") + ex.Message);
             }
+            catch (Exception ex)
+            {
+                modelState.AddModelError("", ex.Message);
+            }
 
             return null;
         }
@@ -404,8 +408,6 @@ namespace Foundation.Features.Checkout.Services
         }
         #endregion
 
-
-
         public IPurchaseOrder GetOrCreatePurchaseOrder(int orderGroupId, string swedbankPayOrderId)
         {
             // Check if the order has been created already
@@ -449,7 +451,6 @@ namespace Foundation.Features.Checkout.Services
             return null;
         }
 
-
         private IPurchaseOrder CreatePurchaseOrderForSwedbankPay(ICart cart)
         {
             cart.ProcessPayments(_paymentProcessor, _orderGroupCalculator);
@@ -465,7 +466,7 @@ namespace Foundation.Features.Checkout.Services
             _orderRepository.Delete(cart.OrderLink);
             var validationIssues = _cartService.RequestInventory(cart);
 
-            if (purchaseOrder == null || validationIssues != null && validationIssues.Any())
+            if (purchaseOrder == null || (validationIssues != null && validationIssues.Any()))
             {
                 _swedbankPayCheckoutService.CancelOrder(cart);
                 return null;
@@ -474,11 +475,9 @@ namespace Foundation.Features.Checkout.Services
             {
                 _swedbankPayCheckoutService.Complete(purchaseOrder);
 
-
                 _orderRepository.Save(purchaseOrder);
                 return purchaseOrder;
             }
         }
-
     }
 }

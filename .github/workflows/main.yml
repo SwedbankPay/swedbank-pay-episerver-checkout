@@ -35,13 +35,13 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:          
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
 
 
 
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.7
+      uses: gittools/actions/gitversion/setup@v0.9.9
       with:
         versionSpec: '5.x'
  
@@ -50,10 +50,10 @@ jobs:
  
     - name: Use GitVersion
       id: gitversion # step id used as reference for output values
-      uses: gittools/actions/gitversion/execute@v0.9.7
+      uses: gittools/actions/gitversion/execute@v0.9.9
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v1.8.0
       with:
         dotnet-version: ${{ env.dotnetCoreVersion }}
  
@@ -91,7 +91,7 @@ jobs:
       CM_URL: ${{ steps.setoutputvariables.outputs.CM_URL }}
        
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
 
       - name: Dump GitHub context
         env:
@@ -99,7 +99,7 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
 
       - name: Set dev environment variables
-        uses: allenevans/set-env@v2.0.0
+        uses: allenevans/set-env@v2.0.1
         if: ${{ startsWith(github.ref, 'refs/heads/develop') || github.base_ref == 'develop' || startsWith(github.ref, 'refs/heads/feature/')}} 
         with: 
           ENVIRONMENT: dev
@@ -109,7 +109,7 @@ jobs:
           CM_URL: https://mgrpayexepiserver001dev.azurewebsites.net/
           
       - name: Set uat environment variables
-        uses: allenevans/set-env@v2.0.0
+        uses: allenevans/set-env@v2.0.1
         if: ${{ startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/hotfix/') || contains(github.ref, '-beta')}} 
         with: 
           ENVIRONMENT: uat
@@ -119,7 +119,7 @@ jobs:
           CM_URL: https://mgrpayexepiserver001uat.azurewebsites.net/
           
       - name: Set pro environment variables
-        uses: allenevans/set-env@v2.0.0
+        uses: allenevans/set-env@v2.0.1
         if: ${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref, 'refs/tags/*-*') }} 
         with: 
           ENVIRONMENT: pro
@@ -144,10 +144,10 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
 
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.7
+        uses: gittools/actions/gitversion/setup@v0.9.9
         with:
           versionSpec: '5.x'
  
@@ -156,13 +156,13 @@ jobs:
  
       - name: Use GitVersion
         id: gitversion # step id used as reference for output values
-        uses: gittools/actions/gitversion/execute@v0.9.7
+        uses: gittools/actions/gitversion/execute@v0.9.9
         with:
           updateAssemblyInfo: true
           updateAssemblyInfoFilename: ./demo/src/Foundation/Properties/AssemblyInfo.cs 
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v1.8.0
         with:
           dotnet-version: ${{ env.dotnetCoreVersion }}
 
@@ -190,12 +190,21 @@ jobs:
           dotnet xdt --source connectionStrings.config --transform connectionStrings.${{ needs.variables.outputs.ENVIRONMENT }}.config --output connectionStrings.config
           dotnet xdt --source Web.config --transform Web.${{ needs.variables.outputs.ENVIRONMENT }}.config --output Web.config
 
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          
+      - name: Npm install
+        working-directory: demo/src/Foundation
+        run: npm install
+
       - name: Build demo solution with MSBuild
         run: msbuild demo/Foundation.sln /p:DeployOnBuild=true /p:PublishProfile=FolderProfile /p:Configuration=Release
 
       - name: Deploy Dev Site to Azure
         if: ${{ !startsWith(github.ref, 'refs/heads/feature/') && github.event_name != 'pull_request' && needs.variables.outputs.ENVIRONMENT == 'dev'}}
-        uses: Azure/webapps-deploy@v2
+        uses: Azure/webapps-deploy@v2.1.6
         with:
           app-name: ${{ needs.variables.outputs.AZURE_SITE_NAME }}
           package: 'demo/src/Foundation/swedbankpayartifacts/site'
@@ -203,7 +212,7 @@ jobs:
         
       - name: Deploy Dev Commerce Manager to Azure
         if: ${{ !startsWith(github.ref, 'refs/heads/feature/') && github.event_name != 'pull_request' && needs.variables.outputs.ENVIRONMENT == 'dev'}}
-        uses: Azure/webapps-deploy@v2
+        uses: Azure/webapps-deploy@v2.1.6
         with:
           app-name: ${{ needs.variables.outputs.AZURE_CM_NAME }}
           package: 'demo/src/Foundation.CommerceManager/swedbankpayartifacts/cm'
@@ -212,7 +221,7 @@ jobs:
 
       - name: Deploy Uat Site to Azure
         if: ${{ github.event_name != 'pull_request' && needs.variables.outputs.ENVIRONMENT == 'uat'}}
-        uses: Azure/webapps-deploy@v2
+        uses: Azure/webapps-deploy@v2.1.6
         with:
           app-name: ${{ needs.variables.outputs.AZURE_SITE_NAME }}
           package: 'demo/src/Foundation/swedbankpayartifacts/site'
@@ -220,7 +229,7 @@ jobs:
         
       - name: Deploy Uat Commerce Manager to Azure
         if: ${{ github.event_name != 'pull_request' && needs.variables.outputs.ENVIRONMENT == 'uat'}}
-        uses: Azure/webapps-deploy@v2
+        uses: Azure/webapps-deploy@v2.1.6
         with:
           app-name: ${{ needs.variables.outputs.AZURE_CM_NAME }}
           package: 'demo/src/Foundation.CommerceManager/swedbankpayartifacts/cm'
@@ -228,7 +237,7 @@ jobs:
 
       - name: Deploy Pro Site to Azure
         if: ${{ github.event_name != 'pull_request' && needs.variables.outputs.ENVIRONMENT == 'pro'}}
-        uses: Azure/webapps-deploy@v2
+        uses: Azure/webapps-deploy@v2.1.6
         with:
           app-name: ${{ needs.variables.outputs.AZURE_SITE_NAME }}
           package: 'demo/src/Foundation/swedbankpayartifacts/site'
@@ -236,7 +245,7 @@ jobs:
         
       - name: Deploy Pro Commerce Manager to Azure
         if: ${{ github.event_name != 'pull_request' && needs.variables.outputs.ENVIRONMENT == 'pro'}}
-        uses: Azure/webapps-deploy@v2
+        uses: Azure/webapps-deploy@v2.1.6
         with:
           app-name: ${{ needs.variables.outputs.AZURE_CM_NAME }}
           package: 'demo/src/Foundation.CommerceManager/swedbankpayartifacts/cm'

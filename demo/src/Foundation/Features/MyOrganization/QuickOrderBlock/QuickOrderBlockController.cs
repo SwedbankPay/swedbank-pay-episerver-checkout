@@ -30,7 +30,7 @@ namespace Foundation.Features.MyOrganization.QuickOrderBlock
         private ICart _cart;
         private readonly IOrderRepository _orderRepository;
         private readonly ReferenceConverter _referenceConverter;
-        private readonly ISearchService __searchService;
+        private readonly ISearchService _searchService;
         private readonly ICustomerService _customerService;
         private readonly IContentLoader _contentLoader;
         private readonly ContentLocator _contentLocator;
@@ -42,7 +42,7 @@ namespace Foundation.Features.MyOrganization.QuickOrderBlock
             IFileHelperService fileHelperService,
             IOrderRepository orderRepository,
             ReferenceConverter referenceConverter,
-            ISearchService _searchService,
+            ISearchService searchService,
             ICustomerService customerService,
             IContentLoader contentLoader,
             ContentLocator contentLocator,
@@ -53,7 +53,7 @@ namespace Foundation.Features.MyOrganization.QuickOrderBlock
             _fileHelperService = fileHelperService;
             _orderRepository = orderRepository;
             _referenceConverter = referenceConverter;
-            __searchService = _searchService;
+            _searchService = searchService;
             _customerService = customerService;
             _contentLoader = contentLoader;
             _contentLocator = contentLocator;
@@ -61,14 +61,16 @@ namespace Foundation.Features.MyOrganization.QuickOrderBlock
         }
         public override ActionResult Index(QuickOrderBlock currentBlock)
         {
-            currentBlock.ReturnedMessages = TempData["messages"] as List<string>;
-            currentBlock.ProductsList = TempData["products"] as List<QuickOrderProductViewModel>;
-            return PartialView(currentBlock);
+            var model = new QuickOrderViewModel(currentBlock);
+
+            model.ReturnedMessages = TempData["messages"] as List<string>;
+            model.ProductsList = TempData["products"] as List<QuickOrderProductViewModel>;
+            return PartialView(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Import(QuickOrderProductViewModel[] ProductsList)
+        public ActionResult Import(QuickOrderProductViewModel[] productsList)
         {
             var returnedMessages = new List<string>();
 
@@ -79,7 +81,7 @@ namespace Foundation.Features.MyOrganization.QuickOrderBlock
                 _cart = _cartService.LoadOrCreateCart(_cartService.DefaultCartName);
             }
 
-            foreach (var product in ProductsList)
+            foreach (var product in productsList)
             {
                 if (!product.ProductName.Equals("removed"))
                 {
@@ -89,7 +91,7 @@ namespace Foundation.Features.MyOrganization.QuickOrderBlock
                     var responseMessage = _quickOrderService.ValidateProduct(variationReference, Convert.ToDecimal(product.Quantity), product.Sku);
                     if (responseMessage.IsNullOrEmpty())
                     {
-                        var result = _cartService.AddToCart(Cart, product.Sku, 1, "delivery", "");
+                        var result = _cartService.AddToCart(Cart, new NamedCarts.RequestParamsToCart { Code = product.Sku, Quantity = 1, Store = "delivery", SelectedStore = "" });
                         if (!result.EntriesAddedToCart)
                         {
                             continue;
@@ -169,7 +171,7 @@ namespace Foundation.Features.MyOrganization.QuickOrderBlock
 
         public JsonResult GetSku(string query)
         {
-            var data = __searchService.SearchSkus(query);
+            var data = _searchService.SearchSkus(query);
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
@@ -179,7 +181,7 @@ namespace Foundation.Features.MyOrganization.QuickOrderBlock
 
         [HttpPost]
 
-        public ActionResult RequestQuote(QuickOrderProductViewModel[] ProductsList)
+        public ActionResult RequestQuote(QuickOrderProductViewModel[] productsList)
         {
             var returnedMessages = new List<string>();
             ModelState.Clear();
@@ -190,7 +192,7 @@ namespace Foundation.Features.MyOrganization.QuickOrderBlock
 
             if (quoteCart != null)
             {
-                foreach (var product in ProductsList)
+                foreach (var product in productsList)
                 {
                     if (!product.ProductName.Equals("removed"))
                     {
@@ -198,7 +200,7 @@ namespace Foundation.Features.MyOrganization.QuickOrderBlock
                         var responseMessage = _quickOrderService.ValidateProduct(variationReference, Convert.ToDecimal(product.Quantity), product.Sku);
                         if (responseMessage.IsNullOrEmpty())
                         {
-                            var result = _cartService.AddToCart(quoteCart, product.Sku, 1, "delivery", "");
+                            var result = _cartService.AddToCart(quoteCart, new NamedCarts.RequestParamsToCart { Code = product.Sku, Quantity = 1, Store = "delivery", SelectedStore = "" });
                             if (!result.EntriesAddedToCart)
                             {
                                 continue;

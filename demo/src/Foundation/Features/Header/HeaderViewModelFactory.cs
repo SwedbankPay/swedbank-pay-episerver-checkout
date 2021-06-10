@@ -31,7 +31,7 @@ using System.Linq;
 using System.Web;
 
 namespace Foundation.Features.Header
-{
+{ 
     public class HeaderViewModelFactory : IHeaderViewModelFactory
     {
         private readonly LocalizationService _localizationService;
@@ -105,6 +105,7 @@ namespace Foundation.Features.Header
                 _sdkVersion = sdkVersionInfo.ProductVersion;
             }
             viewModel.SdkVersion = _sdkVersion;
+
             return viewModel;
         }
 
@@ -215,7 +216,7 @@ namespace Foundation.Features.Header
                         return true;
                     }
                     var linkedItem = UrlResolver.Current.Route(new UrlBuilder(_menuItemBlock.Link));
-                    if (filter.ShouldFilter(linkedItem))
+                    if (linkedItem != null && filter.ShouldFilter(linkedItem))
                     {
                         return false;
                     }
