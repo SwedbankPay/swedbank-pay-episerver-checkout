@@ -3266,7 +3266,6 @@
     <Content Include="Apps\Shell\Styles\images\ext\default\window\top-bottom.psd" />
     <Content Include="Apps\Shell\Styles\Login.skin" />
     <Content Include="Apps\Shell\Styles\ToolBar.skin" />
-    <Content Include="Apps\Web.config" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
