@@ -2,6 +2,7 @@
 using EPiBootstrapArea.Initialization;
 using EPiServer;
 using EPiServer.Commerce.Internal.Migration;
+using EPiServer.Commerce.Marketing.Internal;
 using EPiServer.Commerce.Order;
 using EPiServer.ContentApi.Core.Configuration;
 using EPiServer.ContentApi.Search;
@@ -51,6 +52,8 @@ using Foundation.Infrastructure.Display;
 using Foundation.Infrastructure.PowerSlices;
 using Foundation.Infrastructure.SchemaMarkup;
 using Foundation.Infrastructure.Services;
+using Mediachase.Commerce.Orders;
+using Mediachase.MetaDataPlus.Configurator;
 using PowerSlice;
 using System;
 using System.Collections.Generic;
@@ -58,8 +61,6 @@ using System.Linq;
 using System.Web.Http;
 using System.Web.Http.Owin;
 using System.Web.Mvc;
-using Mediachase.Commerce.Orders;
-using Mediachase.MetaDataPlus.Configurator;
 
 namespace Foundation.Infrastructure
 {
@@ -175,6 +176,7 @@ namespace Foundation.Infrastructure
             _services.AddSingleton<ISchemaDataMapper<HomePage>, HomePageSchemaMapper>();
             _services.AddSingleton<ISchemaDataMapper<GenericProduct>, GenericProductSchemaDataMapper>();
             _services.AddSingleton<ISchemaDataMapper<LocationItemPage>, LocationItemPageSchemaDataMapper>();
+            _services.AddSingleton<PromotionEngineContentLoader, FoundationPromotionEngineContentLoader>();
         }
 
         public void Initialize(InitializationEngine context)
@@ -225,7 +227,6 @@ namespace Foundation.Infrastructure
             }
 
             _locator.GetInstance<IContentEvents>().PublishedContent += OnPublishedContent;
-
         }
 
         private void OnPublishedContent(object sender, ContentEventArgs contentEventArgs)
@@ -264,17 +265,16 @@ namespace Foundation.Infrastructure
             var isEncrypted = true;
 
             var metaField = MetaField.Load(context, name) ?? MetaField.Create(context,
-                lineItemMetaClass.Namespace,
-                name,
-                displayName,
-                description,
-                metaFieldType,
-                length,
-                isNullable,
-                isMultiLanguage,
-                isSearchable,
-                isEncrypted);
-
+                                             lineItemMetaClass.Namespace,
+                                             name,
+                                             displayName,
+                                             description,
+                                             metaFieldType,
+                                             length,
+                                             isNullable,
+                                             isMultiLanguage,
+                                             isSearchable,
+                                             isEncrypted);
 
             if (lineItemMetaClass.MetaFields.All(x => x.Id != metaField.Id))
             {
