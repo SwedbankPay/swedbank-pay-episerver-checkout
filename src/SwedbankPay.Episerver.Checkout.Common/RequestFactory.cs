@@ -186,7 +186,7 @@ namespace SwedbankPay.Episerver.Checkout.Common
                 var vatPercent = (int)_swedbankPayTaxCalculator.GetTaxPercentage(item, market, shippingAddress, TaxType.SalesTax) * 100;
                 var amount = market.PricesIncludeTax ? extendedPrice : extendedPrice + salesTax;
 
-                return new OrderItem(item.LineItemId.ToString(), item.DisplayName, OrderItemType.Product, "FASHION",
+                return new OrderItem(item.Code, item.DisplayName, OrderItemType.Product, "FASHION",
                     item.ReturnQuantity > 0 ? item.ReturnQuantity : item.Quantity, "PCS", new Amount(unitPrice), vatPercent, new Amount(amount),
                     new Amount(salesTax));
             });
