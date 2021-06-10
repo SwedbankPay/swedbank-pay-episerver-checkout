@@ -35,5 +35,7 @@ namespace Foundation.Features.Header
         public bool HasOrganization { get; set; }
         public bool IsBookmarked { get; set; }
         public List<DemoUserViewModel> DemoUsers { get; set; }
+        public string PluginVersion { get; set; }
+        public string SdkVersion { get; set; }
     }
 }
