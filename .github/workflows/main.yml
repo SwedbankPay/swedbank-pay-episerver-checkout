@@ -194,9 +194,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - run: |
-          cd demo/src/Foundation
-          npm install
+      - name: Npm install
+        working-directory: demo/src/Foundation
+        run: npm install
 
       - name: Build demo solution with MSBuild
         run: msbuild demo/Foundation.sln /p:DeployOnBuild=true /p:PublishProfile=FolderProfile /p:Configuration=Release
