@@ -191,9 +191,10 @@ jobs:
           dotnet xdt --source Web.config --transform Web.${{ needs.variables.outputs.ENVIRONMENT }}.config --output Web.config
 
       - name: Setup node
-      - uses: actions/setup-node@v2
+        uses: actions/setup-node@v2
         with:
           node-version: '14'
+          
       - name: Npm install
         working-directory: demo/src/Foundation
         run: npm install
