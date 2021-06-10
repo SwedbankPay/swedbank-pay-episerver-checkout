@@ -188,7 +188,7 @@ namespace SwedbankPay.Episerver.Checkout
 
 			try
 			{
-				var paymentOrderRequest = _requestFactory.GetPaymentOrderRequest(orderGroup, market, PaymentMethodDto, description, consumerProfileRef);
+				var paymentOrderRequest = _requestFactory.GetPaymentOrderRequest(orderGroup, market, PaymentMethodDto, description, consumerProfileRef, cancelUrl, paymentUrl, completedUrl);
 				var paymentOrder = AsyncHelper.RunSync(() => swedbankPayClient.PaymentOrders.Create(paymentOrderRequest));
 
 				orderGroup.Properties[Constants.ConsumerProfileRef] = consumerProfileRef;

@@ -1,15 +1,13 @@
-﻿using EPiServer.ServiceLocation;
-
-using ISO3166;
+﻿using EPiServer.Personalization;
+using EPiServer.ServiceLocation;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using EPiServer.Personalization;
 
 namespace SwedbankPay.Episerver.Checkout.Common.Helpers
 {
-    public static class CountryCodeHelper
+	public static class CountryCodeHelper
     {
         private static Injected<IGeolocationProvider> GeoLocationProvider;
         private static Injected<ICountryRegionProvider> CountryRegionProvider;
