@@ -11,7 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		default.ruleset = default.ruleset
-		..\src\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj = ..\src\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwedbankPay.Episerver.Checkout", "..\src\SwedbankPay.Episerver.Checkout\SwedbankPay.Episerver.Checkout.csproj", "{F18A64F0-EE62-4873-9C40-C583BA50AE0A}"
@@ -21,6 +20,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwedbankPay.Episerver.Checkout.Common", "..\src\SwedbankPay.Episerver.Checkout.Common\SwedbankPay.Episerver.Checkout.Common.csproj", "{B8DD2435-95B0-41E2-916C-7FFB9EBF9746}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwedbankPay.Episerver.Checkout.OrderManagement", "..\src\SwedbankPay.Episerver.Checkout.OrderManagement\SwedbankPay.Episerver.Checkout.OrderManagement.csproj", "{1AA12B63-EBC2-4E06-8032-868DACB48D89}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foundation.UiTests", "src\Foundation.UiTests\Foundation.UiTests.csproj", "{B47AA809-A2D8-4307-985D-8C5CCF251D15}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,6 +53,10 @@ Global
 		{1AA12B63-EBC2-4E06-8032-868DACB48D89}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AA12B63-EBC2-4E06-8032-868DACB48D89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AA12B63-EBC2-4E06-8032-868DACB48D89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B47AA809-A2D8-4307-985D-8C5CCF251D15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B47AA809-A2D8-4307-985D-8C5CCF251D15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B47AA809-A2D8-4307-985D-8C5CCF251D15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B47AA809-A2D8-4307-985D-8C5CCF251D15}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
