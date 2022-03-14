@@ -29,7 +29,7 @@ env:
 jobs:
   build-plugin:
     name: Build plugin packages
-    runs-on: windows-latest
+    runs-on: windows-2019
     env: 
       ARTIFACT_STAGING_PATH: ${{ github.workspace }}/artifacts
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -140,7 +140,7 @@ jobs:
   build-demo-site:
     name: Build and deploy demo site
     needs: [variables, build-plugin]
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
