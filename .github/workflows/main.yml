@@ -191,7 +191,7 @@ jobs:
           dotnet xdt --source Web.config --transform Web.${{ needs.variables.outputs.ENVIRONMENT }}.config --output Web.config
 
       - name: Setup node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '14'
           
