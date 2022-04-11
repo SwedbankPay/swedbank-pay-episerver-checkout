@@ -71,7 +71,7 @@ jobs:
 
     - name: Publish nuget packages artifacts
       if: ${{ github.event_name != 'pull_request' }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         # Artifact name
         name: packages
