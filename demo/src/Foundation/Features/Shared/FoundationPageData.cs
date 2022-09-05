@@ -109,8 +109,11 @@ namespace Foundation.Features.Shared
         [Searchable(false)]
         [SelectOne(SelectionFactoryType = typeof(BlockRatioSelectionFactory))]
         [Display(Name = "Teaser ratio (width-height)", GroupName = TabNames.Teaser, Order = 50)]
-        [CultureSpecific]
         public virtual string TeaserRatio { get; set; }
+
+        [CultureSpecific]
+        [Display(Name = "Teaser title", GroupName = TabNames.Teaser, Order = 70)]
+        public virtual string TeaserTitle { get; set; }
 
         [UIHint(UIHint.Image)]
         [Display(Name = "Image", GroupName = TabNames.Teaser, Order = 100)]
@@ -140,13 +143,11 @@ namespace Foundation.Features.Shared
         [Searchable(false)]
         [SelectOne(SelectionFactoryType = typeof(TeaserTextAlignmentSelectionFactory))]
         [Display(Name = "Text alignment", GroupName = TabNames.Teaser, Order = 400)]
-        [CultureSpecific]
         public virtual string TeaserTextAlignment { get; set; }
 
         [Searchable(false)]
         [SelectOne(SelectionFactoryType = typeof(TeaserColorThemeSelectionFactory))]
         [Display(Name = "Color theme", GroupName = TabNames.Teaser, Order = 500)]
-        [CultureSpecific]
         public virtual string TeaserColorTheme { get; set; }
 
         [CultureSpecific]
@@ -156,11 +157,9 @@ namespace Foundation.Features.Shared
         [Searchable(false)]
         [SelectOne(SelectionFactoryType = typeof(ButtonBlockStyleSelectionFactory))]
         [Display(Name = "Button theme", GroupName = TabNames.Teaser, Order = 700)]
-        [CultureSpecific]
         public virtual string TeaserButtonStyle { get; set; }
 
         [Display(Name = "Display hover effect", GroupName = TabNames.Teaser, Order = 800)]
-        [CultureSpecific]
         public virtual bool ApplyHoverEffect { get; set; }
 
         [Searchable(false)]

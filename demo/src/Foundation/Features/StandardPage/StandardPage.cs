@@ -41,7 +41,6 @@ namespace Foundation.Features.StandardPage
             set => this.SetPropertyValue(page => page.BackgroundOpacity, value);
         }
 
-        [CultureSpecific]
         [UIHint(UIHint.Image)]
         [Display(Name = "Background image", GroupName = SystemTabNames.Content, Order = 240)]
         public virtual ContentReference BackgroundImage { get; set; }
