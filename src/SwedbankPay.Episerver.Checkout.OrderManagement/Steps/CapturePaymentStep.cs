@@ -60,10 +60,10 @@ namespace SwedbankPay.Episerver.Checkout.OrderManagement.Steps
                         var captureRequest = _requestFactory.GetCaptureRequest(payment, _market, shipment);
                         var captureResponse = AsyncHelper.RunSync(() => paymentOrder.Operations.Capture(captureRequest));
 
-                        if (captureResponse.Capture.Type == Sdk.PaymentInstruments.TransactionType.Capture && captureResponse.Capture.State.Equals(State.Completed))
+                        if (captureResponse.Capture.Transaction.Type == Sdk.PaymentInstruments.TransactionType.Capture && captureResponse.Capture.Transaction.State.Equals(State.Completed))
                         {
-                            payment.ProviderTransactionID = captureResponse.Capture.Number.ToString();
-                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Order captured at SwedbankPay, Transaction number: {captureResponse.Capture.Number}");
+                            payment.ProviderTransactionID = captureResponse.Capture.Transaction.Number.ToString();
+                            AddNoteAndSaveChanges(orderGroup, payment.TransactionType, $"Order captured at SwedbankPay, Transaction number: {captureResponse.Capture.Transaction.Number}");
                             paymentStepResult.Status = true;
                         }
 
