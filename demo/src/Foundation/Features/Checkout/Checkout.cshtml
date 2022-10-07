@@ -16,7 +16,7 @@
     </div>
 }
 
-@using (Html.BeginForm("PlaceOrder", "Checkout", FormMethod.Post, new { @class = "row jsCheckoutForm", id = "jsCheckoutForm", novalidate = "novalidate", data_addpaymentinfourl=Url.Action("AddPaymentAndAddressInformation", null, null) }))
+@using (Html.BeginForm("PlaceOrder", "Checkout", FormMethod.Post, new { @class = "row jsCheckoutForm", id = "jsCheckoutForm", novalidate = "novalidate", data_addpaymentinfourl = Url.Action("AddPaymentAndAddressInformation", null, null) }))
 {
     @Html.AntiForgeryToken()
     <div class="col-md-8 col-xs-12">
@@ -28,7 +28,7 @@
                 }
                 @if (Request.IsAuthenticated)
                 {
-                    <button class="button-black" type="button" data-toggle="modal" data-target="#newAddressModal">Add New Address</button>
+                    <button class="button-black" type="button" data-bs-toggle="modal" data-target="#newAddressModal">Add New Address</button>
                 }
             </div>
         </div>

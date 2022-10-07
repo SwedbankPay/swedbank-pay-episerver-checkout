@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+
+<languages>
+    <language name="English" id="en">
+        <episerver>
+            <cms>
+                <homeview>
+                    <title>Optimizely CMS - Edit</title>
+                </homeview>
+            </cms>
+            <shell>
+              <resources>
+                <texts>
+                  <aboutepiserver>About Optimizely</aboutepiserver>
+                </texts>
+              </resources>
+              <ui>
+                <resources>
+                  <dashboardview>
+                    <title>Optimizely - Dashboard</title>
+                  </dashboardview>
+                </resources>
+              </ui>
+            </shell>
+        </episerver>
+    </language>
+</languages>

@@ -26,12 +26,10 @@ namespace Foundation.Features.Search.ProductSearchBlock
         public virtual string SearchTerm { get; set; }
 
         [Display(Name = "Number of results", Description = "The number of products to show in the list, default is 6", Order = 30)]
-        [CultureSpecific]
         public virtual int ResultsPerPage { get; set; }
 
         [SelectOne(SelectionFactoryType = typeof(ProductSearchBlockItemsPerRowSelectionFactory))]
         [Display(Name = "Results per row", Description = "The number of products to show in a row, default is 3", Order = 40)]
-        [CultureSpecific]
         public virtual int ItemsPerRow { get; set; }
 
         [AllowedTypes(typeof(NodeContent))]
@@ -56,11 +54,9 @@ namespace Foundation.Features.Search.ProductSearchBlock
         public virtual string DiscontinuedProductsMode { get; set; }
 
         [Display(Name = "Minimum price", Description = "The minimum price in the current market currency", Order = 80)]
-        [CultureSpecific]
         public virtual int MinPrice { get; set; }
 
         [Display(Name = "Maximum price", Description = "The maximum price in the current market currency", Order = 90)]
-        [CultureSpecific]
         public virtual int MaxPrice { get; set; }
 
         [Searchable(false)]

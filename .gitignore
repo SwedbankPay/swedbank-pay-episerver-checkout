@@ -257,3 +257,15 @@ paket-files/
 ## EPiServer Files
 ######################
 *License.config
+
+
+# Foundation
+demo/Build/Logs/*.log
+demo/src/appdata/*
+demo/src/Foundation/License.config
+demo/src/Foundation/connectionStrings.config
+demo/src/Foundation.CommerceManager/connectionStrings.config
+demo/src/Foundation.CommerceManager/App_Data/ImportExport/*
+demo/rebuild.cmd
+demo/resetup.cmd
+demo/src/Foundation/App_Data/Catalog/
